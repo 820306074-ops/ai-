@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>每月食品安全调度会议纪要 - 强制校验版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        html, body { 
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+            background-color: #f3f4f6; 
+            overscroll-behavior: none; 
+            touch-action: pan-x pan-y; 
+        }
+        .section-title { @apply text-gray-700 font-bold mb-4 border-l-4 border-blue-600 pl-3 text-lg; }
+        .input-label { @apply block text-sm font-bold text-gray-800 mb-2; }
+        .input-field { @apply w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm; }
+        .input-readonly { @apply bg-gray-100 cursor-not-allowed text-gray-500; }
+        
+        /* 预览层样式 (A4 标准公文) */
+        #previewOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #374151; z-index: 50; overflow-y: auto; padding-bottom: 80px;
+        }
+        #previewPaper {
+            width: 210mm; 
+            min-height: 297mm; 
+            background: white; 
+            margin: 30px auto; 
+            padding: 25mm 31mm; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-family: "SimSun", "Songti SC", serif; 
+            color: #000;
+            line-height: 1.6;
+            font-size: 16px; 
+            box-sizing: border-box;
+        }
+        @media (max-width: 800px) {
+            #previewPaper { width: 95%; padding: 15px; margin: 10px auto; zoom: 0.6; }
+        }
+
+        /* 预览排版类 */
+        .doc-header-right { text-align: right; font-size: 14px; margin-bottom: 5px; font-family: 'SimHei', sans-serif; }
+        .doc-title { 
+            text-align: center; font-size: 28px; font-weight: bold; 
+            font-family: 'SimHei', sans-serif; margin-bottom: 20px; 
+            margin-top: 10px; letter-spacing: 2px;
+        }
+        .doc-record-no { margin-bottom: 10px; font-family: "SimSun"; font-size: 14px; }
+        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 16px; }
+        .doc-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; }
+        .doc-label-cell { font-family: 'SimHei', sans-serif; font-weight: bold; width: 100px; text-align: center; background-color: #fcfcfc; }
+        .doc-section-title { 
+            font-family: 'SimHei', sans-serif; font-weight: bold; font-size: 18px; 
+            margin-top: 25px; margin-bottom: 10px; 
+        }
+        .doc-text { text-align: justify; margin-bottom: 6px; text-indent: 2em; }
+        .doc-text-bold { font-weight: bold; font-family: 'SimHei'; }
+        .u-line { border-bottom: 1px solid #000; padding: 0 4px; font-family: "SimSun"; display: inline-block; min-width: 30px; text-align: center; }
+        .doc-footer { margin-top: 60px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+        .keep-together { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-lg z-40 h-20">
+        <div class="flex justify-between items-center px-6 py-3 bg-blue-700 text-white h-full">
+            <div>
+                <h1 class="text-xl font-bold flex items-center">
+                    <img src="logo.png" alt="Logo" class="h-8 w-auto mr-3" onerror="this.style.display='none'">
+                    每月食品安全调度会议纪要
+                </h1>
+                <p class="text-xs opacity-80">吴彦祖版 | 强制校验</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="h-20"></div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6" id="mainFormContainer">
+        
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 class="section-title">会议基本信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="input-label">记录编号</label>
+                    <input type="text" id="recordNo" class="input-field" placeholder="例如：20260116">
+                </div>
+                <div>
+                    <label class="input-label">会议年份</label>
+                    <input type="number" id="meetingYear" class="input-field" value="2026">
+                </div>
+                <div>
+                    <label class="input-label">会议月份</label>
+                    <input type="number" id="meetingMonth" class="input-field" value="2">
+                </div>
+                <div>
+                    <label class="input-label">主持人</label>
+                    <input type="text" id="host" class="input-field" placeholder="输入姓名" value="李川">
+                </div>
+                
+                <div>
+                    <label class="input-label">会议日期</label>
+                    <input type="date" id="meetingDate" class="input-field cursor-pointer">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="input-label">开始时间</label>
+                        <input type="time" id="startTime" class="input-field" value="14:00">
+                    </div>
+                    <div>
+                        <label class="input-label">结束时间</label>
+                        <input type="time" id="endTime" class="input-field" value="15:30">
+                    </div>
+                </div>
+                <div class="md:col-span-1">
+                    <label class="input-label">会议地点</label>
+                    <input type="text" id="location" class="input-field" value="办公室">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="input-label">出席人员</label>
+                    <input type="text" id="attendees" class="input-field" placeholder="张三、李四、王五...">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 class="section-title">一、食品安全管理工作情况汇报</h2>
+            
+            <div class="mb-6 max-w-md">
+                <label class="input-label"><span class="text-red-600 mr-1">*</span>汇报人</label>
+                <input type="text" id="reporter1" class="input-field border-blue-300" placeholder="此项必填">
+            </div>
+
+            <div class="bg-blue-50 p-5 rounded-lg mb-6 border border-blue-100">
+                <h3 class="font-bold text-blue-800 mb-4 text-lg border-b border-blue-200 pb-2">1. 食品原料验收情况</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">到货总批数</label>
+                        <input type="number" id="rmTotal" class="input-field mt-1" value="30" oninput="calcRmRate()">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">合格批数</label>
+                        <input type="number" id="rmQualified" class="input-field mt-1" value="29" oninput="calcRmRate()">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">不合格数 (自动)</label>
+                        <input type="text" id="rmUnqualified" class="input-field input-readonly mt-1" readonly value="1">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">合格率 (自动)</label>
+                        <input type="text" id="rmRate" class="input-field input-readonly mt-1" readonly value="96.7%">
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <label class="block text-sm font-bold text-blue-900 mb-3"><i class="fa-solid fa-pen-to-square mr-1"></i> 不合格项详情描述</label>
+                    <div class="mb-4">
+                        <label class="input-label text-gray-600">不合格原料为：</label>
+                        <input type="text" id="rmBadName" class="input-field" placeholder="例如：1月6日购进的生菜（若全合格则填“无”）">
+                    </div>
+                    <div class="mb-4">
+                        <label class="input-label text-gray-600">不合格原因为：</label>
+                        <input type="text" id="rmBadReason" class="input-field" placeholder="例如：农残快速检测超标（若无则填“无”）">
+                    </div>
+                    <div>
+                        <label class="input-label text-gray-600">采取的处理措施：</label>
+                        <textarea id="rmBadMeasure" class="input-field" rows="2" placeholder="例如：当场拒收，退货处理（若无则填“无”）"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 p-5 rounded-lg mb-6 border border-indigo-100">
+                <h3 class="font-bold text-indigo-800 mb-4 text-lg border-b border-indigo-200 pb-2">2. 投诉处理情况</h3>
+                
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">投诉总起数</label>
+                        <input type="number" id="compTotal" class="input-field mt-1" value="0" oninput="calcCompInvalid()">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">有效投诉</label>
+                        <input type="number" id="compEffective" class="input-field mt-1" value="0" oninput="calcCompInvalid()">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">无效投诉 (自动)</label>
+                        <input type="number" id="compInvalid" class="input-field input-readonly mt-1" readonly value="0">
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <label class="block text-sm font-bold text-indigo-900 mb-3"><i class="fa-solid fa-pen-to-square mr-1"></i> 投诉详情描述</label>
+                    <div class="mb-4">
+                        <label class="input-label text-gray-600">投诉产品主要为：</label>
+                        <input type="text" id="compProduct" class="input-field" placeholder="例如：红烧肉、米饭（若无投诉则填“无”）">
+                    </div>
+                    <div class="mb-4">
+                        <label class="input-label text-gray-600">投诉主要原因为：</label>
+                        <input type="text" id="compReason" class="input-field" placeholder="例如：发现异物/口感不佳（若无投诉则填“无”）">
+                    </div>
+                    <div>
+                        <label class="input-label text-gray-600">采取的主要改进措施为：</label>
+                        <textarea id="compMeasure" class="input-field" rows="2" placeholder="例如：对厨师进行批评教育，加强出餐检查（若无投诉则填“无”）"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-green-50 p-5 rounded-lg border border-green-100 flex flex-col">
+                    <h3 class="font-bold text-green-800 mb-3 text-lg border-b border-green-200 pb-1">3. 供应商管理</h3>
+                    <label class="input-label text-gray-600">本月对供应商审核情况：</label>
+                    <textarea id="supplierStatus" class="input-field flex-grow" rows="4" placeholder="例如：本月对3家米面粮油供应商资质进行了年度复审，全部合格。"></textarea>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-lg border border-orange-100">
+                    <h3 class="font-bold text-orange-800 mb-3 text-lg border-b border-orange-200 pb-1">4. 培训情况</h3>
+                    <div class="space-y-4">
+                        <div><label class="input-label text-gray-600">本月开展培训次数：</label><input type="number" id="trainTimes" class="input-field" value="1"></div>
+                        <div><label class="input-label text-gray-600">合计学时：</label><input type="number" id="trainHours" class="input-field" value="2"></div>
+                        <div><label class="input-label text-gray-600">参加培训人员合计：</label><input type="number" id="trainPeople" class="input-field" value="15"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <h3 class="font-bold text-blue-800 mb-4 text-lg border-b border-gray-300 pb-1">5. 日管控检查问题落实</h3>
+                <div class="grid grid-cols-3 gap-6 mb-4">
+                    <div>
+                        <label class="input-label text-gray-600">本月问题总数</label>
+                        <input type="number" id="checkTotal" class="input-field" value="5" oninput="calcCheckPending()">
+                    </div>
+                    <div>
+                        <label class="input-label text-gray-600">已落实整改数</label>
+                        <input type="number" id="checkFixed" class="input-field" value="5" oninput="calcCheckPending()">
+                    </div>
+                    <div>
+                        <label class="input-label text-gray-600">待整改数 (自动)</label>
+                        <input type="number" id="checkPending" class="input-field input-readonly" readonly value="0">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="input-label text-gray-600">计划完成整改时间</label>
+                        <input type="date" id="checkDeadline" class="input-field cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="input-label text-gray-600">相关责任部门配合情况</label>
+                        <input type="text" id="checkCoop" class="input-field" value="各部门配合良好，整改及时。">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4 border-l-4 border-red-600 pl-3">
+                    <h2 class="text-gray-700 font-bold text-lg">二、较大风险隐患排查情况</h2>
+                    <button onclick="addListItem('riskList')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded font-bold transition flex items-center shadow">
+                        <i class="fa-solid fa-plus mr-1"></i> 添加隐患
+                    </button>
+                </div>
+                <div id="riskList" class="space-y-4">
+                    <div class="flex gap-4 items-center">
+                        <span class="font-bold text-gray-400 w-6 text-right">1.</span>
+                        <input type="text" class="input-field flex-grow" value="部分从业人员健康证即将到期">
+                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+                    </div>
+                    <div class="flex gap-4 items-center">
+                        <span class="font-bold text-gray-400 w-6 text-right">2.</span>
+                        <input type="text" class="input-field flex-grow" value="仓库通风设备噪音较大">
+                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4 border-l-4 border-indigo-600 pl-3">
+                    <h2 class="text-gray-700 font-bold text-lg">三、部门发言及共识</h2>
+                    <button onclick="addListItem('consensusList')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded font-bold transition flex items-center shadow">
+                        <i class="fa-solid fa-plus mr-1"></i> 添加条目
+                    </button>
+                </div>
+                <div id="consensusList" class="space-y-4">
+                    <div class="flex gap-4 items-center">
+                        <span class="font-bold text-gray-400 w-6 text-right">1.</span>
+                        <input type="text" class="input-field flex-grow" value="各部门表示将全力配合食品安全整改工作。">
+                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4 border-l-4 border-yellow-600 pl-3">
+                    <h2 class="text-gray-700 font-bold text-lg">四、企业主要负责人工作要求</h2>
+                    <button onclick="addListItem('reqList')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded font-bold transition flex items-center shadow">
+                        <i class="fa-solid fa-plus mr-1"></i> 添加要求
+                    </button>
+                </div>
+                <div class="mb-4 max-w-md">
+                    <label class="input-label"><span class="text-red-600 mr-1">*</span>负责人姓名</label>
+                    <input type="text" id="leaderName" class="input-field border-blue-300" placeholder="此项必填">
+                </div>
+                <div id="reqList" class="space-y-4">
+                    <div class="flex gap-4 items-center">
+                        <span class="font-bold text-gray-400 w-6 text-right">1.</span>
+                        <input type="text" class="input-field flex-grow" value="必须严格落实日管控、周排查制度。">
+                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+                    </div>
+                    <div class="flex gap-4 items-center">
+                        <span class="font-bold text-gray-400 w-6 text-right">2.</span>
+                        <input type="text" class="input-field flex-grow" value="对排查出的隐患要举一反三，彻底整改。">
+                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6 mb-32">
+                <div class="flex justify-between items-center mb-4 border-l-4 border-green-600 pl-3">
+                    <h2 class="text-gray-700 font-bold text-lg">五、下个月重点工作计划</h2>
+                    <button onclick="addListItem('planList')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded font-bold transition flex items-center shadow">
+                        <i class="fa-solid fa-plus mr-1"></i> 添加计划
+                    </button>
+                </div>
+                <div id="planList" class="space-y-4">
+                    <div class="flex gap-4 items-center">
+                        <span class="font-bold text-gray-400 w-6 text-right">1.</span>
+                        <input type="text" class="input-field flex-grow" value="开展春季传染病预防专题培训。">
+                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+                    </div>
+                    <div class="flex gap-4 items-center">
+                        <span class="font-bold text-gray-400 w-6 text-right">2.</span>
+                        <input type="text" class="input-field flex-grow" value="对后厨设备进行全面检修。">
+                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-40 flex gap-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <button onclick="resetForm()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg transition text-base">
+            <i class="fa-solid fa-rotate-left mr-2"></i>重置
+        </button>
+        <button onclick="showReportPreview()" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition text-base">
+            <i class="fa-solid fa-file-signature mr-2"></i>预览报告
+        </button>
+    </div>
+
+    <div id="previewOverlay" class="hidden">
+        <div id="previewPaper"></div>
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 flex gap-4 justify-center">
+            <button onclick="closePreview()" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">返回修改</button>
+            <button onclick="generateFinalPDF()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg">生成PDF</button>
+        </div>
+    </div>
+
+    <script>
+        // 核心：斜杠日期格式化 YYYY/M/D (去零)
+        const formatSlashString = (dateString) => {
+            if (!dateString) return "____/__/__";
+            const parts = dateString.split('-'); 
+            if(parts.length !== 3) return dateString;
+            return `${parts[0]}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            const todayISO = new Date().toISOString().split('T')[0];
+            document.getElementById('meetingDate').value = todayISO;
+        });
+
+        // 1. 原料合格率计算
+        function calcRmRate() {
+            const total = parseInt(document.getElementById('rmTotal').value) || 0;
+            const qual = parseInt(document.getElementById('rmQualified').value) || 0;
+            const unqual = total - qual;
+            document.getElementById('rmUnqualified').value = unqual >= 0 ? unqual : 0;
+            
+            if (total > 0 && qual >= 0 && qual <= total) {
+                const rate = ((qual / total) * 100).toFixed(1) + '%';
+                document.getElementById('rmRate').value = rate;
+            } else {
+                document.getElementById('rmRate').value = '';
+            }
+        }
+
+        // 2. 投诉无效数计算
+        function calcCompInvalid() {
+            const total = parseInt(document.getElementById('compTotal').value) || 0;
+            const effective = parseInt(document.getElementById('compEffective').value) || 0;
+            const invalid = total - effective;
+            document.getElementById('compInvalid').value = invalid >= 0 ? invalid : 0;
+        }
+
+        // 3. 待整改数计算
+        function calcCheckPending() {
+            const total = parseInt(document.getElementById('checkTotal').value) || 0;
+            const fixed = parseInt(document.getElementById('checkFixed').value) || 0;
+            const pending = total - fixed;
+            document.getElementById('checkPending').value = pending >= 0 ? pending : 0;
+        }
+
+        // Add List Item
+        function addListItem(containerId) {
+            const container = document.getElementById(containerId);
+            const count = container.children.length + 1;
+            const div = document.createElement('div');
+            // 宽距模式
+            div.className = 'flex gap-4 items-center animate-fade-in';
+            div.innerHTML = `
+                <span class="font-bold text-gray-400 w-6 text-right">${count}.</span>
+                <input type="text" class="input-field flex-grow" placeholder="输入内容...">
+                <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        // Generate Preview
+        function showReportPreview() {
+            // 核心修改：强制校验必填项
+            const rep1 = document.getElementById('reporter1').value;
+            const leaderName = document.getElementById('leaderName').value;
+
+            if (!rep1 || !rep1.trim()) {
+                alert('请填写【汇报人】姓名！');
+                document.getElementById('reporter1').focus();
+                document.getElementById('reporter1').scrollIntoView({behavior: "smooth", block: "center"});
+                return;
+            }
+            if (!leaderName || !leaderName.trim()) {
+                alert('请填写【负责人姓名】！');
+                document.getElementById('leaderName').focus();
+                document.getElementById('leaderName').scrollIntoView({behavior: "smooth", block: "center"});
+                return;
+            }
+
+            // Basic Info
+            const recordNo = document.getElementById('recordNo').value || "________";
+            const year = document.getElementById('meetingYear').value || "____";
+            const month = document.getElementById('meetingMonth').value || "__";
+            const host = document.getElementById('host').value || "________";
+            // 修复：直接读取原生日期控件的值并格式化
+            const mDate = formatSlashString(document.getElementById('meetingDate').value);
+            const startT = document.getElementById('startTime').value || "__:__";
+            const endT = document.getElementById('endTime').value || "__:__";
+            const loc = document.getElementById('location').value || "________";
+            const att = document.getElementById('attendees').value || "________";
+
+            
+            // RM
+            const rmTotal = document.getElementById('rmTotal').value || "_";
+            const rmQual = document.getElementById('rmQualified').value || "_";
+            const rmUnqual = document.getElementById('rmUnqualified').value || "_";
+            const rmRate = document.getElementById('rmRate').value || "_%";
+            const rmName = document.getElementById('rmBadName').value || "无";
+            const rmReason = document.getElementById('rmBadReason').value || "无";
+            const rmMeasure = document.getElementById('rmBadMeasure').value || "无";
+
+            // Complaint
+            const cpTotal = document.getElementById('compTotal').value || "0";
+            const cpEff = document.getElementById('compEffective').value || "0";
+            const cpInv = document.getElementById('compInvalid').value || "0";
+            const cpProd = document.getElementById('compProduct').value || "无";
+            const cpRes = document.getElementById('compReason').value || "无";
+            const cpMeas = document.getElementById('compMeasure').value || "无";
+
+            // Sup & Train
+            const sup = document.getElementById('supplierStatus').value || "无";
+            const tTimes = document.getElementById('trainTimes').value || "0";
+            const tHours = document.getElementById('trainHours').value || "0";
+            const tPpl = document.getElementById('trainPeople').value || "0";
+
+            // Check
+            const ckTot = document.getElementById('checkTotal').value || "0";
+            const ckFix = document.getElementById('checkFixed').value || "0";
+            const ckPen = document.getElementById('checkPending').value || "0";
+            // 修复：直接读取原生日期控件的值并格式化
+            const ckDate = formatSlashString(document.getElementById('checkDeadline').value);
+            const ckCoop = document.getElementById('checkCoop').value || "良好";
+
+            // Lists Helper
+            const getListHTML = (id) => {
+                const inputs = document.querySelectorAll(`#${id} input`);
+                if(inputs.length === 0) return "<div class='doc-text'>无。</div>";
+                return Array.from(inputs).map((inp, idx) => `<div class="doc-list-item">（${idx+1}）${inp.value}；</div>`).join('');
+            };
+
+            const riskHTML = getListHTML('riskList');
+            const consensusHTML = getListHTML('consensusList');
+            const reqHTML = getListHTML('reqList');
+            const planHTML = getListHTML('planList');
+
+            // Build HTML
+            const html = `
+                <div>
+                    <div class="doc-header-right">附件4</div>
+                    <div class="doc-title">每月食品安全调度会议纪要</div>
+                    
+                    <div class="doc-record-no">记录编号：（${recordNo}）</div>
+                    
+                    <table class="doc-table">
+                        <tr>
+                            <td class="doc-label-cell">会议名称</td>
+                            <td>${year}年${month}月食品安全调度会议纪要</td>
+                        </tr>
+                        <tr>
+                            <td class="doc-label-cell">主 持 人</td>
+                            <td>${host}</td>
+                        </tr>
+                        <tr>
+                            <td class="doc-label-cell">会议日期</td>
+                            <td>${mDate} &nbsp;&nbsp;&nbsp;&nbsp; ${startT} — ${endT}</td>
+                        </tr>
+                        <tr>
+                            <td class="doc-label-cell">会议地点</td>
+                            <td>${loc}</td>
+                        </tr>
+                        <tr>
+                            <td class="doc-label-cell">出席人员</td>
+                            <td>${att}</td>
+                        </tr>
+                    </table>
+
+                    <div style="font-weight:bold; margin: 20px 0 10px 0; font-family: 'SimHei';">会议内容记录：</div>
+
+                    <div class="doc-section-title">一、食品安全管理工作情况汇报（汇报人：${rep1}）</div>
+                    
+                    <div class="doc-text"><span class="doc-text-bold">1. 当月问题汇总及整改落实情况：</span>（见附件及日管控、周排查记录）</div>
+
+                    <div class="doc-text"><span class="doc-text-bold">2. 食品原料验收情况：</span>本月到货总批数 <span class="u-line">${rmTotal}</span> 批次，合格 <span class="u-line">${rmQual}</span> 批次，不合格 <span class="u-line">${rmUnqual}</span> 批次，到货合格率 <span class="u-line">${rmRate}</span>。</div>
+                    <div class="doc-text">不合格原料为：${rmName}，不合格原因：${rmReason}，对不合格原料采取的处理措施：${rmMeasure}。</div>
+
+                    <div class="doc-text"><span class="doc-text-bold">3. 投诉处理情况：</span>本月质量投诉起数为 <span class="u-line">${cpTotal}</span> 起，有效投诉 <span class="u-line">${cpEff}</span> 起，无效投诉 <span class="u-line">${cpInv}</span> 起。</div>
+                    <div class="doc-text">投诉产品主要为：${cpProd}；投诉主要原因为：${cpRes}；采取的主要改进措施为：${cpMeas}。</div>
+
+                    <div class="doc-text"><span class="doc-text-bold">4. 供应商管理：</span>本月对供应商审核情况：${sup}</div>
+
+                    <div class="doc-text"><span class="doc-text-bold">5. 从业人员培训情况：</span>本月开展培训 <span class="u-line">${tTimes}</span> 次，合计 <span class="u-line">${tHours}</span> 学时，参加人员 <span class="u-line">${tPpl}</span> 人。</div>
+
+                    <div class="doc-text"><span class="doc-text-bold">6. 日管控问题落实：</span>（1）本月日常检查问题 <span class="u-line">${ckTot}</span> 项，已整改 <span class="u-line">${ckFix}</span> 项，待整改 <span class="u-line">${ckPen}</span> 项，计划整改时间为 <span class="u-line">${ckDate}</span>；（2）责任部门配合情况：${ckCoop}。</div>
+
+                    <div class="doc-section-title keep-together">二、较大风险隐患排查情况</div>
+                    <div class="doc-text">存在的主要风险隐患问题如下：</div>
+                    <div style="margin-left: 1em;">${riskHTML}</div>
+
+                    <div class="doc-section-title keep-together">三、食品安全相关部门发言及达成的共识</div>
+                    <div style="margin-left: 1em;">${consensusHTML}</div>
+
+                    <div class="doc-section-title keep-together">四、企业主要负责人工作要求（负责人：${leaderName}）</div>
+                    <div style="margin-left: 1em;">${reqHTML}</div>
+
+                    <div class="doc-section-title keep-together">五、下个月食品安全管理重点工作计划</div>
+                    <div style="margin-left: 1em;">${planHTML}</div>
+
+                    <div class="doc-footer">
+                        <div style="flex:1;">汇报人/日期：${rep1} / ${mDate}</div>
+                        <div style="flex:1; text-align:right;">企业负责人/日期：${leaderName} / ${mDate}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('previewPaper').innerHTML = html;
+            document.getElementById('previewOverlay').classList.remove('hidden');
+            window.scrollTo(0, 0); 
+        }
+
+        function closePreview() { document.getElementById('previewOverlay').classList.add('hidden'); }
+
+        async function generateFinalPDF() {
+            window.scrollTo(0, 0); 
+            const btn = event.currentTarget;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 生成中...';
+            const mMonth = document.getElementById('meetingMonth').value;
+            const opt = {
+                margin: 0, 
+                filename: `${mMonth}月食品安全调度会议纪要.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 1.5, useCORS: true, scrollY: 0, logging: false }, 
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            try {
+                await html2pdf().set(opt).from(document.getElementById('previewPaper')).save();
+            } catch (error) {
+                console.error(error);
+                alert('生成PDF出错，请重试');
+            } finally {
+                btn.innerHTML = '生成PDF';
+            }
+        }
+
+        function resetForm() {
+            if(confirm('确定要清空所有内容吗？')) {
+                const inputs = document.querySelectorAll('input:not(#meetingYear):not(#meetingMonth), textarea');
+                inputs.forEach(i => i.value = '');
+                document.getElementById('meetingYear').value = '2026';
+                document.getElementById('meetingMonth').value = '2';
+                document.getElementById('startTime').value = '14:00';
+                document.getElementById('endTime').value = '15:30';
+                ['riskList', 'consensusList', 'reqList', 'planList'].forEach(id => {
+                    document.getElementById(id).innerHTML = '';
+                    addListItem(id);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

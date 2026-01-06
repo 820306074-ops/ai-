@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>每日食品安全检查记录 - 最终修正版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        html, body { 
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+            background-color: #e5e7eb; 
+            overscroll-behavior: none; 
+        }
+        
+        /* 界面输入区样式 */
+        .section-title { @apply text-gray-700 font-bold mb-3 border-l-4 border-blue-600 pl-2 text-lg; }
+        .audit-card { transition: all 0.3s ease; }
+        .audit-card.is-failed { border-left: 5px solid #ef4444; background-color: #fef2f2; }
+        .action-link { @apply text-xs font-bold text-gray-400 cursor-pointer hover:text-blue-600 transition-colors select-none inline-flex items-center mt-2; }
+
+        /* --- 预览区核心样式 (A4 标准公文) --- */
+        #previewOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #374151; z-index: 50; overflow-y: auto; padding-bottom: 80px;
+        }
+        #previewPaper {
+            width: 210mm; 
+            min-height: 297mm; 
+            background: white; 
+            margin: 30px auto; 
+            /* 关键修复：由CSS控制内边距，模拟真实纸张 */
+            padding: 20mm 15mm; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-family: "SimSun", "Songti SC", serif; /* 强制宋体 */
+            color: #000;
+            line-height: 1.4; 
+            font-size: 14px; 
+            box-sizing: border-box;
+        }
+        @media (max-width: 800px) {
+            #previewPaper { width: 95%; padding: 10px; margin: 10px auto; zoom: 0.6; }
+        }
+
+        /* 预览排版专用类 */
+        .doc-header-table { width: 100%; margin-bottom: 15px; border: none; font-size: 15px; font-family: 'SimHei', sans-serif; }
+        .doc-header-table td { padding: 2px 5px; vertical-align: bottom; }
+        
+        .doc-title { 
+            text-align: center; 
+            font-size: 26px; 
+            font-weight: bold; 
+            font-family: 'SimHei', sans-serif; 
+            margin-bottom: 10px; 
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        .doc-branch {
+            text-align: center;
+            font-size: 16px;
+            font-family: "SimSun";
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        /* 报表表格样式 - 修正边框和对齐 */
+        .report-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+            font-size: 12px; 
+            table-layout: fixed; 
+        }
+        .report-table th, .report-table td { 
+            border: 1px solid #000; 
+            padding: 8px 5px; 
+            text-align: left; 
+            vertical-align: middle; /* 垂直居中，防止歪斜 */
+            word-wrap: break-word; 
+        }
+        .report-table th { 
+            background-color: #e5e5e5; /* 加深表头底色 */
+            font-family: 'SimHei', sans-serif; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 13px; 
+        }
+        
+        /* 状态样式 */
+        .status-pass { text-align: center; font-family: 'SimHei'; }
+        .status-fail { color: red; font-weight: bold; text-align: center; font-family: 'SimHei'; }
+        
+        .doc-footer { margin-top: 30px; display: flex; justify-content: space-between; font-size: 16px; font-family: "SimSun"; page-break-inside: avoid; }
+        
+        /* 签名区域 */
+        .sig-box {
+            border: 1px dashed #ccc;
+            height: 60px;
+            width: 140px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .sig-box:hover { background-color: #f9f9f9; }
+        .sig-img { max-height: 100%; max-width: 100%; }
+        .sig-hint { font-size: 12px; color: #999; }
+        .sig-label { margin-top: 5px; font-weight: bold; text-align: center; }
+
+        /* 图片容器 - 居中显示 */
+        .photo-cell { text-align: center; vertical-align: middle; }
+        .photo-grid { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; align-items: center; }
+        .photo-item { width: 50px; height: 50px; object-fit: cover; border: 1px solid #999; display: block; }
+
+        /* 分页控制 */
+        tr { page-break-inside: avoid; }
+        .keep-together { page-break-inside: avoid; break-inside: avoid; }
+        
+        .summary-box { border: 1px solid #000; padding: 10px; min-height: 80px; margin-top: 5px; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-lg z-40 h-20">
+        <div class="flex justify-between items-center px-4 py-3 bg-blue-700 text-white h-full">
+            <div>
+                <h1 class="text-xl font-bold flex items-center">
+                    <i class="fa-solid fa-file-pdf mr-2"></i>
+                    每日食品安全检查记录
+                </h1>
+                <p class="text-xs opacity-80">安全部：李川，有问题联系：15613510692</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="h-20"></div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-4" id="mainFormContainer">
+        <div class="bg-white rounded-lg shadow p-4 mb-4" id="storeInfoCard">
+            <h2 class="text-gray-700 font-bold mb-3 border-l-4 border-blue-600 pl-2">基础信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700"><span class="text-red-600">*</span> 分店名称</label>
+                    <input type="text" id="branchName" placeholder="例如：广州天河城店" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700"><span class="text-red-600">*</span> 检查人</label>
+                    <input type="text" id="storeName" placeholder="输入检查人姓名" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700">检查日期</label>
+                    <input type="text" id="auditDateDisplay" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-white cursor-pointer sm:text-sm border p-2" readonly placeholder="选择日期">
+                    <input type="date" id="auditDate" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" style="top: 24px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <button onclick="toggleFilterMode()" id="filterBtn" class="w-full py-3 bg-white text-gray-600 font-bold rounded-lg shadow-sm border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-all">
+                <i class="fa-solid fa-filter mr-2"></i> 只看异常/不符合项
+                <span id="filterCountBadge" class="hidden ml-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+            </button>
+        </div>
+        <div id="failNavContainer" class="hidden mb-6 bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm animate-fade-in">
+             <div id="failNavList" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div id="filterBanner" class="hidden mb-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-sm flex justify-between items-center">
+            <div><p class="font-bold">当前为“异常项展示”模式</p></div>
+            <button onclick="toggleFilterMode()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">恢复全部</button>
+        </div>
+
+        <div id="standardSectionsWrapper"></div>
+
+        <div class="bg-white rounded-lg shadow p-4 mb-24" id="summaryCard">
+             <div class="mb-2">
+                <label class="block text-sm font-bold text-gray-700 mb-2">总体评价 / 整改要求</label>
+                <textarea id="summaryText" class="w-full border rounded p-2 text-sm focus:border-blue-500 focus:ring-blue-500" rows="4" placeholder="在此输入本次日管控的总体情况..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 z-40 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <button onclick="resetAudit()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg transition text-sm sm:text-base">
+            <i class="fa-solid fa-rotate-left mr-2"></i>重置
+        </button>
+        <button onclick="showReportPreview()" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition text-sm sm:text-base">
+            <i class="fa-solid fa-file-signature mr-2"></i>预览并签字
+        </button>
+    </div>
+
+    <div id="previewOverlay" class="hidden">
+        <div id="previewPaper"></div>
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 flex gap-4 justify-center">
+            <button onclick="closePreview()" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">返回修改</button>
+            <button onclick="generateFinalPDF()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg">生成PDF</button>
+        </div>
+    </div>
+
+    <div id="imageEditorModal" class="fixed inset-0 z-[100] hidden bg-black flex flex-col">
+        <div class="flex justify-between items-center p-3 bg-gray-900 text-white">
+            <h3 class="font-bold text-lg">图片标注</h3>
+            <button onclick="closeImageEditor()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div class="flex-1 bg-black relative overflow-hidden flex items-center justify-center touch-none" id="editorCanvasContainer">
+            <canvas id="imageEditorCanvas" style="max-width: 100%; max-height: 100%; object-fit: contain;"></canvas>
+        </div>
+        <div class="bg-gray-900 p-4 flex gap-4 justify-between items-center pb-8 sm:pb-4">
+            <button onclick="resetImageEditor()" class="bg-gray-700 text-white px-4 py-2 rounded font-bold text-sm">重置</button>
+            <button onclick="saveImageEditor()" class="bg-red-600 text-white px-6 py-2 rounded font-bold text-sm shadow-lg">保存</button>
+        </div>
+    </div>
+
+    <div id="signatureModal" class="fixed inset-0 z-[110] hidden bg-white flex flex-col">
+        <div class="bg-gray-100 p-3 flex justify-between items-center border-b">
+            <h3 class="font-bold text-gray-700">请在此区域手写签名</h3>
+            <button onclick="closeSignatureModal()" class="text-gray-500 text-xl">&times;</button>
+        </div>
+        <div class="flex-1 relative bg-gray-50 touch-none" id="sigPadContainer">
+            <canvas id="sigCanvas" class="signature-pad w-full h-full block"></canvas>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-200 text-4xl pointer-events-none font-bold select-none opacity-20">请横屏签字</div>
+        </div>
+        <div class="p-4 border-t flex gap-4">
+            <button onclick="clearSignature()" class="flex-1 py-3 bg-gray-200 rounded-lg font-bold text-gray-700">重写</button>
+            <button onclick="saveSignature()" class="flex-1 py-3 bg-blue-600 rounded-lg font-bold text-white">确认签名</button>
+        </div>
+    </div>
+
+    <script>
+        const auditData = [
+            { id: "1", type: "std", cat: "一、信息公示", name: "[重点] 许可证管理", content: "食品经营许可证合法有效，且无超范围经营情况", standard: "许可证过期/超范围经营", score: 5 },
+            { id: "2", type: "std", cat: "一、信息公示", name: "[重点] 明厨亮灶", content: "建设“明厨亮灶”公示加工操作关键过程", standard: "摄像头损坏/屏幕未开启", score: 5 },
+            { id: "3", type: "std", cat: "一、信息公示", name: "[重点] 健康证", content: "从业人员健康证合格有效", standard: "无证上岗/证件过期", score: 5 },
+            { id: "4", type: "std", cat: "一、信息公示", name: "[重点] 记录公示", content: "公示上一次日常监督检查记录表", standard: "未公示/被遮挡", score: 5 },
+            { id: "5", type: "std", cat: "一、信息公示", name: "[重点] 管理员持证", content: "食品安全管理员持证在岗", standard: "管理员不在岗/无证", score: 5 },
+            { id: "6", type: "std", cat: "二、人员管理", name: "[重点] 培训与制度", content: "从业人员全员培训计划及记录，健康管理制度落实情况", standard: "无培训记录/无晨检记录", score: 5 },
+            { id: "7", type: "std", cat: "二、人员管理", name: "个人卫生", content: "从业人员穿戴清洁的工作衣帽，双手清洁，保持个人卫生", standard: "衣帽不洁/佩戴饰品/指甲过长", score: 3 },
+            { id: "8", type: "std", cat: "三、加工环境", name: "环境与虫害", content: "经营场所开展彻底清洗消毒并保持洁净、卫生，有害生物防制措施有效", standard: "环境脏乱/有蚊蝇鼠迹", score: 3 },
+            { id: "9", type: "std", cat: "三、加工环境", name: "[重点] 备餐间管理", content: "备餐间（专间）规范管理", standard: "专间门未关/非专间人员进入", score: 5 },
+            { id: "10", type: "std", cat: "四、原料、用水控制", name: "[重点] 索证索票", content: "查验供货者的许可证和食品出厂检验合格证或者其他合格证明，并留存复印件及发货票证", standard: "票证不全/无法溯源", score: 5 },
+            { id: "11", type: "std", cat: "四、原料、用水控制", name: "标签标识", content: "原料外包装标识符合要求，按照外包装标识的条件和要求规范贮存", standard: "标识不清/未按温湿度存放", score: 3 },
+            { id: "12", type: "std", cat: "四、原料、用水控制", name: "[重点] 变质过期清理", content: "对仓库全面清洁消毒和原料排查，及时清理变质或者超过保质期的食品", standard: "发现过期食品/变质食品", score: 5 },
+            { id: "13", type: "std", cat: "四、原料、用水控制", name: "添加剂管理", content: "食品添加剂专人负责保管、领用、登记，专柜保存，并有相关记录", standard: "未专柜存放/无领用记录", score: 3 },
+            { id: "14", type: "std", cat: "四、原料、用水控制", name: "[重点] 隔墙离地", content: "食品及食品原料贮存符合要求，分类分架、隔墙离地存放", standard: "食材未离墙离地/混放", score: 5 },
+            { id: "15", type: "std", cat: "四、原料、用水控制", name: "用水用冰", content: "食品加工用水、食用冰块规范管理", standard: "制冰机不洁/水质不达标", score: 3 },
+            { id: "16", type: "std", cat: "五、加工制作过程", name: "水池专用", content: "清洗、消毒水池不得与其他用途水池混用", standard: "混用水池/用途标识不清", score: 3 },
+            { id: "17", type: "std", cat: "五、加工制作过程", name: "[重点] 生熟分开", content: "食品原料、半成品与成品在盛放、贮存时相互分开", standard: "生熟混放/交叉污染", score: 5 },
+            { id: "18", type: "std", cat: "五、加工制作过程", name: "工具标识", content: "制作食品的设施设备及加工工具、容器等有显著标识", standard: "色标管理混乱/无标识", score: 3 },
+            { id: "19", type: "std", cat: "五、加工制作过程", name: "[重点] 烧熟煮透", content: "食品煮熟煮透，食品成品存放的温度和时间符合要求", standard: "中心温度不达标/超时存放", score: 5 },
+            { id: "20", type: "std", cat: "五、加工制作过程", name: "[重点] 留样管理", content: "食品留样符合规范", standard: "未留样/留样量不足/记录缺失", score: 5 },
+            { id: "21", type: "std", cat: "六、设施设备及维护", name: "[重点] 设备维保", content: "冷藏、冷冻、空调、空气消毒等设备设施完成维修保养校验，运转正常", standard: "设备故障/温控不准", score: 5 },
+            { id: "22", type: "std", cat: "六、设施设备及维护", name: "[重点] 三防设施", content: "食品加工、贮存、陈列及“三防”等设施设备运转正常，并保持清洁", standard: "防鼠网破损/灭蝇灯损坏", score: 5 },
+            { id: "23", type: "std", cat: "六、设施设备及维护", name: "洗消设施", content: "具有餐具、饮具的清洗、消毒、保洁设备设施，并运转正常", standard: "消毒柜故障/无保洁设施", score: 3 },
+            { id: "24", type: "std", cat: "七、清洗消毒", name: "餐具清洁", content: "餐具、饮具和盛放直接入口食品的容器用后洗净、消毒，炊具、用具用后洗净，保持清洁", standard: "餐具不洁/有残留物", score: 3 }
+        ];
+
+        let appState = { items: {}, signatures: { auditor: null, manager: null }, filterOnlyFail: false };
+        let editorState = { id: null, index: null, originalImg: null, canvas: null, ctx: null, isDrawing: false };
+
+        const formatSlashString = (dateString) => {
+            if (!dateString) return "";
+            const parts = dateString.split('-'); 
+            if(parts.length !== 3) return dateString;
+            return `${parts[0]}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
+        };
+
+        function syncDateDisplay(sourceId, displayId) {
+            document.getElementById(displayId).value = formatSlashString(document.getElementById(sourceId).value);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderForm();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('auditDate').value = today;
+            syncDateDisplay('auditDate', 'auditDateDisplay');
+            document.getElementById('auditDate').addEventListener('input', () => syncDateDisplay('auditDate', 'auditDateDisplay'));
+        });
+
+        // Form Logic
+        function renderForm() {
+            const wrapper = document.getElementById('standardSectionsWrapper');
+            wrapper.innerHTML = '';
+            const grouped = auditData.reduce((acc, item) => {
+                if (!acc[item.cat]) acc[item.cat] = [];
+                acc[item.cat].push(item);
+                return acc;
+            }, {});
+
+            Object.keys(grouped).forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'mb-6 relative';
+                section.innerHTML = `
+                    <div class="sticky top-20 z-30 bg-gray-800 text-white px-4 py-2 rounded-t-lg shadow-md">
+                        <h3 class="font-bold">${cat}</h3>
+                    </div>
+                    <div class="bg-white rounded-b-lg shadow divide-y divide-gray-200 section-items-container"></div>
+                `;
+                const container = section.querySelector('.section-items-container');
+                grouped[cat].forEach(item => container.appendChild(createItemElement(item)));
+                wrapper.appendChild(section);
+            });
+        }
+
+        function createItemElement(item) {
+            if (!appState.items[item.id]) appState.items[item.id] = { status: 'pass', remark: '', photos: [] };
+            const el = document.createElement('div');
+            el.className = 'audit-card p-4 transition-colors duration-200 bg-white border-b border-gray-100 last:border-0';
+            el.id = `item-${item.id}`;
+            const badgeClass = item.name.includes('重点') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
+            const badgeText = item.name.includes('重点') ? '重点项' : '一般项';
+
+            el.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center flex-wrap flex-1">
+                        <span class="font-bold text-gray-800 mr-2">${item.id}.</span>
+                        <span class="font-bold text-gray-700 text-sm sm:text-base mr-1">${item.name}</span>
+                        <span class="${badgeClass} text-xs px-2 py-0.5 rounded ml-2">${badgeText}</span>
+                    </div>
+                    <div class="flex bg-gray-100 rounded-lg p-1 shrink-0 ml-2">
+                         <button onclick="toggleStatus('${item.id}', 'pass')" id="btn-pass-${item.id}" class="px-3 py-1 rounded-md text-sm font-bold transition ${appState.items[item.id].status === 'pass' ? 'bg-white text-green-700 shadow' : 'text-gray-500'}">符合</button>
+                         <button onclick="toggleStatus('${item.id}', 'fail')" id="btn-fail-${item.id}" class="px-3 py-1 rounded-md text-sm font-bold transition ${appState.items[item.id].status === 'fail' ? 'bg-red-600 text-white shadow' : 'text-gray-500'}">不符</button>
+                    </div>
+                </div>
+                <div class="mt-2 text-sm text-gray-700 bg-gray-50 p-2 rounded border border-gray-100 leading-relaxed"><span class="font-bold text-gray-900">标准内容：</span>${item.content}</div>
+                <div class="flex justify-end">
+                    <div class="action-link" onclick="toggleActions('${item.id}')" id="action-btn-${item.id}">添加备注/照片 <i class="fa-solid fa-chevron-down ml-1"></i></div>
+                </div>
+                <div id="actions-${item.id}" class="hidden bg-white mt-2 space-y-3 pl-1 border-l-2 border-blue-400 ml-1 pt-2 animate-fade-in">
+                    <textarea oninput="updateRemark('${item.id}', this.value)" placeholder="请输入不符合项说明或防范措施..." class="w-full text-sm p-2 border rounded bg-gray-50 focus:ring-blue-500 focus:border-blue-500" rows="2">${appState.items[item.id].remark}</textarea>
+                    <div class="flex flex-wrap gap-2 items-center" id="actions-${item.id}-btns">
+                        <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 rounded text-sm transition flex items-center border border-blue-200">
+                            <i class="fa-solid fa-camera mr-2"></i> 添加照片
+                            <input type="file" multiple accept="image/*" class="hidden" onchange="handleImageUpload('${item.id}', this)">
+                        </label>
+                        <div id="gallery-${item.id}" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => renderGallery(item.id), 0);
+            return el;
+        }
+
+        function toggleActions(id) {
+            const el = document.getElementById(`actions-${id}`);
+            el.classList.toggle('hidden');
+        }
+
+        function toggleStatus(id, status) {
+            appState.items[id].status = status;
+            const passBtn = document.getElementById(`btn-pass-${id}`);
+            const failBtn = document.getElementById(`btn-fail-${id}`);
+            if (status === 'pass') {
+                passBtn.className = 'px-3 py-1 rounded-md text-sm font-bold transition bg-white text-green-700 shadow';
+                failBtn.className = 'px-3 py-1 rounded-md text-sm font-bold transition text-gray-500';
+                document.getElementById(`actions-${id}`).classList.add('hidden');
+            } else {
+                passBtn.className = 'px-3 py-1 rounded-md text-sm font-bold transition text-gray-500';
+                failBtn.className = 'px-3 py-1 rounded-md text-sm font-bold transition bg-red-600 text-white shadow';
+                document.getElementById(`actions-${id}`).classList.remove('hidden');
+            }
+            if (appState.filterOnlyFail) applyVisibilityFilter();
+        }
+
+        function updateRemark(id, val) { appState.items[id].remark = val; }
+
+        function toggleFilterMode() {
+            appState.filterOnlyFail = !appState.filterOnlyFail;
+            document.getElementById('filterBanner').classList.toggle('hidden', !appState.filterOnlyFail);
+            applyVisibilityFilter();
+        }
+
+        function applyVisibilityFilter() {
+            auditData.forEach(item => {
+                const el = document.getElementById(`item-${item.id}`);
+                const isFail = appState.items[item.id].status === 'fail';
+                el.classList.toggle('hidden', appState.filterOnlyFail && !isFail);
+            });
+            Array.from(document.querySelectorAll('.section-items-container')).forEach(container => {
+                const hasVisible = Array.from(container.children).some(child => !child.classList.contains('hidden'));
+                container.parentElement.classList.toggle('hidden', appState.filterOnlyFail && !hasVisible);
+            });
+        }
+
+        function handleImageUpload(id, input) {
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let w = img.width, h = img.height;
+                        if (w > 800) { h = (h * 800) / w; w = 800; }
+                        canvas.width = w; canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        appState.items[id].photos.push(canvas.toDataURL('image/jpeg', 0.6));
+                        renderGallery(id);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            input.value = '';
+        }
+
+        function renderGallery(id) {
+            const container = document.getElementById(`gallery-${id}`);
+            container.innerHTML = '';
+            appState.items[id].photos.forEach((src, idx) => {
+                const wrap = document.createElement('div');
+                wrap.className = 'relative w-16 h-16 border rounded overflow-hidden group bg-gray-100';
+                wrap.innerHTML = `<img src="${src}" class="w-full h-full object-cover cursor-pointer"><button onclick="event.stopPropagation(); appState.items['${id}'].photos.splice(${idx}, 1); renderGallery('${id}')" class="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 flex items-center justify-center text-xs">&times;</button>`;
+                wrap.firstChild.onclick = () => openImageEditor(id, idx);
+                container.appendChild(wrap);
+            });
+        }
+
+        // Image Editor
+        function openImageEditor(id, index) {
+            editorState = { id, index, isDrawing: false };
+            const canvas = document.getElementById('imageEditorCanvas');
+            const ctx = canvas.getContext('2d');
+            editorState.canvas = canvas; editorState.ctx = ctx;
+            document.getElementById('imageEditorModal').classList.remove('hidden');
+            const img = new Image();
+            img.src = appState.items[id].photos[index];
+            img.onload = () => { editorState.originalImg = img; canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; ctx.drawImage(img, 0, 0); };
+        }
+        function closeImageEditor() { document.getElementById('imageEditorModal').classList.add('hidden'); }
+        function resetImageEditor() { const { ctx, canvas, originalImg } = editorState; ctx.clearRect(0,0,canvas.width, canvas.height); ctx.drawImage(originalImg, 0, 0); }
+        function saveImageEditor() { appState.items[editorState.id].photos[editorState.index] = editorState.canvas.toDataURL('image/jpeg', 0.6); renderGallery(editorState.id); closeImageEditor(); }
+        
+        // Drawing on Canvas
+        const ec = document.getElementById('imageEditorCanvas');
+        const getCoords = (e) => { const r = ec.getBoundingClientRect(), t = e.touches?e.touches[0]:e; return { x: (t.clientX-r.left)*(ec.width/r.width), y: (t.clientY-r.top)*(ec.height/r.height) }; };
+        const startD = (e) => { e.preventDefault(); editorState.isDrawing=true; const {x,y} = getCoords(e); editorState.ctx.beginPath(); editorState.ctx.moveTo(x,y); editorState.ctx.strokeStyle='red'; editorState.ctx.lineWidth=5; };
+        const drawD = (e) => { e.preventDefault(); if(!editorState.isDrawing)return; const {x,y} = getCoords(e); editorState.ctx.lineTo(x,y); editorState.ctx.stroke(); };
+        ec.onmousedown=startD; ec.onmousemove=drawD; ec.onmouseup=()=>{editorState.isDrawing=false};
+        ec.ontouchstart=startD; ec.ontouchmove=drawD; ec.ontouchend=()=>{editorState.isDrawing=false};
+
+        // Signature
+        function openSignatureModal(role) {
+            appState.currentSigTarget = role;
+            document.getElementById('signatureModal').classList.remove('hidden');
+            const c = document.getElementById('sigCanvas');
+            c.width = c.parentElement.clientWidth; c.height = c.parentElement.clientHeight;
+            const ctx = c.getContext('2d'); ctx.lineWidth=3;
+            let isD = false;
+            const getP = (e) => { const r=c.getBoundingClientRect(), t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left, y:t.clientY-r.top}; };
+            const start = (e) => { e.preventDefault(); isD=true; const {x,y} = getP(e); ctx.beginPath(); ctx.moveTo(x,y); };
+            const move = (e) => { e.preventDefault(); if(isD){ const {x,y} = getP(e); ctx.lineTo(x,y); ctx.stroke(); } };
+            c.onmousedown=start; c.onmousemove=move; c.onmouseup=()=>{isD=false};
+            c.ontouchstart=start; c.ontouchmove=move; c.ontouchend=()=>{isD=false};
+        }
+        function clearSignature() { const c=document.getElementById('sigCanvas'); c.getContext('2d').clearRect(0,0,c.width,c.height); }
+        function saveSignature() {
+            const c = document.getElementById('sigCanvas');
+            appState.signatures[appState.currentSigTarget] = c.toDataURL();
+            document.getElementById('signatureModal').classList.add('hidden');
+            
+            // UI Feedback
+            const img = document.getElementById(`sig_${appState.currentSigTarget}`);
+            if(img) {
+                img.src = c.toDataURL();
+                img.style.display = 'block';
+                img.nextElementSibling.style.display = 'none'; // hide hint
+            }
+        }
+        function closeSignatureModal() { document.getElementById('signatureModal').classList.add('hidden'); }
+
+        // Preview & Validate
+        function showReportPreview() {
+            const name = document.getElementById('storeName').value;
+            const branch = document.getElementById('branchName').value;
+            if(!branch || !name) { alert('请填写分店名称和检查人姓名'); return; }
+
+            // Validate photos/remarks
+            for(const item of auditData) {
+                const s = appState.items[item.id];
+                if(s.status === 'fail') {
+                    if(!s.remark || s.photos.length === 0) {
+                        alert(`第${item.id}项不合格，请必须填写备注并上传照片！`);
+                        document.getElementById(`item-${item.id}`).scrollIntoView({block:'center'});
+                        toggleActions(item.id);
+                        return;
+                    }
+                }
+            }
+
+            document.getElementById('previewOverlay').classList.remove('hidden');
+            document.getElementById('previewPaper').innerHTML = buildHTML(name, branch);
+            
+            // 核心修复：滚回顶部并等待，防止偏移
+            window.scrollTo(0,0);
+        }
+
+        function buildHTML(name, branch) {
+            const dateStr = document.getElementById('auditDateDisplay').value;
+            const summary = document.getElementById('summaryText').value || '无';
+            
+            const rows = auditData.map(item => {
+                const s = appState.items[item.id];
+                const status = s.status==='fail'?'不符':'符合';
+                const statusClass = s.status==='fail'?'status-fail':'status-pass';
+                const photos = s.photos.map(p=>`<img src="${p}" class="photo-item">`).join('');
+                const cleanCat = item.cat.replace(/^[一二三四五六七]、/, '');
+                
+                return `
+                    <tr class="keep-together">
+                        <td style="text-align:center">${item.id}</td>
+                        <td>（${cleanCat}）：${item.content}</td>
+                        <td class="${statusClass}">${status}</td>
+                        <td class="photo-cell"><div class="photo-grid">${photos}</div></td>
+                        <td>${s.status==='fail'?s.remark:''}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div style="text-align:center">
+                    <div class="doc-title">每日食品安全检查记录 (日管控)</div>
+                    <div class="doc-branch">分店：${branch}</div>
+                    
+                    <table class="doc-header-table" style="width:100%">
+                        <tr><td>检查日期：${dateStr}</td><td style="text-align:right">检查人：${name}</td></tr>
+                    </table>
+
+                    <table class="report-table">
+                        <colgroup>
+                            <col style="width: 5%"><col style="width: 40%"><col style="width: 10%"><col style="width: 20%"><col style="width: 25%">
+                        </colgroup>
+                        <thead><tr><th>序号</th><th>检查项目</th><th>结果</th><th>检查图片</th><th>检查发现与整改建议</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+
+                    <div class="keep-together summary-box">
+                        <div style="font-weight:bold; font-family:'SimHei'">总体评价 / 整改要求：</div>
+                        <div style="margin-top:5px;">${summary}</div>
+                    </div>
+
+                    <div class="doc-footer">
+                        <div class="w-1/3 text-center" onclick="openSignatureModal('auditor')">
+                            <div class="sig-box">
+                                <img id="sig_auditor" class="sig-img" src="${appState.signatures.auditor || ''}" style="display:${appState.signatures.auditor?'block':'none'}">
+                                <span class="sig-hint" style="display:${appState.signatures.auditor?'none':'block'}">点击签名</span>
+                            </div>
+                            <div class="sig-label">检查人签名</div>
+                        </div>
+                        <div class="w-1/3 text-center" onclick="openSignatureModal('manager')">
+                            <div class="sig-box">
+                                <img id="sig_manager" class="sig-img" src="${appState.signatures.manager || ''}" style="display:${appState.signatures.manager?'block':'none'}">
+                                <span class="sig-hint" style="display:${appState.signatures.manager?'none':'block'}">点击签名</span>
+                            </div>
+                            <div class="sig-label">负责人签名</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closePreview() { document.getElementById('previewOverlay').classList.add('hidden'); }
+
+        async function generateFinalPDF() {
+            // Check signatures
+            if (!appState.signatures.auditor) { alert('请先完成【检查人签名】！'); return; }
+            if (!appState.signatures.manager) { alert('请先完成【负责人签名】！'); return; }
+
+            // 核心修复：滚回顶部
+            window.scrollTo(0,0);
+            
+            const btn = event.currentTarget;
+            btn.innerHTML = '生成中...';
+            
+            // 延时确保渲染就绪
+            await new Promise(r => setTimeout(r, 500));
+
+            const date = document.getElementById('auditDate').value;
+            const branch = document.getElementById('branchName').value || '分店';
+            
+            const opt = {
+                margin: 0, // 由CSS控制内边距，这里设0避免双重边距
+                filename: `日管控_${branch}_${date}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                // 核心参数：scrollY: 0 修复偏移
+                html2canvas: { scale: 1.5, useCORS: true, scrollY: 0, logging: false }, 
+                // 智能分页
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            try {
+                await html2pdf().set(opt).from(document.getElementById('previewPaper')).save();
+            } catch(e) {
+                console.error(e);
+                alert('导出失败，请重试');
+            } finally {
+                btn.innerHTML = '生成PDF';
+            }
+        }
+
+        function resetAudit() {
+            if(confirm('重置将清空所有数据，确定吗？')) location.reload();
+        }
+    </script>
+</body>
+</html>

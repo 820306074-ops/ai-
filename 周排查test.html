@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>每周食品安全排查治理报告 - 精排版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        html, body { 
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+            background-color: #e5e7eb; 
+            overscroll-behavior: none; 
+        }
+        /* 界面输入区的样式 */
+        .section-title { @apply text-gray-700 font-bold mb-3 border-l-4 border-blue-600 pl-2 text-lg; }
+        .input-group { @apply mb-4; }
+        .input-label { @apply block text-sm font-bold text-gray-700 mb-1; }
+        .input-field { @apply w-full border border-gray-300 rounded p-2 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white; }
+        
+        /* --- 预览区核心样式 (A4 标准) --- */
+        #previewOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #374151; z-index: 50; overflow-y: auto; padding-bottom: 80px;
+        }
+        #previewPaper {
+            width: 210mm; 
+            min-height: 297mm; 
+            background: white; 
+            margin: 30px auto; 
+            padding: 25mm 25mm; /* 标准页边距 */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-family: "SimSun", "Songti SC", serif; /* 强制宋体 */
+            color: #000;
+            line-height: 1.6;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        @media (max-width: 800px) {
+            #previewPaper { width: 95%; padding: 15px; margin: 10px auto; zoom: 0.7; }
+        }
+
+        /* 预览排版专用类 */
+        .doc-annex { text-align: right; font-size: 14px; margin-bottom: 10px; }
+        .doc-title { 
+            text-align: center; 
+            font-size: 28px; 
+            font-weight: bold; 
+            font-family: 'SimHei', sans-serif; 
+            margin-bottom: 5px; 
+            letter-spacing: 1px;
+        }
+        .doc-subtitle { text-align: center; font-size: 16px; margin-bottom: 30px; font-family: 'SimSun'; }
+        
+        .doc-info-line { margin-bottom: 10px; font-family: "SimSun", serif; font-size: 16px; }
+        .doc-info-label { font-family: 'SimHei', sans-serif; font-weight: bold; }
+        
+        .doc-h1 { 
+            font-family: 'SimHei', sans-serif; 
+            font-weight: bold; 
+            font-size: 18px; 
+            margin-top: 25px; 
+            margin-bottom: 10px; 
+        }
+        
+        .doc-content { text-align: justify; margin-bottom: 5px; text-indent: 2em; }
+        .doc-note { font-size: 14px; color: #444; margin-bottom: 5px; text-indent: 0; }
+        
+        /* 表格样式 */
+        .doc-table { width: 100%; border-collapse: collapse; margin-top: 5px; margin-bottom: 10px; font-size: 14px; }
+        .doc-table th, .doc-table td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: middle; }
+        .doc-table th { background-color: #f8f9fa; font-family: 'SimHei', sans-serif; text-align: center; }
+        
+        .doc-footer { margin-top: 50px; text-align: right; page-break-inside: avoid; }
+        .doc-footer-line { margin-bottom: 10px; }
+        
+        .doc-bottom-note { margin-top: 40px; padding-top: 10px; border-top: 1px solid #000; font-size: 12px; }
+        
+        /* 避免分页截断 */
+        .keep-together { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-lg z-40 h-20">
+        <div class="flex justify-between items-center px-4 py-3 bg-blue-700 text-white h-full">
+            <div>
+                <h1 class="text-xl font-bold flex items-center">
+                    <img src="logo.png" alt="Logo" class="h-8 w-auto mr-3">
+                    每周排查治理报告生成器
+                </h1>
+                <p class="text-xs opacity-80">食品安全部：李川，有问题请联系：15613510692</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="h-20"></div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-4" id="mainFormContainer">
+        
+        <div class="bg-white rounded-lg shadow p-4 mb-4">
+            <h2 class="section-title">基础信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label">收件人</label>
+                    <input type="text" id="receiver" class="input-field" placeholder="例如：公司食品安全总监">
+                </div>
+                <div>
+                    <label class="input-label">抄送</label>
+                    <input type="text" id="cc" class="input-field" placeholder="例如：门店经理">
+                </div>
+
+                 <!-- 开始日期（稳定方案） -->
+            <div>
+                <label class="input-label">
+                    报告周期 (开始日期)
+                    <span class="text-xs font-normal text-gray-400">系统自动推算结束日期</span>
+                </label>
+
+                <input type="date"
+                       id="startDate"
+                       class="input-field"
+                       onchange="updateEndDate(); syncDateDisplay('startDate','startDateDisplay');">
+
+                <input type="text"
+                       id="startDateDisplay"
+                       class="input-field bg-gray-100 mt-1"
+                       readonly>
+            </div>
+
+                <div>
+                    <label class="input-label">报告周期 (结束日期)</label>
+                    <input type="text" id="endDateDisplay" class="input-field bg-gray-100 cursor-not-allowed text-gray-700 font-bold" readonly placeholder="自动计算">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 mb-4">
+            <div class="flex justify-between items-center mb-3 border-l-4 border-red-600 pl-2">
+                <h2 class="text-gray-700 font-bold">排查发现问题及整改</h2>
+                <button onclick="addIssue()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold transition">
+                    <i class="fa-solid fa-plus mr-1"></i> 添加问题记录
+                </button>
+            </div>
+            
+            <div id="issuesContainer" class="space-y-4">
+                </div>
+            <div id="noIssuesMsg" class="text-center text-gray-400 text-sm py-4 bg-gray-50 border border-dashed rounded">
+                暂无问题记录，请点击上方按钮添加，或直接生成报告（视为无问题）。
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 mb-4">
+            <h2 class="section-title">三、本周食品安全管理情况评价</h2>
+            <div class="space-y-3 text-sm">
+                <label class="flex items-start space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                    <input type="radio" name="evaluation" value="1" class="mt-1 text-blue-600 focus:ring-blue-500" checked onchange="toggleEvalDetail()">
+                    <span>1. 食品安全风险可控，无较大食品安全风险隐患。</span>
+                </label>
+                <label class="flex items-start space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                    <input type="radio" name="evaluation" value="2" class="mt-1 text-blue-600 focus:ring-blue-500" onchange="toggleEvalDetail()">
+                    <span>2. 存在食品安全风险隐患，需尽快采取防范措施。</span>
+                </label>
+                <label class="flex items-start space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                    <input type="radio" name="evaluation" value="3" class="mt-1 text-blue-600 focus:ring-blue-500" onchange="toggleEvalDetail()">
+                    <span>3. 存在严重食品安全风险隐患，需尽快采取防范措施，请公司负责人重视。</span>
+                </label>
+                
+                <div id="evalDetailContainer" class="hidden mt-2 ml-6">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">具体防范措施：</label>
+                    <textarea id="evalDetail" class="input-field" rows="3" placeholder="请在此描述具体的防范措施..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 mb-24">
+            <h2 class="section-title">落款信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="input-label">报告人</label>
+                    <input type="text" id="reporter" class="input-field" placeholder="输入姓名">
+                </div>
+                <div class="relative">
+                    <label class="input-label">报告日期 <span class="text-xs font-normal text-gray-400">点击选择</span></label>
+                    <input type="text" id="reportDateDisplay" class="input-field bg-white" readonly placeholder="选择日期">
+                    <input type="date" id="reportDate" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" style="top: 24px;">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 z-40 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <button onclick="resetForm()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg transition text-sm sm:text-base">
+            <i class="fa-solid fa-rotate-left mr-2"></i>重置
+        </button>
+        <button onclick="showReportPreview()" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition text-sm sm:text-base">
+            <i class="fa-solid fa-file-signature mr-2"></i>预览报告
+        </button>
+    </div>
+
+    <div id="previewOverlay" class="hidden">
+        <div id="previewPaper"></div>
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 flex gap-4 justify-center">
+            <button onclick="closePreview()" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">返回修改</button>
+            <button onclick="generateFinalPDF()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg">生成PDF</button>
+        </div>
+    </div>
+
+    <script>
+        let issueCount = 0;
+
+        // 核心：斜杠日期格式化 YYYY/M/D (去零)
+        const formatSlashString = (dateString) => {
+            if (!dateString) return "";
+            const parts = dateString.split('-'); 
+            if(parts.length !== 3) return dateString;
+            return `${parts[0]}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
+        };
+
+        const toSlashDate = (dateObj) => {
+            if(!dateObj || isNaN(dateObj.getTime())) return "";
+            return `${dateObj.getFullYear()}/${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            const todayISO = new Date().toISOString().split('T')[0];
+            
+            // 初始化报告日期
+            const rDateInput = document.getElementById('reportDate');
+            rDateInput.value = todayISO;
+            syncDateDisplay('reportDate', 'reportDateDisplay');
+
+            // 初始化开始日期（7天前）
+            const lastWeek = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000); 
+            const sDateInput = document.getElementById('startDate');
+            sDateInput.value = lastWeek.toISOString().split('T')[0];
+            
+            // 触发联动更新
+            updateEndDate(); 
+            syncDateDisplay('startDate', 'startDateDisplay');
+
+            // 监听器
+            document.getElementById('startDate').addEventListener('input', () => {
+                updateEndDate();
+                syncDateDisplay('startDate', 'startDateDisplay');
+            });
+            document.getElementById('reportDate').addEventListener('input', () => {
+                syncDateDisplay('reportDate', 'reportDateDisplay');
+            });
+        });
+
+        function syncDateDisplay(sourceId, displayId) {
+            const val = document.getElementById(sourceId).value;
+            document.getElementById(displayId).value = formatSlashString(val);
+        }
+
+        function updateEndDate() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateDisplay = document.getElementById('endDateDisplay');
+            
+            if (startDateInput.value) {
+                const start = new Date(startDateInput.value);
+                const end = new Date(start);
+                end.setDate(start.getDate() + 6); // +6天
+                endDateDisplay.value = toSlashDate(end);
+            } else {
+                endDateDisplay.value = '';
+            }
+        }
+
+        function toggleEvalDetail() {
+            const val = document.querySelector('input[name="evaluation"]:checked').value;
+            const detailBox = document.getElementById('evalDetailContainer');
+            if (val === '2' || val === '3') {
+                detailBox.classList.remove('hidden');
+            } else {
+                detailBox.classList.add('hidden');
+            }
+        }
+
+        function addIssue() {
+            issueCount++;
+            document.getElementById('noIssuesMsg').classList.add('hidden');
+            const container = document.getElementById('issuesContainer');
+            const el = document.createElement('div');
+            el.className = 'bg-gray-50 border border-gray-200 rounded p-3 relative animate-fade-in';
+            el.id = `issue-card-${issueCount}`;
+            
+            // 动态问题项使用普通date控件，在生成时格式化，简化DOM操作
+            el.innerHTML = `
+                <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-200">
+                    <span class="font-bold text-gray-600 text-sm">问题记录 #${issueCount}</span>
+                    <button onclick="removeIssue(${issueCount})" class="text-red-500 hover:text-red-700 text-xs font-bold">删除</button>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500">问题描述</label>
+                        <input type="text" class="issue-problem w-full border rounded p-1 text-sm mt-1" placeholder="例如：14. 食品未离墙离地存放">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500">责任人</label>
+                            <input type="text" class="issue-person w-full border rounded p-1 text-sm mt-1" placeholder="张三">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500">整改完成情况</label>
+                            <select class="issue-status w-full border rounded p-1 text-sm mt-1">
+                                <option value="已完成">已完成</option>
+                                <option value="进行中">进行中</option>
+                                <option value="未开始">未开始</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500">整改措施</label>
+                        <textarea class="issue-measure w-full border rounded p-1 text-sm mt-1" rows="2" placeholder="例如：立即安排人员对仓库进行整理..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500">整改期限</label>
+                        <input type="date" class="issue-deadline w-full border rounded p-1 text-sm mt-1">
+                    </div>
+                </div>
+            `;
+            container.appendChild(el);
+        }
+
+        function removeIssue(id) {
+            const el = document.getElementById(`issue-card-${id}`);
+            if(el) el.remove();
+            if(document.getElementById('issuesContainer').children.length === 0) {
+                document.getElementById('noIssuesMsg').classList.remove('hidden');
+            }
+        }
+
+        function showReportPreview() {
+            const receiver = document.getElementById('receiver').value || "________";
+            const cc = document.getElementById('cc').value || "________";
+            const startDateStr = document.getElementById('startDateDisplay').value || "____/__/__";
+            const endDateStr = document.getElementById('endDateDisplay').value || "____/__/__";
+            const reportDateStr = document.getElementById('reportDateDisplay').value || "____/__/__";
+            const reporter = document.getElementById('reporter').value || "________";
+            
+            const periodStr = `${startDateStr} — ${endDateStr}`;
+
+            const issues = [];
+            document.querySelectorAll('#issuesContainer > div').forEach(div => {
+                issues.push({
+                    problem: div.querySelector('.issue-problem').value || "无",
+                    measure: div.querySelector('.issue-measure').value || "无",
+                    person: div.querySelector('.issue-person').value || "无",
+                    status: div.querySelector('.issue-status').value,
+                    // 格式化截止日期
+                    deadline: formatSlashString(div.querySelector('.issue-deadline').value) || "____/__/__"
+                });
+            });
+
+            const evalVal = document.querySelector('input[name="evaluation"]:checked').value;
+            let evalText = "";
+            let evalDetail = document.getElementById('evalDetail').value;
+            
+            if(evalVal === "1") {
+                evalText = "1. 食品安全风险可控，无较大食品安全风险隐患。";
+            } else if (evalVal === "2") {
+                evalText = `2. 存在食品安全风险隐患，需尽快采取防范措施。（${evalDetail || "未填写措施"}）`;
+            } else {
+                evalText = `3. 存在严重食品安全风险隐患，需尽快采取防范措施，请公司负责人重视。（${evalDetail || "未填写措施"}）`;
+            }
+
+            let section1HTML = "";
+            let section2HTML = "";
+
+            if(issues.length === 0) {
+                section1HTML = "<div class='doc-content'>本周排查未发现明显问题。</div>";
+                section2HTML = "<div class='doc-content'>无需要整改的问题。</div>";
+            } else {
+                issues.forEach((item, idx) => {
+                    section1HTML += `<div class="doc-content doc-indent">${idx + 1}. ${item.problem}</div>`;
+                });
+
+                section2HTML = `
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th style="width:8%">序号</th>
+                                <th style="width:30%">问题描述</th>
+                                <th style="width:30%">整改措施</th>
+                                <th style="width:10%">责任人</th>
+                                <th style="width:12%">期限</th>
+                                <th style="width:10%">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${issues.map((item, idx) => `
+                                <tr>
+                                    <td style="text-align:center">${idx + 1}</td>
+                                    <td>${item.problem}</td>
+                                    <td>${item.measure}</td>
+                                    <td style="text-align:center">${item.person}</td>
+                                    <td style="text-align:center">${item.deadline}</td>
+                                    <td style="text-align:center">${item.status}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            const html = `
+                <div>
+                    <div class="doc-annex">附件3</div>
+                    <div class="doc-title">每周食品安全排查治理报告</div>
+                    <div class="doc-subtitle"></div>
+
+                    <div class="doc-info-line"><span class="doc-info-label">收件人：</span>${receiver}</div>
+                    <div class="doc-info-line"><span class="doc-info-label">抄  送：</span>${cc}</div>
+                    <div class="doc-info-line"><span class="doc-info-label">报告周期：</span>${periodStr} （时间段为一周）</div>
+
+                    <div class="doc-h1 keep-together">一、本周排查发现问题情况</div>
+                    <div class="doc-note">（对照每日管控清单，存在问题项按序号逐条填报）</div>
+                    ${section1HTML}
+
+                    <div class="doc-h1 keep-together">二、周排查问题整改情况和措施</div>
+                    <div class="doc-note">（根据第一项填报内容逐条对应填报，明确责任人、整改期限及整改完成情况）</div>
+                    ${section2HTML}
+
+                    <div class="doc-h1 keep-together">三、本周食品安全管理情况评价</div>
+                    <div class="doc-content" style="margin-top:10px;">${evalText}</div>
+
+                    <div class="doc-footer">
+                        <div class="doc-footer-line">报告人：${reporter}</div>
+                        <div class="doc-footer-line">日 期：${reportDateStr}</div>
+                    </div>
+
+                    <div class="doc-bottom-note">
+                      
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('previewPaper').innerHTML = html;
+            document.getElementById('previewOverlay').classList.remove('hidden');
+            window.scrollTo(0, 0); // 确保从顶部开始截图
+        }
+
+        function closePreview() {
+            document.getElementById('previewOverlay').classList.add('hidden');
+        }
+
+        async function generateFinalPDF() {
+            // 关键修复：先滚回顶部
+            window.scrollTo(0, 0);
+            
+            const btn = event.currentTarget;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 生成中...';
+            const dateStr = document.getElementById('reportDate').value || 'weekly';
+            const opt = {
+                margin: 0, // 在CSS中已设置padding，这里设0
+                filename: `周排查报告_${dateStr}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                // 关键参数：scrollY: 0 修复顶部对齐
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            try {
+                await html2pdf().set(opt).from(document.getElementById('previewPaper')).save();
+            } catch (error) {
+                console.error(error);
+                alert('生成PDF出错，请重试');
+            } finally {
+                btn.innerHTML = '生成PDF';
+            }
+        }
+
+        function resetForm() {
+            if(confirm('确定要清空所有内容吗？')) {
+                document.getElementById('receiver').value = '';
+                document.getElementById('cc').value = '';
+                document.getElementById('reporter').value = '';
+                document.getElementById('evalDetail').value = '';
+                document.getElementById('issuesContainer').innerHTML = '';
+                document.getElementById('noIssuesMsg').classList.remove('hidden');
+                issueCount = 0;
+                document.querySelector('input[name="evaluation"][value="1"]').click();
+            }
+        }
+    </script>
+</body>
+</html>
