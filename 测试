@@ -1,0 +1,16 @@
+index.html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>食品安全管理系统</title>
+</head>
+<body>
+  <h1>食品安全管理系统</h1>
+  <ul>
+    <li><a href="daily.html">日管控</a></li>
+    <li><a href="weekly.html">周排查</a></li>
+    <li><a href="monthly.html">月调度</a></li>
+  </ul>
+</body>
+</html>
