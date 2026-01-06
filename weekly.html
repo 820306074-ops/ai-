@@ -205,7 +205,7 @@
         <div id="previewPaper"></div>
         <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 flex gap-4 justify-center">
             <button onclick="closePreview()" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">返回修改</button>
-            <button onclick="generateFinalPDF()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg">生成PDF</button>
+            <button onclick="generateFinalHTML()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg">生成HTML文件</button>
         </div>
     </div>
 
@@ -450,29 +450,109 @@
             document.getElementById('previewOverlay').classList.add('hidden');
         }
 
-        async function generateFinalPDF() {
-            // 关键修复：先滚回顶部
-            window.scrollTo(0, 0);
-            
+        // 生成HTML文件并下载
+        function generateFinalHTML() {
             const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 生成中...';
-            const dateStr = document.getElementById('reportDate').value || 'weekly';
-            const opt = {
-                margin: 0, // 在CSS中已设置padding，这里设0
-                filename: `周排查报告_${dateStr}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                // 关键参数：scrollY: 0 修复顶部对齐
-                html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
             
             try {
-                await html2pdf().set(opt).from(document.getElementById('previewPaper')).save();
+                // 获取预览内容
+                const previewContent = document.getElementById('previewPaper').innerHTML;
+                
+                // 获取报告信息用于文件名
+                const startDateStr = document.getElementById('startDateDisplay').value || 'unknown';
+                const endDateStr = document.getElementById('endDateDisplay').value || 'unknown';
+                
+                // 构建完整的HTML文档
+                const fullHTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每周食品安全排查治理报告 ${startDateStr} - ${endDateStr}</title>
+    <style>
+        body { 
+            font-family: "SimSun", "Songti SC", serif; 
+            color: #000;
+            line-height: 1.6;
+            font-size: 16px;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+        .container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 25mm 25mm;
+            box-sizing: border-box;
+        }
+        .doc-annex { text-align: right; font-size: 14px; margin-bottom: 10px; }
+        .doc-title { 
+            text-align: center; 
+            font-size: 28px; 
+            font-weight: bold; 
+            font-family: 'SimHei', sans-serif; 
+            margin-bottom: 5px; 
+            letter-spacing: 1px;
+        }
+        .doc-subtitle { text-align: center; font-size: 16px; margin-bottom: 30px; font-family: 'SimSun'; }
+        .doc-info-line { margin-bottom: 10px; font-family: "SimSun", serif; font-size: 16px; }
+        .doc-info-label { font-family: 'SimHei', sans-serif; font-weight: bold; }
+        .doc-h1 { 
+            font-family: 'SimHei', sans-serif; 
+            font-weight: bold; 
+            font-size: 18px; 
+            margin-top: 25px; 
+            margin-bottom: 10px; 
+        }
+        .doc-content { text-align: justify; margin-bottom: 5px; text-indent: 2em; }
+        .doc-note { font-size: 14px; color: #444; margin-bottom: 5px; text-indent: 0; }
+        .doc-table { width: 100%; border-collapse: collapse; margin-top: 5px; margin-bottom: 10px; font-size: 14px; }
+        .doc-table th, .doc-table td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: middle; }
+        .doc-table th { background-color: #f8f9fa; font-family: 'SimHei', sans-serif; text-align: center; }
+        .doc-footer { margin-top: 50px; text-align: right; page-break-inside: avoid; }
+        .doc-footer-line { margin-bottom: 10px; }
+        .doc-bottom-note { margin-top: 40px; padding-top: 10px; border-top: 1px solid #000; font-size: 12px; }
+        .keep-together { page-break-inside: avoid; break-inside: avoid; }
+        @media print {
+            body { margin: 0; padding: 0; }
+            .container { width: 100%; padding: 0; margin: 0; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${previewContent}
+    </div>
+</body>
+</html>`;
+                
+                // 创建Blob对象
+                const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+                
+                // 创建下载链接
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `周排查报告_${startDateStr}_至_${endDateStr}.html`;
+                
+                // 触发下载
+                document.body.appendChild(link);
+                link.click();
+                
+                // 清理
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    btn.innerHTML = originalText;
+                }, 100);
+                
             } catch (error) {
-                console.error(error);
-                alert('生成PDF出错，请重试');
-            } finally {
-                btn.innerHTML = '生成PDF';
+                console.error('生成HTML文件时出错:', error);
+                alert('生成HTML文件时出错，请重试');
+                btn.innerHTML = originalText;
             }
         }
 
