@@ -589,66 +589,193 @@
         // 判断是否为手机端
         const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
 
-        // ========== 📱 手机端：导出 Word ==========
-        if (isMobile) {
-            const wordHTML = `
+       // ========== 📱 手机端：导出 Word（监管模板） ==========
+if (isMobile) {
+
+    const dateStr = document.getElementById('auditDateDisplay').value;
+    const inspector = document.getElementById('storeName').value;
+    const summary = document.getElementById('summaryText').value || '无';
+
+    // ① 生成表格行（直接用数据，不用 preview HTML）
+    const rows = auditData.map(item => {
+        const s = appState.items[item.id];
+        const statusText = s.status === 'fail' ? '不符' : '符合';
+        const statusClass = s.status === 'fail' ? 'fail' : 'pass';
+        const photos = s.photos
+            .map(p => `<img src="${p}" class="photo">`)
+            .join('');
+
+        const cat = item.cat.replace(/^[一二三四五六七]、/, '');
+
+        return `
+<tr>
+<td>${item.id}</td>
+<td>（${cat}）${item.content}</td>
+<td class="${statusClass}">${statusText}</td>
+<td class="photo-cell">${photos}</td>
+<td>${s.status === 'fail' ? s.remark : ''}</td>
+</tr>`;
+    }).join('');
+
+    // ② Word 专用 HTML（完全按你给的截图）
+    const wordHTML = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>日管控_${branch}_${date}</title>
+<title>每日食品安全检查记录</title>
+
 <style>
+@page { size: A4; margin: 15mm; }
+
 body {
-    font-family: SimSun, Songti SC, serif;
+    font-family: SimSun, serif;
     font-size: 12px;
-    line-height: 1.35;
+    color: #000;
 }
-table {
-    border-collapse: collapse;
+
+/* 页眉 */
+.header {
     width: 100%;
+    margin-bottom: 6mm;
 }
-th, td {
+.header table {
+    width: 100%;
+    border: none;
+}
+.header td {
+    border: none;
+    padding: 0;
+}
+.left { text-align: left; }
+.right { text-align: right; }
+
+/* 标题 */
+.title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 4mm 0 6mm 0;
+}
+
+/* 表格 */
+table.report {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+table.report th,
+table.report td {
     border: 1px solid #000;
     padding: 4px;
+    vertical-align: middle;
 }
-img {
-    max-width: 48px;
-    max-height: 48px;
+table.report th {
+    background: #e6e6e6;
+    text-align: center;
+    font-weight: bold;
 }
-${Array.from(document.styleSheets)
-    .map(s => {
-        try {
-            return Array.from(s.cssRules).map(r => r.cssText).join('');
-        } catch (e) {
-            return '';
-        }
-    })
-    .join('')}
+
+/* 列宽 */
+th:nth-child(1), td:nth-child(1) { width: 5%; text-align:center; }
+th:nth-child(2), td:nth-child(2) { width: 40%; }
+th:nth-child(3), td:nth-child(3) { width: 10%; text-align:center; }
+th:nth-child(4), td:nth-child(4) { width: 20%; text-align:center; }
+th:nth-child(5), td:nth-child(5) { width: 25%; }
+
+/* 状态 */
+.pass { color: #000; }
+.fail { color: red; font-weight: bold; }
+
+/* 图片 */
+.photo-cell img {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border: 1px solid #000;
+    margin: 2px;
+}
+
+/* 防拆行 + 两页 */
+tr { page-break-inside: avoid; }
+tbody tr:nth-child(12) { page-break-after: always; }
+
+/* 总体评价 */
+.summary {
+    border: 1px solid #000;
+    padding: 6px;
+    margin-top: 6mm;
+}
+
+/* 页脚 */
+.footer {
+    margin-top: 8mm;
+    display: flex;
+    justify-content: space-between;
+}
 </style>
 </head>
+
 <body>
-${content}
+
+<div class="header">
+<table>
+<tr>
+<td class="left">检查日期：${dateStr}</td>
+<td class="right">检查人：${inspector}</td>
+</tr>
+</table>
+</div>
+
+<div class="title">每日食品安全检查记录</div>
+
+<table class="report">
+<thead>
+<tr>
+<th>序号</th>
+<th>检查项目</th>
+<th>结果</th>
+<th>检查图片</th>
+<th>检查发现与整改建议</th>
+</tr>
+</thead>
+<tbody>
+${rows}
+</tbody>
+</table>
+
+<div class="summary">
+<b>总体评价 / 整改要求：</b><br>
+${summary}
+</div>
+
+<div class="footer">
+<div>检查人签名：</div>
+<div>负责人签名：</div>
+</div>
+
 </body>
 </html>
-            `.trim();
+`;
 
-            const blob = new Blob(
-                ['\ufeff', wordHTML],
-                { type: 'application/msword;charset=utf-8' }
-            );
+    const blob = new Blob(
+        ['\ufeff', wordHTML],
+        { type: 'application/msword;charset=utf-8' }
+    );
 
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `日管控_${branch}_${date}.doc`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `日管控_${branch}_${date}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-            btn.innerHTML = '生成Word';
-            return;
-        }
+    btn.innerHTML = '生成Word';
+    return;
+}
+
 
         // ========== 🖥 电脑端：导出 HTML ==========
         const finalHTML = `
@@ -703,3 +830,4 @@ ${content}
     </script>
 </body>
 </html>
+
