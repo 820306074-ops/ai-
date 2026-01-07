@@ -597,6 +597,71 @@ ${Array.from(document.styleSheets)
         }
     })
     .join('')}
+
+/* ================== 导出 HTML 专用美化（不影响页面） ================== */
+
+/* 全局更紧凑，避免“显得很大” */
+body {
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+/* 表格整体更紧凑 */
+.report-table {
+    font-size: 11.5px;
+}
+
+/* 序号列 */
+.report-table th:nth-child(1),
+.report-table td:nth-child(1) {
+    width: 4%;
+    padding: 4px 2px;
+    text-align: center;
+}
+
+/* 结果（符合/不符）列 */
+.report-table th:nth-child(3),
+.report-table td:nth-child(3) {
+    width: 7%;
+    padding: 4px 2px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* 图片列稍微收紧 */
+.report-table th:nth-child(4),
+.report-table td:nth-child(4) {
+    width: 18%;
+}
+
+/* 文字列更多空间 */
+.report-table th:nth-child(2),
+.report-table td:nth-child(2) {
+    width: 41%;
+}
+
+/* 整改建议 */
+.report-table th:nth-child(5),
+.report-table td:nth-child(5) {
+    width: 30%;
+}
+
+/* 控制分页：一页大约 12 条，强制两页更美观 */
+.report-table tbody tr:nth-child(12) {
+    page-break-after: always;
+}
+
+/* 避免单行被撕开 */
+tr {
+    page-break-inside: avoid;
+}
+
+/* A4 打印友好 */
+@media print {
+    body {
+        margin: 15mm;
+    }
+}
 </style>
 </head>
 <body>
