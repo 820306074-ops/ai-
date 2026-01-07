@@ -563,10 +563,16 @@
 
         function closePreview() { document.getElementById('previewOverlay').classList.add('hidden'); }
 
-        async function generateFinalPDF() {
+      async function generateFinalPDF() {
     // 校验签名（保持原逻辑）
-    if (!appState.signatures.auditor) { alert('请先完成【检查人签名】！'); return; }
-    if (!appState.signatures.manager) { alert('请先完成【负责人签名】！'); return; }
+    if (!appState.signatures.auditor) {
+        alert('请先完成【检查人签名】！');
+        return;
+    }
+    if (!appState.signatures.manager) {
+        alert('请先完成【负责人签名】！');
+        return;
+    }
 
     window.scrollTo(0, 0);
 
@@ -577,10 +583,74 @@
         const date = document.getElementById('auditDate').value;
         const branch = document.getElementById('branchName').value || '分店';
 
-        // ① 获取最终预览 HTML
+        // 获取最终预览 HTML
         const content = document.getElementById('previewPaper').outerHTML;
 
-        // ② 生成完整 HTML 文件（内联样式）
+        // 判断是否为手机端
+        const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+
+        // ========== 📱 手机端：导出 Word ==========
+        if (isMobile) {
+            const wordHTML = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>日管控_${branch}_${date}</title>
+<style>
+body {
+    font-family: SimSun, Songti SC, serif;
+    font-size: 12px;
+    line-height: 1.35;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #000;
+    padding: 4px;
+}
+img {
+    max-width: 48px;
+    max-height: 48px;
+}
+${Array.from(document.styleSheets)
+    .map(s => {
+        try {
+            return Array.from(s.cssRules).map(r => r.cssText).join('');
+        } catch (e) {
+            return '';
+        }
+    })
+    .join('')}
+</style>
+</head>
+<body>
+${content}
+</body>
+</html>
+            `.trim();
+
+            const blob = new Blob(
+                ['\ufeff', wordHTML],
+                { type: 'application/msword;charset=utf-8' }
+            );
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `日管控_${branch}_${date}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            btn.innerHTML = '生成Word';
+            return;
+        }
+
+        // ========== 🖥 电脑端：导出 HTML ==========
         const finalHTML = `
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -597,71 +667,6 @@ ${Array.from(document.styleSheets)
         }
     })
     .join('')}
-
-/* ================== 导出 HTML 专用美化（不影响页面） ================== */
-
-/* 全局更紧凑，避免“显得很大” */
-body {
-    font-size: 12px;
-    line-height: 1.35;
-}
-
-/* 表格整体更紧凑 */
-.report-table {
-    font-size: 11.5px;
-}
-
-/* 序号列 */
-.report-table th:nth-child(1),
-.report-table td:nth-child(1) {
-    width: 4%;
-    padding: 4px 2px;
-    text-align: center;
-}
-
-/* 结果（符合/不符）列 */
-.report-table th:nth-child(3),
-.report-table td:nth-child(3) {
-    width: 7%;
-    padding: 4px 2px;
-    text-align: center;
-    font-weight: bold;
-}
-
-/* 图片列稍微收紧 */
-.report-table th:nth-child(4),
-.report-table td:nth-child(4) {
-    width: 18%;
-}
-
-/* 文字列更多空间 */
-.report-table th:nth-child(2),
-.report-table td:nth-child(2) {
-    width: 41%;
-}
-
-/* 整改建议 */
-.report-table th:nth-child(5),
-.report-table td:nth-child(5) {
-    width: 30%;
-}
-
-/* 控制分页：一页大约 12 条，强制两页更美观 */
-.report-table tbody tr:nth-child(12) {
-    page-break-after: always;
-}
-
-/* 避免单行被撕开 */
-tr {
-    page-break-inside: avoid;
-}
-
-/* A4 打印友好 */
-@media print {
-    body {
-        margin: 15mm;
-    }
-}
 </style>
 </head>
 <body>
@@ -670,7 +675,6 @@ ${content}
 </html>
         `.trim();
 
-        // ③ 下载 HTML
         const blob = new Blob([finalHTML], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
 
@@ -682,13 +686,15 @@ ${content}
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
+        btn.innerHTML = '生成HTML';
+
     } catch (e) {
         console.error(e);
-        alert('导出 HTML 失败');
-    } finally {
-        btn.innerHTML = '生成HTML';
+        alert('导出失败');
+        btn.innerHTML = '生成失败';
     }
 }
+
 
 
         function resetAudit() {
