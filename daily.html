@@ -589,20 +589,24 @@
         // 判断是否为手机端
         const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
 
-// ========== 📱 手机端：导出 PDF（监管模板最终版） ==========
+// ========== 📱 手机端：导出 PDF（与预览 100% 一致） ==========
 if (isMobile) {
 
     const element = document.getElementById('previewPaper');
 
     const opt = {
-        margin: [10, 10, 10, 10],   // mm，接近公文页边距
+        margin: 0,   // ❗关键：不再额外加边距
         filename: `日管控_${branch}_${date}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        image: {
+            type: 'jpeg',
+            quality: 0.98
+        },
         html2canvas: {
-            scale: 2,               // 清晰但不过度
+            scale: 2,               // 清晰度
             useCORS: true,
             scrollY: 0,
-            backgroundColor: '#ffffff'
+            windowWidth: element.scrollWidth,   // ❗锁定宽度
+            windowHeight: element.scrollHeight  // ❗锁定高度
         },
         jsPDF: {
             unit: 'mm',
@@ -679,4 +683,5 @@ ${content}
     </script>
 </body>
 </html>
+
 
