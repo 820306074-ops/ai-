@@ -591,12 +591,26 @@
 
         // ========== 📱 手机端：导出 Word ==========
         <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<title>每日食品安全检查记录</title>
+<body>
 
-<style>
+<div class="header">
+  <table>
+    <tr>
+      <td class="left">检查日期：${date}</td>
+      <td class="right">检查人：${inspector}</td>
+    </tr>
+  </table>
+</div>
+
+<div class="title">每日食品安全检查记录</div>
+
+<!-- 🔴 原有检查内容，所有功能都在这里 -->
+${content}
+
+<div class="footer"></div>
+
+</body>
+
 /* ================== 页面设置 ================== */
 @page {
     size: A4;
@@ -793,4 +807,5 @@ ${content}
     </script>
 </body>
 </html>
+
 
