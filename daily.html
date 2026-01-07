@@ -589,66 +589,42 @@
         // 判断是否为手机端
         const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
 
-        // ========== 📱 手机端：导出 Word ==========
-        if (isMobile) {
-            const wordHTML = `
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<title>日管控_${branch}_${date}</title>
-<style>
-body {
-    font-family: SimSun, Songti SC, serif;
-    font-size: 12px;
-    line-height: 1.35;
-}
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-th, td {
-    border: 1px solid #000;
-    padding: 4px;
-}
-img {
-    max-width: 48px;
-    max-height: 48px;
-}
-${Array.from(document.styleSheets)
-    .map(s => {
-        try {
-            return Array.from(s.cssRules).map(r => r.cssText).join('');
-        } catch (e) {
-            return '';
+// ========== 📱 手机端：导出 PDF（监管模板最终版） ==========
+if (isMobile) {
+
+    const element = document.getElementById('previewPaper');
+
+    const opt = {
+        margin: [10, 10, 10, 10],   // mm，接近公文页边距
+        filename: `日管控_${branch}_${date}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: {
+            scale: 2,               // 清晰但不过度
+            useCORS: true,
+            scrollY: 0,
+            backgroundColor: '#ffffff'
+        },
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+        pagebreak: {
+            mode: ['css', 'avoid-all']
         }
-    })
-    .join('')}
-</style>
-</head>
-<body>
-${content}
-</body>
-</html>
-            `.trim();
+    };
 
-            const blob = new Blob(
-                ['\ufeff', wordHTML],
-                { type: 'application/msword;charset=utf-8' }
-            );
+    try {
+        await html2pdf().set(opt).from(element).save();
+        btn.innerHTML = '生成PDF';
+    } catch (e) {
+        console.error(e);
+        alert('PDF 导出失败');
+        btn.innerHTML = '生成失败';
+    }
+    return;
+}
 
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `日管控_${branch}_${date}.doc`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            btn.innerHTML = '生成Word';
-            return;
-        }
 
         // ========== 🖥 电脑端：导出 HTML ==========
         const finalHTML = `
@@ -703,3 +679,4 @@ ${content}
     </script>
 </body>
 </html>
+
