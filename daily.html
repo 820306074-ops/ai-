@@ -563,8 +563,8 @@
 
         function closePreview() { document.getElementById('previewOverlay').classList.add('hidden'); }
 
-      async function generateFinalPDF() {
-    // 校验签名（保持原逻辑）
+     async function generateFinalPDF() {
+    // 校验签名
     if (!appState.signatures.auditor) {
         alert('请先完成【检查人签名】！');
         return;
@@ -583,70 +583,38 @@
         const date = document.getElementById('auditDate').value;
         const branch = document.getElementById('branchName').value || '分店';
 
-        // 获取最终预览 HTML
+        // 🔴 核心：直接拿“预览内容”
         const content = document.getElementById('previewPaper').outerHTML;
 
-        // 判断是否为手机端
-        const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+        // 🔴 核心：把当前页面样式一起打包
+        const styles = Array.from(document.styleSheets)
+            .map(sheet => {
+                try {
+                    return Array.from(sheet.cssRules).map(r => r.cssText).join('');
+                } catch (e) {
+                    return '';
+                }
+            })
+            .join('');
 
-// ========== 📱 手机端：导出 PDF（与预览 100% 一致） ==========
-if (isMobile) {
-
-    const element = document.getElementById('previewPaper');
-
-    const opt = {
-        margin: 0,   // ❗关键：不再额外加边距
-        filename: `日管控_${branch}_${date}.pdf`,
-        image: {
-            type: 'jpeg',
-            quality: 0.98
-        },
-        html2canvas: {
-            scale: 2,               // 清晰度
-            useCORS: true,
-            scrollY: 0,
-            windowWidth: element.scrollWidth,   // ❗锁定宽度
-            windowHeight: element.scrollHeight  // ❗锁定高度
-        },
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-        },
-        pagebreak: {
-            mode: ['css', 'avoid-all']
-        }
-    };
-
-    try {
-        await html2pdf().set(opt).from(element).save();
-        btn.innerHTML = '生成PDF';
-    } catch (e) {
-        console.error(e);
-        alert('PDF 导出失败');
-        btn.innerHTML = '生成失败';
-    }
-    return;
-}
-
-
-        // ========== 🖥 电脑端：导出 HTML ==========
         const finalHTML = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>日管控_${branch}_${date}</title>
 <style>
-${Array.from(document.styleSheets)
-    .map(s => {
-        try {
-            return Array.from(s.cssRules).map(r => r.cssText).join('');
-        } catch (e) {
-            return '';
-        }
-    })
-    .join('')}
+${styles}
+
+/* ===== 导出专用微调，确保和预览一致 ===== */
+body {
+    background: #e5e7eb;
+}
+#previewPaper {
+    margin: 30px auto;
+    box-shadow: none;
+}
 </style>
 </head>
 <body>
@@ -683,5 +651,6 @@ ${content}
     </script>
 </body>
 </html>
+
 
 
