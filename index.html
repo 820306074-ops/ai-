@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>供应商审核评估系统 (多图专业版)</title>
+    <title>供应商审核评估系统 (智能总结版)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -112,7 +112,7 @@
         }
         .checkbox-group input { margin-right: 5px; }
 
-        /* ================= 审核表格 (手机卡片 / 电脑表格) ================= */
+        /* ================= 审核表格 ================= */
         .audit-table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -220,7 +220,7 @@
         .score-mid { color: #faad14; font-weight: bold; }
         .score-high { color: #52c41a; font-weight: bold; }
 
-        /* ================= 证据区 (多图适配) ================= */
+        /* ================= 证据区 ================= */
         .evidence-box { 
             display: none; 
             margin-top: 8px; 
@@ -232,7 +232,7 @@
         .evidence-box input[type="text"] { width: 100%; margin-bottom: 8px; border: 1px solid #ffccc7; padding: 8px; border-radius: 4px; }
         .evidence-box label { font-size: 13px; color: #cf1322; font-weight: bold; display: block; margin-bottom: 4px; }
         
-        /* 录入时的缩略图容器 */
+        /* 录入预览图宫格 */
         .preview-grid {
             display: flex;
             flex-wrap: wrap;
@@ -526,10 +526,13 @@
         ctx.lineCap = "round";
         ctx.strokeStyle = "#000";
 
+        // 鼠标事件
         canvas.addEventListener('mousedown', startDraw);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', endDraw);
         canvas.addEventListener('mouseout', endDraw);
+        
+        // 触摸事件
         canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (e.touches.length === 1) startDraw(e.touches[0]); }, {passive: false});
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (e.touches.length === 1) draw(e.touches[0]); }, {passive: false});
         canvas.addEventListener('touchend', (e) => { e.preventDefault(); endDraw(); }, {passive: false});
@@ -607,12 +610,12 @@
         initSignaturePad('canvasSupplier');
     }
 
-    // ================= 多图上传处理 (核心) =================
+    // ================= 多图上传处理 =================
     async function handleImageUpload(input, id) {
         if (input.files && input.files.length > 0) {
             if (input.files.length > 5) {
                 alert("最多只能上传5张图片！");
-                input.value = ""; // 清空
+                input.value = ""; 
                 return;
             }
 
@@ -620,10 +623,9 @@
             const container = document.getElementById(`preview-container-${id}`);
             const hiddenInput = document.getElementById(`base64-${id}`);
             
-            container.innerHTML = ""; // 清空旧预览
+            container.innerHTML = ""; 
             let base64Array = [];
 
-            // 使用 Promise.all 处理并发压缩
             const processPromises = files.map(file => {
                 return new Promise((resolve) => {
                     const reader = new FileReader();
@@ -631,7 +633,6 @@
                         const img = new Image();
                         img.src = e.target.result;
                         img.onload = function() {
-                            // 压缩逻辑
                             const canvas = document.createElement('canvas');
                             const ctx = canvas.getContext('2d');
                             const maxWidth = 1024;
@@ -655,13 +656,9 @@
                 });
             });
 
-            // 等待所有图片处理完成
             base64Array = await Promise.all(processPromises);
-            
-            // 存入隐藏域 (JSON字符串)
             hiddenInput.value = JSON.stringify(base64Array);
 
-            // 显示预览
             base64Array.forEach(b64 => {
                 let imgEl = document.createElement("img");
                 imgEl.src = b64;
@@ -781,7 +778,7 @@
         return { total: totalScore, max: maxPossibleScore, percent: percent, gradeText: gradeText, veto: vetoTriggered };
     }
 
-    // ================== 生成报告核心 (分列+多图+Flex排版) ==================
+    // ================== 生成报告核心 (含审核总结) ==================
     function generateReportBody() {
         // 校验
         document.querySelectorAll('.evidence-box').forEach(box => box.style.border = "1px dashed #ffc9c9");
@@ -798,6 +795,8 @@
             throw new Error("【未签名】供应商负责人必须在底部进行电子签名！");
         }
 
+        let problemList = []; // 存储所有问题描述
+
         let selects = document.querySelectorAll("select[id^='result-']");
         for (let sel of selects) {
             let val = sel.value;
@@ -806,7 +805,12 @@
             if (["0", "1", "2"].includes(val)) {
                 let prob = safeGetValue(`problem-${id}`).trim();
                 let hiddenVal = safeGetValue(`base64-${id}`);
-                // 检查是否有图片（兼容单图字符串和多图JSON）
+                
+                // 收集问题到数组 (用于审核总结)
+                if(prob) {
+                    problemList.push(prob);
+                }
+
                 let hasImg = false;
                 try {
                     let imgs = JSON.parse(hiddenVal);
@@ -826,6 +830,12 @@
                     }
                 }
             }
+        }
+
+        // 生成审核总结 HTML
+        let summaryHtml = "无";
+        if(problemList.length > 0) {
+            summaryHtml = problemList.map((txt, idx) => `<div style='margin-bottom:4px;'>${idx+1}. ${txt}</div>`).join("");
         }
 
         let auditorSigImg = document.getElementById('canvasAuditor').toDataURL();
@@ -856,10 +866,9 @@
                     let prob = safeGetValue(`problem-${globalId}`);
                     let rawImgs = safeGetValue(`base64-${globalId}`);
                     
-                    // 解析图片数据
                     let imgHtml = "";
                     try {
-                        let imgs = JSON.parse(rawImgs); // 尝试解析JSON数组
+                        let imgs = JSON.parse(rawImgs);
                         if (Array.isArray(imgs)) {
                             imgHtml = `<div style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center;">`;
                             imgs.forEach(src => {
@@ -868,7 +877,6 @@
                             imgHtml += `</div>`;
                         }
                     } catch (e) {
-                        // 兼容旧版单图
                         if(rawImgs) {
                             imgHtml = `<div style="text-align:center;"><img src="${rawImgs}" class="report-img"></div>`;
                         } else {
@@ -925,9 +933,9 @@
                 .col-center { text-align: center; }
                 .col-left { text-align: left; }
                 
-                /* 多图排版 (Flex + 自动缩小) */
+                /* 多图排版 */
                 .report-img { 
-                    width: 48%; /* 双列 */
+                    width: 48%; 
                     max-width: 140px; 
                     height: auto; 
                     object-fit: cover; 
@@ -937,13 +945,12 @@
                     margin-bottom: 4px;
                 }
                 
-                /* 签名区 */
                 .footer-area { margin-top: 60px; display: flex; justify-content: space-between; padding: 0 60px; font-size: 16px; font-family: "Microsoft YaHei", sans-serif; }
                 .signature-box { display: flex; flex-direction: column; align-items: center; width: 35%; }
                 .sig-img { width: 100%; max-width: 180px; height: auto; border-bottom: 1px solid #333; margin-top: 10px; padding-bottom: 5px; }
             </style>
             
-            <h1 class="report-title">供应商审核评估报告 (问题汇总)</h1>
+            <h1 class="report-title">供应商审核评估报告 </h1>
             
             <table class="pro-table">
                 <tr>
@@ -975,6 +982,12 @@
                 </tr>
                 <tr>
                     <td colspan="4" style="color:${warningColor}; font-weight:bold; padding:15px; background-color:#fdfdfd;">${warningText}</td>
+                </tr>
+                <tr>
+                    <th style="background-color: #f5f7fa; font-weight: bold;">审核总结</th>
+                    <td colspan="3" style="text-align: left; padding: 15px; color: #606266; line-height: 1.6;">
+                        ${summaryHtml}
+                    </td>
                 </tr>
             </table>
 
