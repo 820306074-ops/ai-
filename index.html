@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>供应商审核评估系统 (一票否决0分版)</title>
+    <title>供应商审核评估系统 (分列报告版)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -11,7 +11,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         html, body {
-            overflow-x: hidden; /* 主页面禁止横向滚动 */
+            overflow-x: hidden;
             background-color: #f0f2f5;
         }
 
@@ -35,7 +35,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
         }
 
-        /* 手机端容器全屏化适配 */
+        /* 手机端适配 */
         @media screen and (max-width: 768px) {
             body { padding: 0; padding-bottom: 140px; background: #f7f8fa; }
             .container { 
@@ -108,7 +108,7 @@
             background: #fff;
             border: 1px solid #e8e8e8;
             border-radius: 4px;
-            flex-grow: 1; /* 手机上自动撑满 */
+            flex-grow: 1; 
             justify-content: center;
         }
         .checkbox-group input { margin-right: 5px; }
@@ -136,11 +136,10 @@
             }
         }
 
-        /* 手机端显示为卡片 (不影响导出报告) */
+        /* 手机端显示为卡片 */
         @media screen and (max-width: 768px) {
             .audit-table thead th { display: none; }
             
-            /* 保留一键操作按钮区 */
             .audit-table thead {
                 display: block;
                 background: #fff;
@@ -210,7 +209,6 @@
                 margin-right: 10px;
                 width: auto;
             }
-            .audit-table td:nth-child(1):after { content: "."; }
             
             .audit-table td:nth-child(3) { /* 分值 */
                 display: inline-block;
@@ -384,7 +382,7 @@
             display: flex; flex-direction: column; 
         }
         @media screen and (min-width: 768px) {
-            .modal-content { width: 90%; height: 90%; border-radius: 8px; }
+            .modal-content { width: 95%; height: 95%; border-radius: 8px; }
         }
         
         .modal-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fff; }
@@ -392,7 +390,7 @@
         
         /* 报告纸张容器 */
         .report-paper { 
-            background: white; width: 100%; margin: 0 auto; max-width: 900px;
+            background: white; width: 100%; margin: 0 auto; max-width: 1000px;
             padding: 40px; box-sizing: border-box; min-height: 100%;
             overflow-x: auto; 
         }
@@ -489,7 +487,7 @@
 <div id="previewModal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 style="margin:0; font-size:18px;">报告预览 (专业审核格式)</h3>
+            <h3 style="margin:0; font-size:18px;">报告预览 (标准A4格式)</h3>
             <button type="button" onclick="closePreview()" style="border:none;background:none;font-size:28px;cursor:pointer;padding:0 10px;">&times;</button>
         </div>
         <div class="modal-body">
@@ -601,13 +599,27 @@
         ctx.lineCap = "round";
         ctx.strokeStyle = "#000";
 
+        // 鼠标事件
         canvas.addEventListener('mousedown', startDraw);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', endDraw);
         canvas.addEventListener('mouseout', endDraw);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
-        canvas.addEventListener('touchend', (e) => { e.preventDefault(); endDraw(); });
+        
+        // 触摸事件
+        canvas.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            if (e.touches.length === 1) startDraw(e.touches[0]); 
+        }, {passive: false});
+        
+        canvas.addEventListener('touchmove', (e) => { 
+            e.preventDefault(); 
+            if (e.touches.length === 1) draw(e.touches[0]); 
+        }, {passive: false});
+        
+        canvas.addEventListener('touchend', (e) => { 
+            e.preventDefault(); 
+            endDraw(); 
+        }, {passive: false});
 
         function startDraw(e) {
             isDrawing = true;
@@ -794,7 +806,7 @@
 
         // 强行归零逻辑
         if (vetoTriggered) {
-            totalScore = 0; // 实际得分强制为0
+            totalScore = 0; 
         }
 
         let percent = 0;
@@ -835,8 +847,9 @@
         return { total: totalScore, max: maxPossibleScore, percent: percent, gradeText: gradeText, veto: vetoTriggered };
     }
 
-    // ================== 生成报告核心 (专业美化版) ==================
+    // ================== 生成报告核心 (分列优化版) ==================
     function generateReportBody() {
+        // 校验逻辑
         document.querySelectorAll('.evidence-box').forEach(box => box.style.border = "1px dashed #ffc9c9");
         document.querySelectorAll('.sig-canvas').forEach(can => can.classList.remove('sig-error'));
 
@@ -900,8 +913,10 @@
                     
                     let img = safeGetValue(`base64-${globalId}`);
                     let prob = safeGetValue(`problem-${globalId}`);
-                    let remark = `<div style="text-align:center; margin-bottom:5px;"><img src="${img}" class="report-img"></div>
-                                  <div style="color:red; font-weight:bold; font-size:13px;">${prob}</div>`;
+                    
+                    // 这里进行了分列处理
+                    let imgHtml = img ? `<div style="text-align:center;"><img src="${img}" class="report-img"></div>` : '无';
+                    let descHtml = `<div style="color:red; font-weight:bold; font-size:13px;">${prob}</div>`;
 
                     catRows += `
                         <tr>
@@ -909,19 +924,20 @@
                             <td class="col-left">${text}</td>
                             <td class="col-center">${item.score}</td>
                             <td class="col-center" style="color:${color}; font-weight:bold;">${scoreText}</td>
-                            <td class="col-left">${remark}</td>
+                            <td class="col-center">${imgHtml}</td>
+                            <td class="col-left">${descHtml}</td>
                         </tr>
                     `;
                 }
             });
 
             if (catRows !== "") {
-                rowsHtml += `<tr style="background-color:#f9f9f9;"><td colspan="5" style="font-weight:bold; padding:12px 15px; color:#333; border-bottom:1px solid #dcdfe6;">${cat.category}</td></tr>` + catRows;
+                rowsHtml += `<tr style="background-color:#f9f9f9;"><td colspan="6" style="font-weight:bold; padding:12px 15px; color:#333; border-bottom:1px solid #dcdfe6;">${cat.category}</td></tr>` + catRows;
             }
         });
 
         if (!hasIssues) {
-            rowsHtml = `<tr><td colspan="5" style="text-align:center; padding:40px; color:#67c23a; font-weight:bold; font-size:16px;">✅ 本次审核未发现不符合项，表现优秀！</td></tr>`;
+            rowsHtml = `<tr><td colspan="6" style="text-align:center; padding:40px; color:#67c23a; font-weight:bold; font-size:16px;">✅ 本次审核未发现不符合项，表现优秀！</td></tr>`;
         }
 
         let warningText = "";
@@ -950,7 +966,7 @@
                 .col-left { text-align: left; }
                 
                 /* 图片样式 */
-                .report-img { max-width: 120px; max-height: 120px; border: 1px solid #ebeef5; padding: 3px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+                .report-img { max-width: 140px; max-height: 140px; border: 1px solid #ebeef5; padding: 3px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
                 
                 /* 签名区 */
                 .footer-area { margin-top: 60px; display: flex; justify-content: space-between; padding: 0 60px; font-size: 16px; font-family: "Microsoft YaHei", sans-serif; }
@@ -996,11 +1012,12 @@
             <table class="pro-table">
                 <thead>
                     <tr>
-                        <th width="8%">序号</th>
-                        <th width="40%">审核条款</th>
-                        <th width="10%">标准分</th>
-                        <th width="12%">结果</th>
-                        <th width="30%">证据 / 描述</th>
+                        <th width="5%">序号</th>
+                        <th width="35%">审核条款</th>
+                        <th width="8%">标准分</th>
+                        <th width="10%">结果</th>
+                        <th width="15%">现场照片</th>
+                        <th width="27%">问题描述</th>
                     </tr>
                 </thead>
                 <tbody>
