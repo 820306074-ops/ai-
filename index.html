@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>供应商审核评估系统 (手机完美适配版)</title>
+    <title>供应商审核评估系统 (专业报告版)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -11,7 +11,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         html, body {
-            overflow-x: hidden; /* 禁止整体横向滚动 */
+            overflow-x: hidden; /* 主页面禁止横向滚动 */
             background-color: #f0f2f5;
         }
 
@@ -35,14 +35,14 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
         }
 
-        /* 手机端容器全屏化 */
+        /* 手机端容器全屏化适配 */
         @media screen and (max-width: 768px) {
             body { padding: 0; padding-bottom: 140px; background: #f7f8fa; }
             .container { 
                 border-radius: 0; 
                 box-shadow: none; 
                 padding: 15px; 
-                background: transparent; /* 背景透出 */
+                background: transparent; 
             }
             .header { margin-top: 10px; }
         }
@@ -113,7 +113,7 @@
         }
         .checkbox-group input { margin-right: 5px; }
 
-        /* ================= 表格/卡片 核心适配 ================= */
+        /* ================= 审核页面：手机端卡片式布局 (员工操作界面) ================= */
         .audit-table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -121,7 +121,7 @@
             background: #fff;
         }
         
-        /* 电脑端样式 */
+        /* 电脑端显示为表格 */
         @media screen and (min-width: 769px) {
             .audit-table th, .audit-table td { 
                 padding: 10px; 
@@ -136,12 +136,11 @@
             }
         }
 
-        /* === 手机端：变身为卡片列表 (关键CSS) === */
+        /* 手机端显示为卡片 (不影响导出报告) */
         @media screen and (max-width: 768px) {
-            /* 隐藏传统表头 */
             .audit-table thead th { display: none; }
             
-            /* 但要把“一键操作”按钮显示出来 */
+            /* 保留一键操作按钮区 */
             .audit-table thead {
                 display: block;
                 background: #fff;
@@ -150,7 +149,6 @@
                 padding: 10px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
-            /* 强制显示包含按钮的那个TH */
             .audit-table thead th:nth-child(4) {
                 display: flex;
                 justify-content: space-between;
@@ -160,7 +158,6 @@
                 background: transparent;
                 padding: 0;
             }
-            /* 在按钮旁加个提示文字 */
             .audit-table thead th:nth-child(4):before {
                 content: "快速操作：";
                 font-weight: bold;
@@ -168,13 +165,11 @@
                 font-size: 14px;
             }
 
-            /* 表格变为块级 */
             .audit-table, .audit-table tbody, .audit-table tr, .audit-table td {
                 display: block;
                 width: 100%;
             }
 
-            /* 每一行就是一个卡片 */
             .audit-table tr {
                 margin-bottom: 15px;
                 background: #fff;
@@ -185,7 +180,6 @@
                 position: relative;
             }
             
-            /* 分类标题行特殊处理 */
             .audit-table tr.category-header {
                 background: transparent;
                 box-shadow: none;
@@ -202,14 +196,12 @@
                 border-left: 4px solid #1890ff;
             }
 
-            /* 单元格样式重置 */
             .audit-table td {
                 padding: 5px 0;
                 border: none;
                 text-align: left;
             }
 
-            /* 序号和分值显示在顶部 */
             .audit-table td:nth-child(1) { /* 序号 */
                 display: inline-block;
                 color: #999;
@@ -232,31 +224,21 @@
             }
             .audit-table td:nth-child(3):before { content: "标准分: "; }
 
-            /* 条款内容 (自动换行，撑满屏幕) */
             .audit-table td:nth-child(2) { 
                 font-size: 15px;
                 font-weight: 500;
                 color: #333;
                 margin: 5px 0 10px 0;
                 line-height: 1.5;
-                clear: both; /* 换行 */
+                clear: both; 
             }
 
-            /* 评分下拉框 */
-            .audit-table td:nth-child(4) {
-                margin-bottom: 8px;
-            }
             .audit-table td:nth-child(4) select {
                 height: 40px;
                 font-size: 15px;
                 border: 1px solid #d9d9d9;
                 background-color: #fafafa;
                 font-weight: 500;
-            }
-
-            /* 备注和证据区 */
-            .audit-table td:nth-child(5) {
-                width: 100%;
             }
         }
         
@@ -270,7 +252,6 @@
             background-color: #fff;
         }
 
-        /* 状态颜色 */
         .score-low { color: #ff4d4f; font-weight: bold; }
         .score-mid { color: #faad14; font-weight: bold; }
         .score-high { color: #52c41a; font-weight: bold; }
@@ -287,7 +268,6 @@
         .evidence-box input[type="text"] { width: 100%; margin-bottom: 8px; border: 1px solid #ffccc7; padding: 8px; border-radius: 4px; }
         .evidence-box label { font-size: 13px; color: #cf1322; font-weight: bold; display: block; margin-bottom: 4px; }
         .photo-preview { max-width: 80px; max-height: 80px; margin-top: 5px; border-radius: 4px; border: 1px solid #ddd; }
-        /* 正常备注输入框 */
         input[id^="remark-"] {
             padding: 8px;
             border: 1px solid #eee;
@@ -393,7 +373,7 @@
         .btn-fail { background-color: #ff4d4f; }
         .star { color: red; font-weight: bold; margin-right: 2px; }
 
-        /* ================= 预览弹窗 ================= */
+        /* ================= 预览弹窗 (经典表格样式) ================= */
         .modal-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.6); z-index: 10000; 
@@ -409,10 +389,14 @@
         
         .modal-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fff; }
         .modal-body { flex: 1; overflow-y: auto; padding: 15px; background: #525659; }
+        
+        /* 报告纸张容器 */
         .report-paper { 
-            background: white; width: 100%; margin: 0 auto; max-width: 800px;
-            padding: 20px; box-sizing: border-box; min-height: 100%;
+            background: white; width: 100%; margin: 0 auto; max-width: 900px;
+            padding: 40px; box-sizing: border-box; min-height: 100%;
+            overflow-x: auto; 
         }
+        
         .modal-footer { padding: 15px; border-top: 1px solid #eee; text-align: center; display: flex; gap: 15px; justify-content: center; background: #fff;}
         .footer.button { min-width: 120px; border-radius: 20px; padding: 10px; }
 
@@ -505,7 +489,7 @@
 <div id="previewModal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 style="margin:0; font-size:18px;">报告预览</h3>
+            <h3 style="margin:0; font-size:18px;">报告预览 (专业审核格式)</h3>
             <button type="button" onclick="closePreview()" style="border:none;background:none;font-size:28px;cursor:pointer;padding:0 10px;">&times;</button>
         </div>
         <div class="modal-body">
@@ -858,6 +842,7 @@
         return { total: totalScore, max: maxPossibleScore, percent: percent, gradeText: gradeText, veto: vetoTriggered };
     }
 
+    // ================== 生成报告核心 (专业美化版) ==================
     function generateReportBody() {
         document.querySelectorAll('.evidence-box').forEach(box => box.style.border = "1px dashed #ffc9c9");
         document.querySelectorAll('.sig-canvas').forEach(can => can.classList.remove('sig-error'));
@@ -922,99 +907,108 @@
                     
                     let img = safeGetValue(`base64-${globalId}`);
                     let prob = safeGetValue(`problem-${globalId}`);
-                    let remark = `<div style="text-align:center; margin-bottom:5px;"><img src="${img}" style="max-width:180px; border:1px solid #ccc;"></div>
-                                  <div style="color:red; font-weight:bold; font-size:12px;">问题描述: ${prob}</div>`;
+                    let remark = `<div style="text-align:center; margin-bottom:5px;"><img src="${img}" class="report-img"></div>
+                                  <div style="color:red; font-weight:bold; font-size:13px;">${prob}</div>`;
 
                     catRows += `
                         <tr>
-                            <td style="text-align:center;">${itemIndex + 1}</td>
-                            <td>${text}</td>
-                            <td style="text-align:center;">${item.score}</td>
-                            <td style="text-align:center; color:${color}; font-weight:bold;">${scoreText}</td>
-                            <td>${remark}</td>
+                            <td class="col-center">${itemIndex + 1}</td>
+                            <td class="col-left">${text}</td>
+                            <td class="col-center">${item.score}</td>
+                            <td class="col-center" style="color:${color}; font-weight:bold;">${scoreText}</td>
+                            <td class="col-left">${remark}</td>
                         </tr>
                     `;
                 }
             });
 
             if (catRows !== "") {
-                rowsHtml += `<tr style="background-color:#f8f9fa;"><td colspan="5" style="font-weight:bold; padding:8px;">${cat.category}</td></tr>` + catRows;
+                rowsHtml += `<tr style="background-color:#f9f9f9;"><td colspan="5" style="font-weight:bold; padding:12px 15px; color:#333; border-bottom:1px solid #dcdfe6;">${cat.category}</td></tr>` + catRows;
             }
         });
 
         if (!hasIssues) {
-            rowsHtml = `<tr><td colspan="5" style="text-align:center; padding:30px; color:green; font-weight:bold;">✅ 本次审核未发现不符合项，表现优秀！</td></tr>`;
+            rowsHtml = `<tr><td colspan="5" style="text-align:center; padding:40px; color:#67c23a; font-weight:bold; font-size:16px;">✅ 本次审核未发现不符合项，表现优秀！</td></tr>`;
         }
 
         let warningText = "";
-        let warningColor = "green";
+        let warningColor = "#67c23a";
         if(calc.percent < 60 || calc.veto) {
             warningText = "说明：供应商审核分数低于 60 分或触犯关键项，不符合我司合格供应商准入标准。";
-            warningColor = "red";
+            warningColor = "#f56c6c";
         } else if (calc.percent < 80) {
             warningText = "说明：分数在60-79分之间，需要进行整改后方可准入。";
-            warningColor = "orange";
+            warningColor = "#e6a23c";
         } else {
             warningText = "说明：符合准入标准。";
         }
 
+        // 使用内联 CSS 生成独立样式的专业报告
         return `
             <style>
-                h1 { text-align: center; margin-bottom: 20px; font-size: 18px; }
-                .info-table, .score-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: "SimSun", "Arial", sans-serif; }
-                .info-table td, .score-table td, .score-table th { padding: 6px; border: 1px solid #ddd; font-size: 12px; }
-                .score-table th { background-color: #f0f0f0; text-align: center; font-weight: bold; }
-                .audit-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: "SimSun", "Arial", sans-serif; }
-                .audit-table th, .audit-table td { border: 1px solid #000; padding: 6px; vertical-align: middle; }
-                .audit-table th { background-color: #f0f0f0; text-align: center; }
-                .footer-area { margin-top: 50px; display: flex; justify-content: space-between; padding: 0 10px; font-size: 14px; font-family: "SimSun", "Arial", sans-serif; }
-                .signature-box { display: flex; flex-direction: column; align-items: center; width: 45%; }
-                .sig-img { width: 100%; max-width: 150px; height: auto; border-bottom: 1px solid #000; margin-top: 5px; }
+                .report-title { text-align: center; font-size: 26px; font-weight: bold; margin-bottom: 30px; color: #333; letter-spacing: 1px; }
+                
+                /* 专业表格样式 */
+                .pro-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px; font-family: "Microsoft YaHei", sans-serif; }
+                .pro-table th { background-color: #f5f7fa; color: #303133; font-weight: bold; padding: 12px 10px; border: 1px solid #dcdfe6; text-align: center; }
+                .pro-table td { padding: 12px 10px; border: 1px solid #dcdfe6; vertical-align: top; color: #606266; line-height: 1.5; }
+                
+                /* 对齐方式 */
+                .col-center { text-align: center; }
+                .col-left { text-align: left; }
+                
+                /* 图片样式 */
+                .report-img { max-width: 120px; max-height: 120px; border: 1px solid #ebeef5; padding: 3px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+                
+                /* 签名区 */
+                .footer-area { margin-top: 60px; display: flex; justify-content: space-between; padding: 0 60px; font-size: 16px; font-family: "Microsoft YaHei", sans-serif; }
+                .signature-box { display: flex; flex-direction: column; align-items: center; width: 35%; }
+                .sig-img { width: 100%; max-width: 180px; height: auto; border-bottom: 1px solid #333; margin-top: 10px; padding-bottom: 5px; }
             </style>
             
-            <h1>供应商审核评估报告 (问题汇总)</h1>
+            <h1 class="report-title">供应商审核评估报告 (问题汇总)</h1>
             
-            <table class="info-table">
+            <table class="pro-table">
                 <tr>
-                    <td width="20%"><strong>供应商</strong></td>
-                    <td width="30%">${info.name}</td>
-                    <td width="20%"><strong>日期</strong></td>
-                    <td width="30%">${info.date}</td>
+                    <th width="15%">供应商名称</th>
+                    <td width="35%">${info.name}</td>
+                    <th width="15%">审核日期</th>
+                    <td width="35%">${info.date}</td>
                 </tr>
                 <tr>
-                    <td><strong>负责人</strong></td>
+                    <th>负责人</th>
                     <td>${info.contact}</td>
-                    <td><strong>种类</strong></td>
+                    <th>供应种类</th>
                     <td>${info.cats}</td>
                 </tr>
             </table>
 
-            <table class="score-table">
+            <table class="pro-table">
                 <tr>
-                    <th>适用总分</th>
+                    <th>适用项总分</th>
                     <th>实际得分</th>
-                    <th>得分率</th>
-                    <th>结论</th>
+                    <th>得分率 (%)</th>
+                    <th>最终结论</th>
                 </tr>
                 <tr>
-                    <td align="center">${calc.max}</td>
-                    <td align="center">${calc.total}</td>
-                    <td align="center" style="font-weight:bold;">${calc.percent}%</td>
-                    <td align="center" style="font-weight:bold; color:${calc.veto || calc.percent<60 ? 'red' : 'green'}">${calc.gradeText}</td>
+                    <td class="col-center" style="font-size:16px;">${calc.max}</td>
+                    <td class="col-center" style="font-size:16px;">${calc.total}</td>
+                    <td class="col-center" style="font-weight:bold; font-size:18px;">${calc.percent}%</td>
+                    <td class="col-center" style="font-weight:bold; font-size:16px; color:${calc.veto || calc.percent<60 ? '#f56c6c' : '#67c23a'}">${calc.gradeText}</td>
                 </tr>
                 <tr>
-                    <td colspan="4" style="color:${warningColor}; font-weight:bold; padding:10px;">${warningText}</td>
+                    <td colspan="4" style="color:${warningColor}; font-weight:bold; padding:15px; background-color:#fdfdfd;">${warningText}</td>
                 </tr>
             </table>
 
-            <table class="audit-table">
+            <table class="pro-table">
                 <thead>
                     <tr>
                         <th width="8%">序号</th>
-                        <th width="35%">条款</th>
-                        <th width="10%">分值</th>
+                        <th width="40%">审核条款</th>
+                        <th width="10%">标准分</th>
                         <th width="12%">结果</th>
-                        <th width="35%">证据 / 描述</th>
+                        <th width="30%">证据 / 描述</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1057,7 +1051,7 @@
     function downloadReportFile() {
         try {
             let bodyContent = generateReportBody();
-            let fullHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>供应商审核报告</title></head><body>${bodyContent}</body></html>`;
+            let fullHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>供应商审核报告</title></head><body>${bodyContent}</body></html>`;
             
             let blob = new Blob([fullHtml], {type: "text/html;charset=utf-8"});
             let url = URL.createObjectURL(blob);
