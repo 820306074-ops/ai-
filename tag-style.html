@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>食品合规卫士 V22.0 (智能别名版)</title>
+    <title>食品合规卫士 V23.0 (官方批复全集版)</title>
     <style>
-        /* --- UI 保持 V21.0 现代风格 --- */
+        /* --- UI 保持 V22.0 现代风格 --- */
         :root {
             --primary: #4361EE; --primary-dark: #3F37C9;
             --bg-color: #F8F9FE; --card-shadow: 0 10px 30px -10px rgba(67, 97, 238, 0.15);
@@ -18,25 +18,35 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+        
         .header { background: linear-gradient(135deg, #4361EE, #7209B7); color: white; padding: 40px 20px 80px; text-align: center; border-radius: 0 0 30px 30px; position: relative; }
         .header h1 { margin: 0; font-size: 26px; font-weight: 800; }
         .header p { font-size: 13px; opacity: 0.9; margin-top: 8px; }
+        
         .container { max-width: 600px; margin: -50px auto 30px; padding: 0 20px; position: relative; z-index: 10; }
         .card { background: #FFF; border-radius: 24px; padding: 25px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
+        
         .search-box { display: flex; gap: 12px; }
         .input-wrap { flex: 1; background: #F8F9FA; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; height: 56px; border: 2px solid transparent; transition: all 0.3s; }
         .input-wrap:focus-within { background: #FFF; border-color: var(--primary); box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2); }
-        .search-input { border: none; background: transparent; width: 100%; height: 100%; font-size: 17px; outline: none; }
-        .btn-search { background: var(--primary); color: white; border: none; width: 56px; height: 56px; border-radius: 16px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .search-input { border: none; background: transparent; width: 100%; height: 100%; font-size: 17px; outline: none; color: var(--text-main); }
+        .btn-search { background: var(--primary); color: white; border: none; width: 56px; height: 56px; border-radius: 16px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3); }
+        .btn-search:active { transform: scale(0.95); }
+
         .tags { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
-        .tag { padding: 8px 16px; border-radius: 100px; background: #FFF; border: 1px solid #E9ECEF; color: var(--text-sub); font-size: 13px; cursor: pointer; }
+        .tag { padding: 8px 16px; border-radius: 100px; background: #FFF; border: 1px solid #E9ECEF; color: var(--text-sub); font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .tag:hover { border-color: var(--primary); color: var(--primary); }
+
         #resultView { display: none; animation: slideUp 0.4s ease-out; }
         .res-header { text-align: center; padding-bottom: 20px; border-bottom: 1px dashed #E9ECEF; margin-bottom: 20px; }
         .res-icon { font-size: 56px; display: block; margin-bottom: 10px; }
         .res-title { font-size: 24px; font-weight: 800; margin: 0; }
-        .risk-alert { padding: 16px; border-radius: 16px; font-size: 14px; margin-top: 15px; position: relative; overflow: hidden; }
-        .alias-tip { background: #E3F2FD; color: #1565C0; padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; }
         
+        .risk-alert { padding: 16px; border-radius: 16px; font-size: 14px; margin-top: 15px; position: relative; overflow: hidden; }
+        .risk-alert::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: currentColor; opacity: 0.5; }
+        
+        .alias-box { background: #E3F2FD; color: #1565C0; padding: 10px 15px; border-radius: 12px; font-size: 13px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border: 1px solid #BBDEFB; }
+
         /* 状态颜色 */
         .green .res-title { color: var(--c-green); } .green .risk-alert { background: var(--bg-green); color: #00695C; }
         .red .res-title { color: var(--c-red); } .red .risk-alert { background: var(--bg-red); color: #C92A2A; }
@@ -45,41 +55,43 @@
         .black .res-title { color: var(--c-black); } .black .risk-alert { background: var(--bg-black); color: #212529; }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .version { text-align: center; color: #B0BEC5; font-size: 12px; margin-top: 30px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>食品原料合规卫士 </h1>
-<p>安全部：李川，如有疑问企业微信联系我</p>
-
-    <p>智能识别：别名解析 · 药食同源 · 负面清单 · 药典</p>
+    <h1>食品合规卫士 </h1>
+    <p>安全部：李川，如有疑问企业微信联系我</p>
+    <p>全库集成：官方批复普通食品 · 药食同源 · 药典</p>
 </div>
 
 <div class="container">
     <div class="card">
         <div class="search-box">
             <div class="input-wrap">
-                <input type="text" id="searchInput" class="search-input" placeholder="试搜别名: 大料、淮山、元肉、冬虫夏草..." onkeypress="if(event.key==='Enter') doSearch()">
+                <input type="text" id="searchInput" class="search-input" placeholder="查: 玉米须、纳豆、刺梨、黄芪..." onkeypress="if(event.key==='Enter') doSearch()">
             </div>
             <button class="btn-search" onclick="doSearch()">🔍</button>
         </div>
         <div class="tags">
-            <span class="tag" onclick="fill('大料')">大料(即八角)</span>
-            <span class="tag" onclick="fill('淮山')">淮山(即山药)</span>
-            <span class="tag" onclick="fill('元肉')">元肉(即龙眼)</span>
+            <span class="tag" onclick="fill('玉米须')">玉米须(普)</span>
+            <span class="tag" onclick="fill('纳豆')">纳豆(普)</span>
+            <span class="tag" onclick="fill('刺梨')">刺梨(普)</span>
             <span class="tag" onclick="fill('冬虫夏草')">冬虫夏草(禁)</span>
-            <span class="tag" onclick="fill('五指毛桃')">五指毛桃(普)</span>
+            <span class="tag" onclick="fill('大料')">大料(别名)</span>
         </div>
     </div>
 
     <div id="resultView" class="card"></div>
+    <div class="version">Database V23.0 · Official Approved List Included</div>
 </div>
 
 <script>
-    // --- 1. 别名与同源数据处理 (核心新增) ---
-    // 格式：标准名=别名1=别名2...
-    const HOMOLOGY_ALIAS_RAW = `
+    // ==========================================
+    // 1️⃣ 别名数据库 (Alias DB)
+    // ==========================================
+    const ALIAS_RAW = `
 丁香=公丁香=丁子香=支解香=雄丁香
 八角茴香=大料=八角=大茴香
 刀豆=刀豆子=大刀豆=关刀豆
@@ -186,133 +198,19 @@
 天冬=天门冬=明天冬=天冬草=倪铃=丝冬
 化橘红=化州橘红=橘红=化红=柚皮橘红=毛橘红`;
 
-    // 2. 初始化别名映射表
+    // 初始化别名映射
     const ALIAS_MAP = {};
-    const HOMOLOGY_SET = new Set();
-
-    // 自动解析别名数据
-    HOMOLOGY_ALIAS_RAW.trim().split('\n').forEach(line => {
-        if (!line.trim()) return;
+    ALIAS_RAW.trim().split('\n').forEach(line => {
+        if (!line) return;
         const parts = line.split('=');
-        const standardName = parts[0].trim();
-        
-        if (standardName) {
-            HOMOLOGY_SET.add(standardName); // 加入同源白名单
-            // 将所有名称（包括标准名和别名）都映射到标准名
-            parts.forEach(name => {
-                ALIAS_MAP[name.trim()] = standardName;
-            });
-        }
+        const standard = parts[0].trim();
+        parts.forEach(alias => {
+            ALIAS_MAP[alias.trim()] = standard;
+        });
     });
 
-    // --- 3. 搜索交互逻辑 ---
-    function fill(val) {
-        document.getElementById('searchInput').value = val;
-        doSearch();
-    }
-
-    function doSearch() {
-        let input = document.getElementById('searchInput').value.trim();
-        if(!input) return;
-
-        let html = '';
-        const view = document.getElementById('resultView');
-        let aliasTip = '';
-        
-        // 🚀 智能映射：如果输入的是别名，自动转换为标准名
-        // 优先检查别名表，如果匹配到，将 searchKey 替换为标准名
-        let searchKey = input;
-        if (ALIAS_MAP[input]) {
-            searchKey = ALIAS_MAP[input];
-            // 如果输入和标准名不一样，显示提示
-            if (input !== searchKey) {
-                aliasTip = `<div class="alias-tip"><span>💡</span> 智能识别：您搜的 <strong>${input}</strong> 是 <strong>${searchKey}</strong> 的别名</div>`;
-            }
-        }
-
-        try {
-            // --- 判定逻辑 (使用 searchKey 进行核心库查询) ---
-            
-            // 1. 💀 剧毒/禁用 (原样保持，优先级最高)
-            if (DATA.HEALTH_BANNED.has(input) || input.includes('罂粟') || DATA.HEALTH_BANNED.has(searchKey)) {
-                html = renderResult('black', '💀 绝对禁止 (有毒/红线)', '该物品属于《保健食品禁用物品》或涉毒原料！具有明显毒性或严重副作用，严禁用于任何食品。');
-            }
-            
-            // 2. 🚫 明确批复非食品 (复函负面清单)
-            else if (DATA.EXPLICIT_NON_FOOD[input] || DATA.EXPLICIT_NON_FOOD[searchKey]) {
-                // 优先用标准名查
-                let reason = DATA.EXPLICIT_NON_FOOD[searchKey] || DATA.EXPLICIT_NON_FOOD[input];
-                html = renderResult('red', '🚫 禁止入菜 (卫健委批复)', `<strong>官方复函：</strong>${reason}<br><strong>结论：</strong>被明确回复“不作为”普通食品原料。`);
-            }
-
-            // 3. 👶 婴幼儿菌种
-            else if (DATA.INFANT_PROBIOTICS.has(input)) {
-                html = renderResult('blue', '👶 婴幼儿可用菌种', '列入《可用于婴幼儿食品的菌种名单》，安全性高。');
-            }
-            
-            // 4. 🦠 普通菌种
-            else if (DATA.PROBIOTICS.has(input)) {
-                html = renderResult('blue', '🦠 合规菌种 (普通)', '列入《可用于食品的菌种名单》，可用于酸奶、饮料等。');
-            }
-
-            // 5. 💊 保健食品专用 (红灯)
-            // 注意：需排除药食同源（因为部分保健原料已转正，如西洋参）
-            else if ((DATA.HEALTH_ONLY.has(input) || DATA.HEALTH_ONLY.has(searchKey)) && !HOMOLOGY_SET.has(searchKey)) {
-                html = renderResult('red', '💊 禁止入菜 (仅限保健)', '属于《可用于保健食品的物品名单》，且不是药食同源。仅限保健食品生产，餐饮环节违法！');
-            }
-
-            // 6. 🌿 药食同源 (绿灯) - 使用 searchKey 匹配
-            else if (HOMOLOGY_SET.has(searchKey)) {
-                html = renderResult('green', '🌿 药食同源 (合法)', '列入卫健委《既是食品又是中药材的物质名单》。<br><strong>结论：</strong>具有合法食品身份，可用于餐饮。');
-            }
-
-            // 7. 🥦 普通食品 / 香辛料
-            else if (DATA.ORDINARY.has(input) || DATA.ORDINARY_APPROVED[input] || DATA.ORDINARY_APPROVED[searchKey]) {
-                let detail = DATA.ORDINARY_APPROVED[searchKey] || DATA.ORDINARY_APPROVED[input] || "传统食品原料/农副产品";
-                html = renderResult('green', '🥦 普通食品', detail + '<br>结论：无需限制，可按需使用。');
-            }
-            else if (DATA.SPICE.has(input) || DATA.SPICE.has(searchKey)) {
-                html = renderResult('green', '🌶️ 国标香辛料', 'GB/T 12729.1-2008。结论：合法调味品。');
-            }
-
-            // 8. 🧪 新资源 (黄灯)
-            else if (DATA.NEW_RESOURCE[input] || DATA.NEW_RESOURCE[searchKey]) {
-                let d = DATA.NEW_RESOURCE[searchKey] || DATA.NEW_RESOURCE[input];
-                html = renderResult('yellow', '🧪 有条件食用', `<strong>限量：</strong>${d.limit}<br><strong>禁忌：</strong>${d.risk}`);
-            }
-
-            // 9. 📕 药典黑名单
-            else if (DATA.CHP.has(input) || DATA.CHP.has(searchKey)) {
-                html = renderResult('red', '🚫 禁止入菜 (纯药品)', '收录于《中国药典》且未列入食品白名单。属于“纯中药材”，餐饮环节严禁使用！');
-            }
-
-            // 10. 未知
-            else {
-                html = renderResult('red', '❓ 未收录 / 慎用', '系统未在任何白名单中找到该物品。若为中药材或野生菌，默认禁止使用。');
-            }
-
-            view.innerHTML = aliasTip + html;
-            view.style.display = 'block';
-
-        } catch (e) {
-            alert("查询逻辑出错: " + e.message);
-        }
-    }
-
-    function renderResult(color, title, desc) {
-        let iconMap = { green: '🛡️', blue: '✅', yellow: '⚠️', red: '🚫', black: '💀' };
-        return `
-            <div class="${color}">
-                <div class="res-header">
-                    <span class="res-icon">${iconMap[color]||'❓'}</span>
-                    <h2 class="res-title">${title}</h2>
-                </div>
-                <div class="risk-alert">${desc}</div>
-            </div>`;
-    }
-
     // ==========================================
-    // 💾 其他核心数据库 (保持 V21.0 数据)
+    // 2️⃣ 核心数据库 (DATA)
     // ==========================================
     const DATA = {
         // 0. 复函负面清单
@@ -343,14 +241,62 @@
         PROBIOTICS: new Set(("地衣芽孢杆菌 凝结芽孢杆菌 青春双歧杆菌 动物双歧杆菌 两歧双歧杆菌 短双歧杆菌 婴儿双歧杆菌 长双歧杆菌 嗜酸乳杆菌 嗜淀粉乳杆菌 产阿米尔乳杆菌 短乳杆菌 干酪乳杆菌 棒状乳杆菌 德氏乳杆菌 发酵乳杆菌 加氏乳杆菌 瑞士乳杆菌 约氏乳杆菌 乳酸乳杆菌 副干酪乳杆菌 植物乳杆菌 罗伊氏乳杆菌 鼠李糖乳杆菌 唾液乳杆菌 清酒乳杆菌 乳酸乳球菌 肠膜明串珠菌 嗜热链球菌 酿酒酵母 乳克鲁维酵母").split(' ')),
         // 4. 普通食品
         ORDINARY: new Set(("大米 小麦 面粉 玉米 高粱 黄豆 绿豆 红豆 黑豆 燕麦 荞麦 白菜 萝卜 黄瓜 西红柿 辣椒 茄子 芹菜 菠菜 韭菜 芫荽 香菜 苹果 梨 香蕉 葡萄 西瓜 橘子 橙子 柠檬 柚子 草莓 蓝莓 猪肉 牛肉 羊肉 鸡肉 鸭肉 鸡蛋 鸭蛋 牛奶 核桃 榛子 松子 开心果 腰果 葵花籽 南瓜子 西瓜子 花生 无花果 芝麻 莲子 百合 银耳 木耳 香菇 金针菇 辣椒粉 孜然 胡椒 咖喱粉 芥末 普洱茶 绿茶 红茶 乌龙茶 茉莉花茶 玫瑰花 桂花 茉莉花 洛神花 菊花(食用) 金银花(食用) 魔芋 琼脂 五指毛桃 牛蒡根 大麦苗 针叶樱桃").split(' ')),
+        
+        // 🟢 卫健委批复/终止审查明确为普通食品 (全量补充版)
         ORDINARY_APPROVED: {
-            "五指毛桃": "卫健委复函同意作为普通食品。", "牛蒡根": "卫健委复函同意作为普通食品。",
-            "普洱茶": "终止审查，按普通食品管理。", "玫瑰花": "重瓣红玫瑰，普通食品。",
-            "大麦苗": "终止审查，普通食品。", "针叶樱桃": "终止审查，普通食品。",
-            "松花粉": "人工采集马尾松花粉，按普通食品管理。", "菊粉": "新资源食品（普通食品管理）。"
+            "纳豆": "卫法监发〔2002〕308号：以纳豆芽孢杆菌发酵生产，按普通食品管理。",
+            "油菜花粉": "卫生部公告2004年第17号：普通食品。",
+            "玉米花粉": "卫生部公告2004年第17号：普通食品。",
+            "松花粉": "卫生部公告2004年第17号：人工采集马尾松花粉，普通食品。",
+            "向日葵花粉": "卫生部公告2004年第17号：普通食品。",
+            "紫云英花粉": "卫生部公告2004年第17号：普通食品。",
+            "荞麦花粉": "卫生部公告2004年第17号：普通食品。",
+            "芝麻花粉": "卫生部公告2004年第17号：普通食品。",
+            "高粱花粉": "卫生部公告2004年第17号：普通食品。",
+            "魔芋": "卫生部公告2004年第17号：普通食品。",
+            "钝顶螺旋藻": "卫生部公告2004年第17号：普通食品。",
+            "极大螺旋藻": "卫生部公告2004年第17号：普通食品。",
+            "刺梨": "卫生部公告2004年第17号：普通食品。",
+            "玫瑰茄": "卫生部公告2004年第17号：普通食品。",
+            "蕺菜": "卫生部公告2004年第17号：普通食品（即鱼腥草，亦为药食同源）。",
+            "酸枣": "卫生部公告2009年第18号：普通食品。",
+            "玫瑰花": "卫生部公告2010年第3号：重瓣红玫瑰，普通食品。",
+            "凉粉草": "卫生部公告2010年第3号：仙草，普通食品。",
+            "针叶樱桃果": "卫生部公告2010年第9号：普通食品。",
+            "水苏糖": "卫生部公告2010年第17号：普通食品。",
+            "木犀科粗壮女贞": "卫监函〔2011〕428号：苦丁茶，普通食品。",
+            "苦丁茶": "卫监函〔2011〕428号/卫计函〔2013〕86号：普通食品。",
+            "平卧菊三七": "卫生部公告2012年第3号：普通食品。",
+            "大麦苗": "卫生部公告2012年第3号：普通食品。",
+            "抗性糊精": "卫生部公告2012年第16号：普通食品。",
+            "梨果仙人掌": "卫生部公告2012年第19号：普通食品。",
+            "梅花鹿副产品": "卫监函〔2012〕8号：除鹿茸、鹿角、鹿胎外的其他养殖梅花鹿副产品，普通食品。",
+            "膳食纤维": "卫办监督函〔2012〕262号：普通食品。",
+            "玉米须": "卫监函〔2012〕306号：普通食品。",
+            "沙棘叶": "卫计委公告2013年第3号：普通食品。",
+            "天贝": "卫计委公告2013年第3号：普通食品。",
+            "小麦苗": "卫监函〔2013〕17号：普通食品。",
+            "冬青科苦丁茶": "卫计函〔2013〕86号：普通食品。",
+            "牛蒡根": "国卫食品〔2013〕83号：普通食品。",
+            "低聚果糖": "国卫食品〔2013〕118号：普通食品。",
+            "中链甘油三酯": "国卫食品〔2013〕514号：普通食品。",
+            "海藻糖": "卫计委公告2014年第15号：普通食品。",
+            "五指毛桃": "国卫食品〔2014〕205号：普通食品。",
+            "耳叶牛皮消": "国卫食品〔2014〕427号：普通食品。",
+            "黄明胶": "国卫食品〔2014〕570号：普通食品。",
+            "酪蛋白酸钠": "国卫食品〔2014〕897号：普通食品。",
+            "酪蛋白酸钙": "国卫食品〔2014〕897号：普通食品。",
+            "酪蛋白酸镁": "国卫食品〔2014〕897号：普通食品。",
+            "白毛银露梅": "国卫食品〔2014〕1075号：普通食品。",
+            "蔬菜水果籽": "国卫食品评函〔2014〕148号：传统可食部分未提取浓缩，普通食品。",
+            "聚葡萄糖": "国卫食品评函〔2014〕241号：普通食品。",
+            "中国苦水玫瑰": "国卫办食品〔2016〕39号：普通食品。",
+            "墨鱼粉": "国食评函〔2016〕198号：普通食品。"
         },
         // 5. 香辛料
-        SPICE: new Set(("菖蒲 洋葱 大葱 小葱 韭葱 蒜 高良姜 豆蔻 香豆蔻 草果 砂仁 莳萝 土茴香 圆叶当归 细叶芹 芹菜 辣根 龙蒿 杨桃 黑芥籽 刺山柑 辣椒 葛缕子 桂皮 肉桂 阴香 大清桂 芫荽 藏红花 枯茗 姜黄 香茅 枫茅 小豆蔻 阿魏 小茴香 甘草 八角 刺柏 山奈 木姜子 月桂 芒果 薄荷 椒样薄荷 留兰香 调料九里香 肉豆蔻 甜罗勒 甘牛至 牛至 欧芹 多香果 草拔 黑胡椒 白胡椒 石榴 迷迭香 胡麻 芝麻 白欧芥 丁香 罗晃子 蒙百里香 百里香 香椿 香早芹 葫芦巴 香荚兰 花椒 姜").split(' ')),
+        SPICE: new Set(("菖蒲 洋葱 大葱 小葱 韭葱 蒜 高良姜 豆蔻 香豆蔻 草果 砂仁 莳萝 土茴香 圆叶当归 细叶芹 芹菜 辣根 龙蒿 杨桃 黑芥籽 刺山柑 辣椒 葛缕子 桂皮 肉桂 阴香 大清桂 芫荽 藏红花 枯茗 姜黄 香茅 枫茅 小豆蔻 阿魏 小茴香 甘草 八角 刺柏 山奈 木姜子 月桂 芒果 薄荷 椒样薄荷 留兰香 调料九里香 肉豆蔻 甜罗勒 甘牛至 牛至 欧芹 多香果 草拔 黑胡椒 白胡椒 石榴 迷迭香 胡麻 芝麻 白欧芥 丁香 罗晃子 蒙百里香 百里香 香椿 香早芹 金鸡纳 树皮 达迷草叶 苏合香 白藓牛至 苦艾 药蜀葵 香蜂草 毕澄茄 葫芦巴 香荚兰 花椒 姜").split(' ')),
+        // 6. 药食同源
+        HOMOLOGY: new Set(("丁香 八角茴香 刀豆 小茴香 小蓟 山药 山楂 马齿苋 乌梢蛇 乌梅 木瓜 火麻仁 代代花 玉竹 甘草 白芷 白果 白扁豆 白扁豆花 龙眼肉 决明子 百合 肉豆蔻 肉桂 余甘子 佛手 杏仁 沙棘 牡蛎 芡实 花椒 赤小豆 阿胶 鸡内金 麦芽 昆布 枣 罗汉果 郁李仁 金银花 青果 鱼腥草 姜 干姜 生姜 枳苁蓉 枸杞子 栀子 砂仁 胖大海 茯苓 香橼 香薷 桃仁 桑叶 桑椹 桔梗 益智仁 荷叶 莱菔子 莲子 高良姜 淡竹叶 淡豆豉 菊花 菊苣 黄芥子 黄精 紫苏 紫苏子 葛根 黑芝麻 黑胡椒 槐米 槐花 蒲公英 蜂蜜 榧子 酸枣仁 鲜白茅根 鲜芦根 橘皮 薄荷 薏苡仁 薤白 覆盆子 藿香 当归 山柰 西红花 草果 姜黄 荜茇 党参 肉苁蓉 铁皮石斛 西洋参 黄芪 灵芝 山茱萸 天麻 杜仲叶 地黄 麦冬 天冬 化橘红").split(' ')),
         // 7. 新资源
         NEW_RESOURCE: {
             "人参": { limit: "≤ 3克/天", risk: "🚫 孕妇、14岁以下儿童不宜" },
@@ -365,6 +311,103 @@
         // 9. 药典1000种
         CHP: new Set(("一枝黄花 丁公藤 丁香 八角茴香 人工牛黄 人参 人参叶 儿茶 九里香 九香虫 刀豆 三七 三白草 三棱 三颗针 干姜 炮姜 干漆 土木香 土贝母 土荆皮 土茯苓 土鳖虫 大青盐 大蓟 大腹皮 大黄 大蒜 大青叶 大枣 山麦冬 山豆根 山茱萸 山药 山楂 山柰 山银花 千金子 川木香 川木通 川贝母 川牛膝 川乌 川芎 马钱子 马兜铃 马鞭草 马齿苋 马鹿茸 马勃 王不留行 天冬 天花粉 天南星 天麻 天葵子 木瓜 木香 木贼 木通 木蝴蝶 木鳖子 五加皮 五味子 五倍子 太子参 车前子 车前草 瓦松 瓦楞子 牛黄 牛膝 升麻 片姜黄 乌药 乌梢蛇 乌梅 火麻仁 巴豆 巴戟天 水牛角 水红花子 水蛭 玉竹 功劳木 艾叶 石韦 石决明 石斛 石膏 石菖蒲 石榴皮 布渣叶 龙胆 龙眼肉 龙齿 龙骨 龙葵 平贝母 北沙参 北豆根 北苍术 生姜 仙茅 仙鹤草 白及 白术 白芍 白芷 白附子 白茅根 白矾 白果 白前 白扁豆 白蔹 白鲜皮 白头翁 白薇 白僵蚕 瓜蒌 瓜蒌子 瓜蒌皮 冬瓜皮 冬虫夏草 冬瓜子 冬葵子 玄参 半边莲 半枝莲 半夏 母丁香 丝瓜络 老鹳草 地枫皮 地骨皮 地黄 熟地黄 地榆 地锦草 地肤子 当归 朱砂 朱砂根 延胡索 华山参 伊贝母 血竭 全蝎 合欢皮 合欢花 决明子 冰片 关黄柏 防己 防风 红大戟 红花 红景天 麦冬 麦芽 远志 连翘 吴茱萸 牡丹皮 牡蛎 何首乌 制何首乌 伸筋草 皂角刺 佛手 余甘子 谷芽 龟甲 龟甲胶 辛夷 羌活 沙苑子 沙参 沉香 没药 诃子 补骨脂 阿胶 阿魏 陈皮 附子 忍冬藤 鸡血藤 鸡冠花 鸡内金 鸡血藤膏 青风藤 青蒿 青黛 青皮 青葙子 苦杏仁 苦参 苦楝皮 苘麻子 枇杷叶 板蓝根 松花粉 枫香脂 刺五加 郁李仁 郁金 虎杖 昆布 明党参 罗汉果 知母 垂盆草 使君子 侧柏叶 佩兰 金沸草 金果榄 金钱白花蛇 金钱草 金银花 金樱子 鱼腥草 狗脊 京大戟 卷柏 炉甘石 泽泻 泽兰 降香 细辛 珍珠 珍珠母 荆芥 茜草 荜茇 荜澄茄 草乌 草豆蔻 草果 茵陈 茯苓 茯苓皮 茺蔚子 胡芦巴 胡黄连 胡椒 胡桃仁 胡麻仁 南沙参 南板蓝根 枳壳 枳实 栀子 枸杞子 柿蒂 威灵仙 厚朴 厚朴花 姜黄 前胡 首乌藤 钩藤 香加皮 香附 香橼 重楼 禹余粮 独活 急性子 穿山甲 穿心莲 穿龙薯蓣 秦艽 秦皮 莲子 莲子心 莲房 莲须 莪术 荷叶 桂枝 桔梗 桃仁 盐附子 柴胡 党参 铁苋菜 积雪草 射干 徐长卿 高良姜 益智仁 益母草 海风藤 海金沙 海螵蛸 海藻 浮萍 通草 桑叶 桑白皮 桑枝 桑椹 桑寄生 黄芩 黄芪 黄连 黄柏 黄精 黄藤 菟丝子 菊苣 菊花 梅花 常山 野菊花 蛇床子 蛇蜕 银杏叶 银柴胡 猪苓 麻黄 麻黄根 鹿角 鹿角胶 鹿角霜 鹿茸 商陆 旋覆花 羚羊角 淫羊藿 淡竹叶 淡豆豉 密蒙花 续断 绵马贯众 绵萆薢 紫苏子 紫苏叶 紫苏梗 葛根 葛花 葫芦巴 葱白 葶苈子 蛤蚧 黑芝麻 锁阳 滑石 棕榈 款冬花 紫石英 紫花地丁 紫草 紫河车 紫珠叶 紫萁贯众 蛤壳 黑顺片 黑种草子 黑胡椒 蓖麻子 蒺藜 蒲公英 蒲黄 椿皮 槐角 槐花 雷丸 雷公藤 漏芦 熊胆粉 赭石 僵蚕 槟榔 酸枣仁 磁石 豨莶草 蝉蜕 罂粟壳 蕲蛇 槲寄生 樟脑 稻芽 僵蛹 鹤虱 薏苡仁 薄荷 颠茄草 橘红 化橘红 藁本 檀香 藕节 礞石 瞿麦 藿香 蟾酥 鳖甲 鳖甲胶 麝香 大皂角 小皂角 人中黄 人中白 八角莲 八角枫根 八仙草 八月札 八角茴香 九里香 九节菖蒲 十大功劳叶 十大功劳根 丁香油 丁香罗勒油 八角茴香油 人参芦 人参须 人参皂苷 儿茶膏 二色补血草 十大功劳 七叶一枝花 七叶莲 七厘散 七叶胆 刀豆壳 刀豆子 三尖杉 三棱草 三白草根 三分三 三桠苦 三棵针 土大黄 土牛膝 土贝母 土荆芥 土茯苓 土党参 土黄芪 土当归 土三七 土麦冬 大血藤 大青叶 大青根 大蓟根 大腹毛 大豆黄卷 大皂角刺 大叶紫珠 大蓟炭 大黄炭 大腹皮 大蒜 大枣 山茱萸 山萸肉 山药 山楂 山楂炭 山柰 山银花 山豆根 山慈菇 山茱萸肉 山麦冬 山茶花 山苍子 山苍子油 千金子霜 川木香 川木通 川贝母 川牛膝 川乌头 川槿皮 川芎 川白芷 川防风 川羌活 川独活 川续断 川楝子 川楝皮 广藿香 广陈皮 广郁金 广地龙 广木香 广酸枣 广豆根 广藿香 女贞子 女贞叶 小叶海藻 小蓟 小蓟炭 小驳骨 小叶枇杷 小飞扬草 小通草 小檗 小檗皮 马尾连 马齿苋 马勃 马钱子粉 马蔺子 马蔺花 马蔺根 马兜铃 马鞭草 王不留行 王母桃 天冬 天花粉 天南星 天麻 天葵子 天仙藤 天竹子 天竺黄 天浆壳 天荞麦根 无花果 无花果叶 无花果根 木瓜 木瓜核 木香 木贼 木通 木蝴蝶 木鳖子 木防己 木槿花 木槿皮 木槿子 木芙蓉叶 木芙蓉花 五加皮 五加皮 五味子 五倍子 五灵脂 五指毛桃 五谷虫 五香草 五加皮 太子参 车前子 车前草 瓦楞子 瓦松 牛黄 牛蒡子 牛蒡根 牛膝 牛膝炭 升麻 片姜黄 乌药 乌梢蛇 乌梅 乌梅炭 火麻仁 巴豆 巴豆霜 巴戟天 水牛角 水牛角浓缩粉 水红花子 水蛭 玉竹 玉簪花 玉簪根 功劳木 艾叶 艾叶炭 石韦 石决明 石斛 石膏 煅石膏 石菖蒲 石榴皮 石榴根 石楠叶 石吊兰 石南藤 石打穿 石见穿 布渣叶 龙胆 龙胆草 龙眼肉 龙齿 龙骨 煅龙骨 龙葵 平贝母 北沙参 北豆根 北苍术 北柴胡 北细辛 生姜 生姜皮 生姜汁 仙茅 仙鹤草 白及 白术 土白术 炒白术 焦白术 白芍 酒白芍 炒白芍 土白芍 白芷 白附子 白茅根 白茅花 白矾 枯矾 白果 白果仁 白果叶 白前 白扁豆 炒白扁豆 白扁豆花 白蔹 白鲜皮 白头翁 白薇 白僵蚕 炒僵蚕 瓜蒌 瓜蒌子 炒瓜蒌子 瓜蒌皮 蜜瓜蒌 冬瓜皮 冬瓜子 冬虫夏草 冬葵子 玄参 半边莲 半枝莲 半夏 法半夏 姜半夏 清半夏 母丁香 丝瓜络 老鹳草 地枫皮 地骨皮 地黄 生地黄 熟地黄 地榆 地榆炭 地锦草 地肤子 地胆草 地枇杷 当归 当归头 当归身 当归尾 酒当归 朱砂 朱砂根 延胡索 醋延胡索 华山参 伊贝母 血竭 全蝎 合欢皮 合欢花 决明子 炒决明子 冰片 合成冰片 天然冰片 关黄柏 关木通 防己 防风 红大戟 红花 红景天 麦冬 麦芽 炒麦芽 焦麦芽 远志 制远志 蜜远志 连翘 吴茱萸 制吴茱萸 牡丹皮 牡蛎 煅牡蛎 何首乌 制何首乌 伸筋草 皂角刺 佛手 余甘子 谷芽 炒谷芽 焦谷芽 龟甲 醋龟甲 龟甲胶 辛夷 羌活 沙苑子 沙参 南沙参 北沙参 沉香 没药 制没药 诃子 诃子肉 补骨脂 盐补骨脂 阿胶 阿胶珠 阿魏 陈皮 陈皮炭 附子 黑附片 白附片 淡附片 忍冬藤 鸡血藤 鸡冠花 鸡冠花子 鸡内金 炒鸡内金 醋鸡内金 鸡血藤膏 青风藤 青蒿 青黛 青皮 醋青皮 青葙子 苦杏仁 燀苦杏仁 炒苦杏仁 苦参 苦楝皮 苘麻子 枇杷叶 蜜枇杷叶 板蓝根 松花粉 枫香脂 刺五加 郁李仁 炒郁李仁 郁金 醋郁金 虎杖 昆布 明党参 罗汉果 知母 盐知母 垂盆草 使君子 使君子仁 侧柏叶 侧柏炭 佩兰 金沸草 金果榄 金钱白花蛇 金钱草 广金钱草 金银花 金樱子 金樱子肉 鱼腥草 狗脊 烫狗脊 京大戟 醋京大戟 卷柏 炉甘石 煅炉甘石 泽泻 盐泽泻 泽兰 降香 细辛 北细辛 华细辛 珍珠 珍珠母 煅珍珠母 荆芥 荆芥炭 茜草 茜草炭 荜茇 荜澄茄 草乌 制草乌 草豆蔻 草果 茵陈 茯苓 茯苓皮 茯神 茺蔚子 胡芦巴 盐胡芦巴 胡黄连 胡椒 黑胡椒 白胡椒 胡桃仁 胡麻仁 南沙参 南板蓝根 枳壳 麸炒枳壳 枳实 麸炒枳实 栀子 炒栀子 焦栀子 枸杞子 柿蒂 威灵仙 棉团铁线莲 东北铁线莲 厚朴 姜厚朴 厚朴花 姜黄 片姜黄 前胡 白花前胡 紫花前胡 首乌藤 钩藤 香加皮 香附 醋香附 香橼 重楼 禹余粮 煅禹余粮 独活 急性子 穿山甲 炮山甲 醋山甲 穿心莲 穿龙薯蓣 秦艽 秦皮 莲子 莲子心 莲房 莲须 荷叶 荷叶炭 桂枝 桔梗 桃仁 燀桃仁 炒桃仁 盐附子 黑顺片 白附片 柴胡 北柴胡 南柴胡 党参 素花党参 川党参 铁苋菜 积雪草 射干 徐长卿 高良姜 益智仁 盐益智仁 益母草 海风藤 海金沙 海螵蛸 海藻 大叶海藻 小叶海藻 浮萍 通草 小通草 桑叶 蜜桑叶 桑白皮 蜜桑白皮 桑枝 炒桑枝 桑椹 桑寄生 槲寄生 黄芩 酒黄芩 黄芩炭 黄芪 炙黄芪 黄连 酒黄连 姜黄连 萸黄连 黄柏 盐黄柏 黄柏炭 黄精 酒黄精 黄藤 菟丝子 盐菟丝子 菊苣 菊花 白菊花 黄菊花 野菊花 梅花 绿萼梅 常山 酒常山 野菊花 蛇床子 蛇蜕 银杏叶 银柴胡 猪苓 麻黄 炙麻黄 麻黄根 鹿角 鹿角胶 鹿角霜 鹿茸 马鹿茸 花鹿茸 商陆 醋商陆 旋覆花 蜜旋覆花 羚羊角 羚羊角粉 淫羊藿 炙淫羊藿 淡竹叶 淡豆豉 密蒙花 续断 酒续断 盐续断 绵马贯众 绵马贯众炭 绵萆薢 粉萆薢 紫苏子 炒紫苏子 紫苏叶 紫苏梗 葛根 粉葛 葛花 葫芦巴 葱白 葶苈子 南葶苈子 北葶苈子 蛤蚧 黑芝麻 锁阳 滑石 滑石粉 棕榈 棕榈炭 款冬花 蜜款冬花 紫石英 煅紫石英 紫花地丁 紫草 新疆紫草 内蒙紫草 紫河车 制紫河车 紫珠叶 紫萁贯众 蛤壳 煅蛤壳 黑顺片 黑种草子 黑胡椒 蓖麻子 蒺藜 炒蒺藜 盐蒺藜 蒲公英 蒲黄 蒲黄炭 椿皮 麸炒椿皮 槐角 蜜槐角 槐花 炒槐花 槐花炭 雷丸 雷公藤 漏芦 禹州漏芦 熊胆粉 赭石 煅赭石 僵蚕 麸炒僵蚕 槟榔 焦槟榔 酸枣仁 炒酸枣仁 磁石 煅磁石 豨莶草 酒豨莶草 蝉蜕 罂粟壳 醋罂粟壳 蕲蛇 五步蛇 槲寄生 樟脑 稻芽 炒稻芽 焦稻芽 僵蛹 鹤虱 南鹤虱 北鹤虱 薏苡仁 炒薏苡仁 薄荷 颠茄草 橘红 化橘红 藁本 鸡骨草 檀香 藕节 藕节炭 礞石 煅礞石 瞿麦 藿香 蟾酥 酒蟾酥 乳蟾酥 鳖甲 醋鳖甲 鳖甲胶 麝香 人工麝香").split(' ')),
     };
+
+    function fill(val) { document.getElementById('searchInput').value = val; doSearch(); }
+
+    function doSearch() {
+        let input = document.getElementById('searchInput').value.trim();
+        if(!input) return;
+
+        let html = '';
+        const view = document.getElementById('resultView');
+        let aliasTip = '';
+
+        // 🧠 智能别名映射
+        let searchKey = input;
+        if (ALIAS_MAP[input]) {
+            searchKey = ALIAS_MAP[input];
+            if (input !== searchKey) {
+                aliasTip = `<div class="alias-box"><span>💡</span> 智能识别：<strong>${input}</strong> 是 <strong>${searchKey}</strong> 的别名</div>`;
+            }
+        }
+
+        try {
+            // --- 判定逻辑 ---
+            
+            // 1. 💀 剧毒/禁用
+            if (DATA.HEALTH_BANNED.has(input) || input.includes('罂粟') || DATA.HEALTH_BANNED.has(searchKey)) {
+                html = renderResult('black', '💀 绝对禁止 (有毒/红线)', '该物品属于《保健食品禁用物品》或涉毒原料！具有明显毒性或严重副作用，严禁用于任何食品。');
+            }
+            
+            // 2. 🚫 批复禁止
+            else if (DATA.EXPLICIT_NON_FOOD[input] || DATA.EXPLICIT_NON_FOOD[searchKey]) {
+                let reason = DATA.EXPLICIT_NON_FOOD[searchKey] || DATA.EXPLICIT_NON_FOOD[input];
+                html = renderResult('red', '🚫 禁止入菜 (卫健委批复)', `<strong>官方复函：</strong>${reason}<br><strong>结论：</strong>被明确回复“不作为”普通食品原料。`);
+            }
+
+            // 3. 👶 婴幼儿菌种
+            else if (DATA.INFANT_PROBIOTICS.has(input)) {
+                html = renderResult('blue', '👶 婴幼儿可用菌种', '列入《可用于婴幼儿食品的菌种名单》，安全性高。');
+            }
+            // 4. 🦠 普通菌种
+            else if (DATA.PROBIOTICS.has(input)) {
+                html = renderResult('blue', '🦠 合规菌种 (普通)', '列入《可用于食品的菌种名单》，可用于酸奶、饮料等。');
+            }
+
+            // 5. 💊 保健食品专用 (排除已转正的药食同源)
+            else if ((DATA.HEALTH_ONLY.has(input) || DATA.HEALTH_ONLY.has(searchKey)) && !DATA.HOMOLOGY.has(searchKey)) {
+                html = renderResult('red', '💊 禁止入菜 (仅限保健)', '属于《可用于保健食品的物品名单》，且不是药食同源。仅限保健食品生产，餐饮环节违法！');
+            }
+
+            // 6. 🌿 药食同源 (绿灯)
+            else if (DATA.HOMOLOGY.has(searchKey)) {
+                html = renderResult('green', '🌿 药食同源 (合法)', '列入卫健委《既是食品又是中药材的物质名单》。<br><strong>结论：</strong>具有合法食品身份，可用于餐饮。');
+            }
+
+            // 7. 🥦 普通食品 / 卫健委批复普通 / 香辛料
+            else if (DATA.ORDINARY.has(input) || DATA.ORDINARY_APPROVED[input] || DATA.ORDINARY_APPROVED[searchKey]) {
+                let detail = DATA.ORDINARY_APPROVED[searchKey] || DATA.ORDINARY_APPROVED[input] || "传统食品原料/农副产品";
+                html = renderResult('green', '🥦 普通食品', detail + '<br>结论：无需限制，可按需使用。');
+            }
+            else if (DATA.SPICE.has(input) || DATA.SPICE.has(searchKey)) {
+                html = renderResult('green', '🌶️ 国标香辛料', 'GB/T 12729.1-2008。结论：合法调味品。');
+            }
+
+            // 8. 🧪 新资源 (黄灯)
+            else if (DATA.NEW_RESOURCE[input] || DATA.NEW_RESOURCE[searchKey]) {
+                let d = DATA.NEW_RESOURCE[searchKey] || DATA.NEW_RESOURCE[input];
+                html = renderResult('yellow', '🧪 有条件食用', `<strong>限量：</strong>${d.limit}<br><strong>禁忌：</strong>${d.risk}`);
+            }
+
+            // 9. 📕 药典黑名单 (1000种)
+            else if (DATA.CHP.has(input) || DATA.CHP.has(searchKey)) {
+                html = renderResult('red', '🚫 禁止入菜 (纯药品)', '收录于《中国药典》且未列入食品白名单。属于“纯中药材”，餐饮环节严禁使用！');
+            }
+
+            // 10. 未知
+            else {
+                html = renderResult('red', '❓ 未收录 / 慎用', '系统未在任何白名单中找到该物品。若为中药材或野生菌，默认禁止使用。');
+            }
+
+            view.innerHTML = aliasTip + html;
+            view.style.display = 'block';
+
+        } catch (e) {
+            alert("查询逻辑出错: " + e.message);
+        }
+    }
+
+    function renderResult(color, title, desc) {
+        let iconMap = { green: '🛡️', blue: '✅', yellow: '⚠️', red: '🚫', black: '💀' };
+        return `
+            <div class="${color}">
+                <div class="res-header">
+                    <span class="res-icon">${iconMap[color]||'❓'}</span>
+                    <h2 class="res-title">${title}</h2>
+                </div>
+                <div class="risk-alert">${desc}</div>
+            </div>`;
+    }
 </script>
 
 </body>
