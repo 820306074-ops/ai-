@@ -151,11 +151,12 @@
                     <label class="block text-sm font-medium text-gray-700"><span class="text-red-600">*</span> 检查人</label>
                     <input type="text" id="storeName" placeholder="输入检查人姓名" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
                 </div>
-                <div class="relative">
+                <!-- 修改开始：改为标准日期选择 -->
+                <div>
                     <label class="block text-sm font-medium text-gray-700">检查日期</label>
-                    <input type="text" id="auditDateDisplay" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-white cursor-pointer sm:text-sm border p-2" readonly placeholder="选择日期">
-                    <input type="date" id="auditDate" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" style="top: 24px;">
+                    <input type="date" id="auditDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
                 </div>
+                <!-- 修改结束 -->
             </div>
         </div>
 
@@ -267,16 +268,13 @@
             return `${parts[0]}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
         };
 
-        function syncDateDisplay(sourceId, displayId) {
-            document.getElementById(displayId).value = formatSlashString(document.getElementById(sourceId).value);
-        }
+        // 修改：删除了不再需要的 syncDateDisplay 函数
 
         document.addEventListener('DOMContentLoaded', () => {
             renderForm();
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('auditDate').value = today;
-            syncDateDisplay('auditDate', 'auditDateDisplay');
-            document.getElementById('auditDate').addEventListener('input', () => syncDateDisplay('auditDate', 'auditDateDisplay'));
+            // 修改：删除了 syncDateDisplay 调用
         });
 
         // Form Logic
@@ -498,7 +496,9 @@
         }
 
         function buildHTML(name, branch) {
-            const dateStr = document.getElementById('auditDateDisplay').value;
+            // 修改：直接获取日期输入框的值并格式化
+            const rawDate = document.getElementById('auditDate').value;
+            const dateStr = formatSlashString(rawDate);
             const summary = document.getElementById('summaryText').value || '无';
             
             const rows = auditData.map(item => {
@@ -563,87 +563,43 @@
 
         function closePreview() { document.getElementById('previewOverlay').classList.add('hidden'); }
 
-     async function generateFinalPDF() {
-    // 校验签名
-    if (!appState.signatures.auditor) {
-        alert('请先完成【检查人签名】！');
-        return;
-    }
-    if (!appState.signatures.manager) {
-        alert('请先完成【负责人签名】！');
-        return;
-    }
+        async function generateFinalPDF() {
+            // Check signatures
+            if (!appState.signatures.auditor) { alert('请先完成【检查人签名】！'); return; }
+            if (!appState.signatures.manager) { alert('请先完成【负责人签名】！'); return; }
 
-    window.scrollTo(0, 0);
+            // 核心修复：滚回顶部
+            window.scrollTo(0,0);
+            
+            const btn = event.currentTarget;
+            btn.innerHTML = '生成中...';
+            
+            // 延时确保渲染就绪
+            await new Promise(r => setTimeout(r, 500));
 
-    const btn = event.currentTarget;
-    btn.innerHTML = '生成中...';
-
-    try {
-        const date = document.getElementById('auditDate').value;
-        const branch = document.getElementById('branchName').value || '分店';
-
-        // 🔴 核心：直接拿“预览内容”
-        const content = document.getElementById('previewPaper').outerHTML;
-
-        // 🔴 核心：把当前页面样式一起打包
-        const styles = Array.from(document.styleSheets)
-            .map(sheet => {
-                try {
-                    return Array.from(sheet.cssRules).map(r => r.cssText).join('');
-                } catch (e) {
-                    return '';
-                }
-            })
-            .join('');
-
-        const finalHTML = `
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>日管控_${branch}_${date}</title>
-<style>
-${styles}
-
-/* ===== 导出专用微调，确保和预览一致 ===== */
-body {
-    background: #e5e7eb;
-}
-#previewPaper {
-    margin: 30px auto;
-    box-shadow: none;
-}
-</style>
-</head>
-<body>
-${content}
-</body>
-</html>
-        `.trim();
-
-        const blob = new Blob([finalHTML], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `日管控_${branch}_${date}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        btn.innerHTML = '生成HTML';
-
-    } catch (e) {
-        console.error(e);
-        alert('导出失败');
-        btn.innerHTML = '生成失败';
-    }
-}
-
-
+            const date = document.getElementById('auditDate').value;
+            const branch = document.getElementById('branchName').value || '分店';
+            
+            const opt = {
+                margin: 0, // 由CSS控制内边距，这里设0避免双重边距
+                filename: `日管控_${branch}_${date}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                // 核心参数：scrollY: 0 修复偏移
+                html2canvas: { scale: 1.5, useCORS: true, scrollY: 0, logging: false }, 
+                // 智能分页
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            try {
+                await html2pdf().set(opt).from(document.getElementById('previewPaper')).save();
+            } catch(e) {
+                console.error(e);
+                alert('导出失败，请重试');
+            } finally {
+                btn.innerHTML = '生成PDF';
+            }
+        }
 
         function resetAudit() {
             if(confirm('重置将清空所有数据，确定吗？')) location.reload();
@@ -651,6 +607,3 @@ ${content}
     </script>
 </body>
 </html>
-
-
-
