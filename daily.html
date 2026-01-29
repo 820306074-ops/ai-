@@ -574,32 +574,123 @@
             const btn = event.currentTarget;
             btn.innerHTML = '生成中...';
             
-            // 延时确保渲染就绪
-            await new Promise(r => setTimeout(r, 500));
+          try {
+        const date = document.getElementById('auditDate').value;
+        const branch = document.getElementById('branchName').value || '分店';
 
-            const date = document.getElementById('auditDate').value;
-            const branch = document.getElementById('branchName').value || '分店';
-            
-            const opt = {
-                margin: 0, // 由CSS控制内边距，这里设0避免双重边距
-                filename: `日管控_${branch}_${date}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                // 核心参数：scrollY: 0 修复偏移
-                html2canvas: { scale: 1.5, useCORS: true, scrollY: 0, logging: false }, 
-                // 智能分页
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            
-            try {
-                await html2pdf().set(opt).from(document.getElementById('previewPaper')).save();
-            } catch(e) {
-                console.error(e);
-                alert('导出失败，请重试');
-            } finally {
-                btn.innerHTML = '生成PDF';
-            }
+        // 获取最终预览 HTML
+        const content = document.getElementById('previewPaper').outerHTML;
+
+        // 判断是否为手机端
+        const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+
+        // ========== 📱 手机端：导出 Word ==========
+        if (isMobile) {
+            const wordHTML = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>日管控_${branch}_${date}</title>
+<style>
+body {
+    font-family: SimSun, Songti SC, serif;
+    font-size: 12px;
+    line-height: 1.35;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #000;
+    padding: 4px;
+}
+img {
+    max-width: 48px;
+    max-height: 48px;
+}
+${Array.from(document.styleSheets)
+    .map(s => {
+        try {
+            return Array.from(s.cssRules).map(r => r.cssText).join('');
+        } catch (e) {
+            return '';
         }
+    })
+    .join('')}
+</style>
+</head>
+<body>
+${content}
+</body>
+</html>
+            `.trim();
+
+            const blob = new Blob(
+                ['\ufeff', wordHTML],
+                { type: 'application/msword;charset=utf-8' }
+            );
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `日管控_${branch}_${date}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            btn.innerHTML = '生成Word';
+            return;
+        }
+
+        // ========== 🖥 电脑端：导出 HTML ==========
+        const finalHTML = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>日管控_${branch}_${date}</title>
+<style>
+${Array.from(document.styleSheets)
+    .map(s => {
+        try {
+            return Array.from(s.cssRules).map(r => r.cssText).join('');
+        } catch (e) {
+            return '';
+        }
+    })
+    .join('')}
+</style>
+</head>
+<body>
+${content}
+</body>
+</html>
+        `.trim();
+
+        const blob = new Blob([finalHTML], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `日管控_${branch}_${date}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        btn.innerHTML = '生成HTML';
+
+    } catch (e) {
+        console.error(e);
+        alert('导出失败');
+        btn.innerHTML = '生成失败';
+    }
+}
+
+
 
         function resetAudit() {
             if(confirm('重置将清空所有数据，确定吗？')) location.reload();
