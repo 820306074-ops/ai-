@@ -136,12 +136,14 @@
                 gap: 12px;
             }
 
-            /* 通用隐藏 */
+            /* 通用隐藏 - 仅隐藏PDF按钮，保留HTML按钮 */
             #btn-export-pdf, .mobile-hidden-field {
                 display: none !important;
             }
+            /* HTML导出按钮宽度占满 */
             #btn-export-html {
-                flex: 2 !important;
+                flex: 1 !important; 
+                width: 100%;
             }
 
             /* --- 核心优化：会议基本信息区域 (第一个白色卡片) --- */
@@ -228,56 +230,34 @@
                 margin-top: 4px;
             }
 
-            /* --- 预览页适配 --- */
+            /* --- 预览页适配 (已移除移动端卡片化样式，恢复A4) --- */
+            /* 让手机端预览容器支持缩放或横向滚动，以便查看完整的A4页面 */
+            #previewOverlay {
+                overflow-x: auto !important; /* 允许横向滚动 */
+                -webkit-overflow-scrolling: touch;
+                background-color: #374151 !important; /* 保持深色背景突出A4纸 */
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* 在手机上，让A4纸稍微缩小一点以适应屏幕，或者保持原样允许滚动 */
             #previewPaper {
-                width: 100% !important;
-                min-height: auto !important;
-                margin: 0 !important;
-                padding: 20px 16px !important;
-                box-shadow: none !important;
-                border-radius: 0;
+                /* 缩放以适应手机屏幕宽度，这里使用 zoom (非标准但兼容性好) 或 transform */
+                zoom: 0.45; /* 大约将210mm缩放到手机宽度的比例 */
+                margin: 20px auto !important;
+                /* 确保样式优先级，不被上面的移动端样式覆盖（如果还有残留） */
+                width: 210mm !important;
+                min-height: 297mm !important;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;
             }
 
-            .doc-table, .doc-table tbody, .doc-table tr, .doc-table td {
-                display: block !important;
-                width: 100% !important;
-                border: none !important;
+            /* 底部操作栏适配 */
+            #previewOverlay + div, .fixed.bottom-0 {
+                position: fixed !important;
+                bottom: 0;
+                width: 100%;
             }
-
-            .doc-table tr {
-                margin-bottom: 12px;
-                background-color: #f9fafb;
-                border: 1px solid #e5e7eb !important;
-                border-radius: 8px;
-                padding: 12px;
-            }
-
-            .doc-table td {
-                padding: 4px 0 !important;
-                border-bottom: 1px dashed #eee !important;
-            }
-            .doc-table td:last-child { border-bottom: none !important; }
-
-            .doc-label-cell {
-                font-size: 12px; color: #6b7280; font-weight: bold;
-                text-align: left !important;
-                margin-bottom: 2px;
-            }
-
-            .doc-section-title {
-                font-size: 18px !important; margin-top: 24px !important;
-                border-bottom: 2px solid #2563eb !important;
-            }
-
-            .doc-text {
-                font-size: 15px !important; padding: 10px;
-                background: #fff; border: 1px solid #f3f4f6; border-radius: 6px;
-                text-indent: 0 !important;
-            }
-
-            /* 全屏预览 */
-            #previewOverlay { padding-bottom: 0 !important; background-color: #fff !important; z-index: 100; }
-            #previewOverlay + div { position: sticky !important; bottom: 0; background: rgba(255,255,255,0.95); border-top: 1px solid #eee; }
         }
 
         /* ================================================================
