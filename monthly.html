@@ -168,7 +168,7 @@
         }
 
         /* 隐藏装饰性伪元素 */
-        .pdf-generating *::before,
+        .pdf-generating *::before, 
         .pdf-generating *::after {
             display: none !important;
         }
@@ -178,7 +178,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* ================================================================
-           新增：移动端PDF/打印 专用修复样式 (User Requested)
+           新增：移动端PDF/打印 专用修复样式 (User Requested v1)
            ================================================================ 
         */
         @media print {
@@ -232,6 +232,66 @@
                 break-inside: avoid;
                 page-break-inside: avoid;
             }
+        }
+
+        /* ================================================================
+           新增：移动端强制打印重排样式 (v2 - Aggressive Fix)
+           用于彻底脱离移动端视口逻辑，强制按A4文档流排版
+           ================================================================ 
+        */
+        @media print {
+
+          /* 1️⃣ 彻底关闭移动端视口参与排版 */
+          html, body {
+            width: auto !important;
+            height: auto !important;
+            min-width: 0 !important;
+            transform: none !important;
+            zoom: 1 !important;
+          }
+
+          /* 2️⃣ 移除所有可能产生黑条的背景和阴影层 */
+          * {
+            background-image: none !important;
+            box-shadow: none !important;
+            filter: none !important;
+          }
+
+          /* 3️⃣ 强制所有元素回归标准文档流（防止跨页黑块） */
+          * {
+            position: static !important;
+            float: none !important;
+          }
+
+          /* 4️⃣ 防止100vh类高度参与打印分页 */
+          * {
+            height: auto !important;
+            max-height: none !important;
+          }
+
+          /* 5️⃣ 允许内容自然分页，不被裁切 */
+          * {
+            overflow: visible !important;
+          }
+
+          /* 6️⃣ 为第二页及后续页面建立稳定页边距基准 */
+          @page {
+            size: A4 portrait;
+            margin: 18mm 15mm 18mm 15mm;
+          }
+
+          /* 7️⃣ 避免大块区域被分页截断导致渲染异常 */
+          div, section, table {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          /* 8️⃣ 提升正文层级，防止被异常层覆盖 */
+          p, h1, h2, h3, h4, li, td, th {
+            position: relative !important;
+            z-index: 1 !important;
+          }
+
         }
     </style>
 </head>
