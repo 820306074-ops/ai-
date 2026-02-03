@@ -3,253 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>每月食品安全调度会议纪要 - 打印专用修复版</title>
+    <title>每月食品安全调度会议纪要 - 强制校验版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 html2pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- 移除了 html2pdf.js，因为不再需要生成 PDF -->
 
     <style>
-        /* 基础页面重置 */
         html, body { 
             font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; 
             background-color: #f3f4f6; 
-            margin: 0; padding: 0;
             overscroll-behavior: none; 
+            touch-action: pan-x pan-y; 
         }
+        .section-title { @apply text-gray-700 font-bold mb-4 border-l-4 border-blue-600 pl-3 text-lg; }
+        .input-label { @apply block text-sm font-bold text-gray-800 mb-2; }
+        .input-field { @apply w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm outline-none; }
+        .input-readonly { @apply bg-gray-100 cursor-not-allowed text-gray-500; }
         
-        /* ================================================================
-           核心修复：PDF/打印 专用排版规则 
-           ================================================================
-        */
-
-        /* 规则一：A4纸张容器 - 移除所有阴影和背景干扰 */
+        /* 预览层样式 (A4 标准公文) */
+        #previewOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #374151; z-index: 50; overflow-y: auto; padding-bottom: 80px;
+        }
         #previewPaper {
             width: 210mm; 
             min-height: 297mm; 
-            background-color: #ffffff; /* 强制纯白 */
+            background: white; 
             margin: 30px auto; 
-            padding: 15mm 31mm; /* 调整：上下padding减小，改由PDF margin控制，防止双重留白 */
-            /* 屏幕预览时保留阴影以便区分，但在PDF生成模式下会通过JS移除 */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            padding: 25mm 31mm; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             font-family: "SimSun", "Songti SC", serif; 
             color: #000;
             line-height: 1.6;
             font-size: 16px; 
             box-sizing: border-box;
-            position: relative; /* 必须是 relative，不能是 fixed/absolute */
-            z-index: 1;
+        }
+        @media (max-width: 850px) {
+            #previewPaper { width: 95%; padding: 15px; margin: 10px auto; zoom: 1; font-size: 14px; }
+            #previewOverlay { padding-bottom: 120px; }
         }
 
-        /* 规则二：防止遮挡 - 强制正文层级最高 */
-        /* 关键修复：提升所有文本元素的层级，防止被背景渲染错误遮挡 */
-        #previewPaper p, 
-        #previewPaper div, 
-        #previewPaper h1, 
-        #previewPaper h2, 
-        #previewPaper h3, 
-        #previewPaper span, 
-        #previewPaper li,
-        #previewPaper td {
-            position: relative;
-            z-index: 10;
-        }
-
-        /* 规则三：移除网页装饰 - 章节标题改为文档风格 */
-        .doc-section-title { 
-            font-family: 'SimHei', sans-serif; 
-            font-weight: bold; 
-            font-size: 18px; 
-            margin-top: 24px; 
-            margin-bottom: 12px;
-            /* 关键：使用边框分割，代替背景色块 */
-            border-bottom: 1px solid #000; 
-            padding-bottom: 4px;
-            background: none !important; /* 禁止背景色 */
-        }
-
-        /* 规则四：表格样式 - 纯黑白边框 */
-        .doc-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 20px; 
-            font-size: 16px;
-            background: #fff;
-        }
-        .doc-table td { 
-            border: 1px solid #000; 
-            padding: 8px 10px; 
-            vertical-align: middle; 
-            background: transparent !important; /* 防止单元格背景变黑 */
-            position: relative; 
-            z-index: 10;
-        }
-        .doc-label-cell { 
-            font-family: 'SimHei', sans-serif; 
-            font-weight: bold; 
-            width: 110px; 
-            text-align: center; 
-            background-color: transparent !important; /* 移除灰底，防止变黑 */
-        }
-
-        /* 排版辅助类 */
+        /* 预览排版类 */
         .doc-header-right { text-align: right; font-size: 14px; margin-bottom: 5px; font-family: 'SimHei', sans-serif; }
         .doc-title { 
             text-align: center; font-size: 28px; font-weight: bold; 
-            font-family: 'SimHei', sans-serif; margin-bottom: 25px; 
+            font-family: 'SimHei', sans-serif; margin-bottom: 20px; 
             margin-top: 10px; letter-spacing: 2px;
         }
         .doc-record-no { margin-bottom: 10px; font-family: "SimSun"; font-size: 14px; }
-        .doc-text { 
-            text-align: justify; 
-            margin-bottom: 8px; 
-            text-indent: 2em; 
-            line-height: 1.8; /* 增加行高，提升阅读体验 */
+        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 16px; table-layout: fixed; }
+        .doc-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; word-wrap: break-word; }
+        .doc-label-cell { font-family: 'SimHei', sans-serif; font-weight: bold; width: 100px; text-align: center; background-color: #fcfcfc; }
+        .doc-section-title { 
+            font-family: 'SimHei', sans-serif; font-weight: bold; font-size: 18px; 
+            margin-top: 25px; margin-bottom: 10px; 
         }
+        .doc-text { text-align: justify; margin-bottom: 6px; text-indent: 2em; }
         .doc-text-bold { font-weight: bold; font-family: 'SimHei'; }
-        
-        /* 下划线 - 确保是纯黑色 */
-        .u-line { 
-            border-bottom: 1px solid #000; 
-            padding: 0 4px; 
-            font-family: "SimSun"; 
-            display: inline-block; 
-            min-width: 30px; 
-            text-align: center; 
-            color: #000;
-        }
-        
+        .u-line { border-bottom: 1px solid #000; padding: 0 4px; font-family: "SimSun"; display: inline-block; min-width: 30px; text-align: center; }
         .doc-footer { margin-top: 60px; display: flex; justify-content: space-between; page-break-inside: avoid; }
-        
-        /* 规则五：分页控制 - 防止文字切断 */
         .keep-together { page-break-inside: avoid; break-inside: avoid; }
+        .doc-list-item { text-indent: 2em; margin-bottom: 4px; }
 
-        /* 预览遮罩层 */
-        #previewOverlay {
+        /* Custom Modal Style */
+        #customModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #374151; z-index: 50; overflow-y: auto; padding-bottom: 80px;
+            display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 24px; border-radius: 12px;
+            max-width: 400px; width: 90%; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
         }
 
-        /* 移动端适配 */
-        @media (max-width: 800px) {
-            #previewPaper { width: 95%; padding: 15px; margin: 10px auto; zoom: 0.6; }
-        }
-
-        /* ================================================================
-           PDF 生成时的专用状态类 (.pdf-generating)
-           由 JS 在生成前添加，生成后移除
-           ================================================================ 
-        */
-        .pdf-generating #previewPaper {
-            margin: 0 !important;
-            padding: 0 31mm !important; /* 生成时只保留左右padding，上下由margin控制 */
-            box-shadow: none !important; /* 彻底移除阴影，防止黑条 */
-            border: none !important;
-            background-color: #ffffff !important;
-        }
-
-        /* 强制移除分页处的装饰 */
-        .pdf-generating * {
-            box-decoration-break: clone;
-            background-color: transparent !important; /* 除非特指，全部透明 */
-        }
-        
-        /* 恢复容器白底 */
-        .pdf-generating #previewPaper {
-            background-color: #ffffff !important;
-        }
-
-        /* 禁用绝对定位，防止跨页飞出 */
-        .pdf-generating .doc-text, 
-        .pdf-generating .doc-section-title,
-        .pdf-generating table {
-            position: static !important; 
-            float: none !important;
-        }
-
-        /* 隐藏装饰性伪元素 */
-        .pdf-generating *::before,
-        .pdf-generating *::after {
-            display: none !important;
-        }
-        
-        /* 动画 */
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="pb-32">
 
-    <!-- 顶部导航 -->
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-lg z-40 h-20 no-print">
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-lg z-40 h-20">
         <div class="flex justify-between items-center px-6 py-3 bg-blue-700 text-white h-full">
             <div>
                 <h1 class="text-xl font-bold flex items-center">
-                    <i class="fa-solid fa-utensils mr-3"></i>
+                    <i class="fa-solid fa-clipboard-check mr-3"></i>
                     每月食品安全调度会议纪要
                 </h1>
-                <p class="text-xs opacity-80">自动化生成 | 强制校验 | 纯净版排版</p>
+                <p class="text-xs opacity-80 uppercase tracking-tighter">Food Safety Dispatch System</p>
             </div>
+            <div class="hidden md:block text-sm font-medium">标准公文格式生成</div>
         </div>
     </header>
 
-    <div class="h-20 no-print"></div>
+    <div class="h-24"></div>
 
-    <!-- 表单区域 -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 no-print" id="mainFormContainer">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6" id="mainFormContainer">
         
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-            <h2 class="text-gray-700 font-bold mb-4 border-l-4 border-blue-600 pl-3 text-lg">会议基本信息</h2>
+            <h2 class="section-title">会议基本信息</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 记录编号：自动生成 -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">记录编号</label>
-                    <input type="text" id="recordNo" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="例如：20260116">
+                    <label class="input-label">记录编号 (自动生成)</label>
+                    <input type="text" id="recordNo" class="input-field bg-gray-50" placeholder="例如：20260203" readonly>
+                </div>
+                <!-- 会议年份：自动生成 -->
+                <div>
+                    <label class="input-label">会议年份 (自动)</label>
+                    <input type="number" id="meetingYear" class="input-field bg-gray-50" value="2026" readonly>
+                </div>
+                <!-- 会议月份：自动生成 -->
+                <div>
+                    <label class="input-label">会议月份 (自动)</label>
+                    <input type="number" id="meetingMonth" class="input-field bg-gray-50" value="2" readonly>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">会议年份</label>
-                    <input type="number" id="meetingYear" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="2026">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">会议月份</label>
-                    <input type="number" id="meetingMonth" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="2">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">主持人</label>
-                    <input type="text" id="host" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="输入姓名" value="李川">
+                    <label class="input-label">主持人</label>
+                    <input type="text" id="host" class="input-field" placeholder="输入姓名" value="李川">
                 </div>
                 
+                <!-- 会议日期：核心触发点 -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">会议日期</label>
-                    <input type="date" id="meetingDate" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm cursor-pointer">
+                    <label class="input-label text-blue-700">会议日期 (点击选择)</label>
+                    <input type="date" id="meetingDate" class="input-field cursor-pointer border-blue-400 border-2" onchange="autoFillDateInfo()">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-bold text-gray-800 mb-2">开始时间</label>
-                        <input type="time" id="startTime" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="14:00">
+                        <label class="input-label">开始时间</label>
+                        <input type="time" id="startTime" class="input-field" value="14:00">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-800 mb-2">结束时间</label>
-                        <input type="time" id="endTime" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="15:30">
+                        <label class="input-label">结束时间</label>
+                        <input type="time" id="endTime" class="input-field" value="15:30">
                     </div>
                 </div>
                 <div class="md:col-span-1">
-                    <label class="block text-sm font-bold text-gray-800 mb-2">会议地点</label>
-                    <input type="text" id="location" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="办公室">
+                    <label class="input-label">会议地点</label>
+                    <input type="text" id="location" class="input-field" value="三楼会议室">
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-gray-800 mb-2">出席人员</label>
-                    <input type="text" id="attendees" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="张三、李四、王五...">
+                    <label class="input-label">出席人员</label>
+                    <input type="text" id="attendees" class="input-field" placeholder="张三、李四、王五...">
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-            <h2 class="text-gray-700 font-bold mb-4 border-l-4 border-blue-600 pl-3 text-lg">一、食品安全管理工作情况汇报</h2>
+            <h2 class="section-title">一、食品安全管理工作情况汇报</h2>
             
             <div class="mb-6 max-w-md">
-                <label class="block text-sm font-bold text-gray-800 mb-2"><span class="text-red-600 mr-1">*</span>汇报人</label>
-                <input type="text" id="reporter1" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm border-blue-300" placeholder="此项必填">
+                <label class="input-label"><span class="text-red-600 mr-1">*</span>汇报人</label>
+                <input type="text" id="reporter1" class="input-field border-blue-300" placeholder="此项必填">
             </div>
 
             <div class="bg-blue-50 p-5 rounded-lg mb-6 border border-blue-100">
@@ -257,34 +163,40 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">到货总批数</label>
-                        <input type="number" id="rmTotal" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm mt-1" value="30" oninput="calcRmRate()">
+                        <input type="number" id="rmTotal" class="input-field mt-1" value="30" oninput="calcRmRate()">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">合格批数</label>
-                        <input type="number" id="rmQualified" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm mt-1" value="29" oninput="calcRmRate()">
+                        <input type="number" id="rmQualified" class="input-field mt-1" value="29" oninput="calcRmRate()">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">不合格数</label>
-                        <input type="text" id="rmUnqualified" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm bg-gray-100 cursor-not-allowed text-gray-500 mt-1" readonly value="1">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">不合格数 (自动)</label>
+                        <input type="text" id="rmUnqualified" class="input-field input-readonly mt-1" readonly value="1">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">合格率</label>
-                        <input type="text" id="rmRate" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm bg-gray-100 cursor-not-allowed text-gray-500 mt-1" readonly value="96.7%">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">合格率 (自动)</label>
+                        <input type="text" id="rmRate" class="input-field input-readonly mt-1" readonly value="96.7%">
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <label class="block text-sm font-bold text-blue-900 mb-3"><i class="fa-solid fa-pen-to-square mr-1"></i> 不合格项详情描述</label>
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold text-gray-600 mb-2">不合格原料为：</label>
-                        <textarea id="rmBadName" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" rows="2" placeholder="例如：1月6日购进的生菜（若全合格则填“无”）"></textarea>
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <label class="block text-base font-bold text-blue-900 mb-6"><i class="fa-solid fa-pen-to-square mr-1"></i> 不合格项详情描述</label>
+                    
+                    <!-- 不合格原料 -->
+                    <div class="flex items-center mb-6">
+                        <label class="text-sm font-bold text-gray-700 w-32 flex-shrink-0">不合格原料为：</label>
+                        <textarea id="rmBadName" class="input-field flex-1" rows="1" placeholder="例如：1月6日购进的生菜"></textarea>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold text-gray-600 mb-2">不合格原因为：</label>
-                        <textarea id="rmBadReason" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" rows="2" placeholder="例如：农残快速检测超标（若无则填“无”）"></textarea>
+                    
+                    <!-- 不合格原因 -->
+                    <div class="flex items-center mb-6">
+                        <label class="text-sm font-bold text-gray-700 w-32 flex-shrink-0">不合格原因为：</label>
+                        <textarea id="rmBadReason" class="input-field flex-1" rows="1" placeholder="例如：农残快速检测超标"></textarea>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-2">采取的处理措施：</label>
-                        <textarea id="rmBadMeasure" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" rows="3" placeholder="例如：当场拒收，退货处理（若无则填“无”）"></textarea>
+                    
+                    <!-- 处理措施 -->
+                    <div class="flex items-center">
+                        <label class="text-sm font-bold text-gray-700 w-32 flex-shrink-0">采取的处理措施：</label>
+                        <textarea id="rmBadMeasure" class="input-field flex-1" rows="2" placeholder="例如：当场拒收，退货处理"></textarea>
                     </div>
                 </div>
             </div>
@@ -295,31 +207,37 @@
                 <div class="grid grid-cols-3 gap-6 mb-6">
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">投诉总起数</label>
-                        <input type="number" id="compTotal" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm mt-1" value="0" oninput="calcCompInvalid()">
+                        <input type="number" id="compTotal" class="input-field mt-1" value="0" oninput="calcCompInvalid()">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">有效投诉</label>
-                        <input type="number" id="compEffective" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm mt-1" value="0" oninput="calcCompInvalid()">
+                        <input type="number" id="compEffective" class="input-field mt-1" value="0" oninput="calcCompInvalid()">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">无效投诉</label>
-                        <input type="number" id="compInvalid" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm bg-gray-100 cursor-not-allowed text-gray-500 mt-1" readonly value="0">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">无效投诉 (自动)</label>
+                        <input type="number" id="compInvalid" class="input-field input-readonly mt-1" readonly value="0">
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <label class="block text-sm font-bold text-indigo-900 mb-3"><i class="fa-solid fa-pen-to-square mr-1"></i> 投诉详情描述</label>
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold text-gray-600 mb-2">投诉产品主要为：</label>
-                        <input type="text" id="compProduct" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="例如：红烧肉、米饭（若无投诉则填“无”）">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <label class="block text-base font-bold text-indigo-900 mb-6"><i class="fa-solid fa-pen-to-square mr-1"></i> 投诉详情描述</label>
+                    
+                    <!-- 投诉产品 -->
+                    <div class="flex items-center mb-6">
+                        <label class="text-sm font-bold text-gray-700 w-32 flex-shrink-0">投诉产品主要为：</label>
+                        <textarea id="compProduct" class="input-field flex-1" rows="1" placeholder="例如：红烧肉、米饭"></textarea>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold text-gray-600 mb-2">投诉主要原因为：</label>
-                        <input type="text" id="compReason" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="例如：发现异物/口感不佳（若无投诉则填“无”）">
+
+                    <!-- 投诉原因 -->
+                    <div class="flex items-center mb-6">
+                        <label class="text-sm font-bold text-gray-700 w-32 flex-shrink-0">投诉主要原因为：</label>
+                        <textarea id="compReason" class="input-field flex-1" rows="1" placeholder="例如：发现异物/口感不佳"></textarea>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-2">采取的主要改进措施为：</label>
-                        <textarea id="compMeasure" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" rows="2" placeholder="例如：对厨师进行批评教育，加强出餐检查（若无投诉则填“无”）"></textarea>
+
+                    <!-- 改进措施 -->
+                    <div class="flex items-center">
+                        <label class="text-sm font-bold text-gray-700 w-32 flex-shrink-0">采取的主要改进措施为：</label>
+                        <textarea id="compMeasure" class="input-field flex-1" rows="2" placeholder="例如：对厨师进行批评教育，加强出餐检查"></textarea>
                     </div>
                 </div>
             </div>
@@ -327,15 +245,15 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-green-50 p-5 rounded-lg border border-green-100 flex flex-col">
                     <h3 class="font-bold text-green-800 mb-3 text-lg border-b border-green-200 pb-1">3. 供应商管理</h3>
-                    <label class="block text-sm font-bold text-gray-600 mb-2">本月对供应商审核情况：</label>
-                    <textarea id="supplierStatus" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" rows="4" placeholder="例如：本月对3家米面粮油供应商资质进行了年度复审，全部合格。"></textarea>
+                    <label class="input-label text-gray-600">本月对供应商审核情况：</label>
+                    <textarea id="supplierStatus" class="input-field flex-grow" rows="4" placeholder="例如：本月对3家米面粮油供应商资质进行了年度复审，全部合格。"></textarea>
                 </div>
                 <div class="bg-orange-50 p-5 rounded-lg border border-orange-100">
                     <h3 class="font-bold text-orange-800 mb-3 text-lg border-b border-orange-200 pb-1">4. 培训情况</h3>
                     <div class="space-y-4">
-                        <div><label class="block text-sm font-bold text-gray-600 mb-2">本月开展培训次数：</label><input type="number" id="trainTimes" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="1"></div>
-                        <div><label class="block text-sm font-bold text-gray-600 mb-2">合计学时：</label><input type="number" id="trainHours" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="2"></div>
-                        <div><label class="block text-sm font-bold text-gray-600 mb-2">参加培训人员合计：</label><input type="number" id="trainPeople" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="15"></div>
+                        <div><label class="input-label text-gray-600">本月开展培训次数：</label><input type="number" id="trainTimes" class="input-field" value="1"></div>
+                        <div><label class="input-label text-gray-600">合计学时：</label><input type="number" id="trainHours" class="input-field" value="2"></div>
+                        <div><label class="input-label text-gray-600">参加培训人员合计：</label><input type="number" id="trainPeople" class="input-field" value="15"></div>
                     </div>
                 </div>
             </div>
@@ -344,26 +262,26 @@
                 <h3 class="font-bold text-blue-800 mb-4 text-lg border-b border-gray-300 pb-1">5. 日管控检查问题落实</h3>
                 <div class="grid grid-cols-3 gap-6 mb-4">
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-2">本月问题总数</label>
-                        <input type="number" id="checkTotal" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="5" oninput="calcCheckPending()">
+                        <label class="input-label text-gray-600">本月问题总数</label>
+                        <input type="number" id="checkTotal" class="input-field" value="5" oninput="calcCheckPending()">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-2">已落实整改数</label>
-                        <input type="number" id="checkFixed" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="5" oninput="calcCheckPending()">
+                        <label class="input-label text-gray-600">已落实整改数</label>
+                        <input type="number" id="checkFixed" class="input-field" value="5" oninput="calcCheckPending()">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-2">待整改数</label>
-                        <input type="number" id="checkPending" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm bg-gray-100 cursor-not-allowed text-gray-500" readonly value="0">
+                        <label class="input-label text-gray-600">待整改数 (自动)</label>
+                        <input type="number" id="checkPending" class="input-field input-readonly" readonly value="0">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-2">计划完成整改时间</label>
-                        <input type="date" id="checkDeadline" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm cursor-pointer">
+                        <label class="input-label text-gray-600">计划完成整改时间</label>
+                        <input type="date" id="checkDeadline" class="input-field cursor-pointer">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-2">相关责任部门配合情况</label>
-                        <input type="text" id="checkCoop" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="各部门配合良好，整改及时。">
+                        <label class="input-label text-gray-600">相关责任部门配合情况</label>
+                        <input type="text" id="checkCoop" class="input-field" value="各部门配合良好，整改及时。">
                     </div>
                 </div>
             </div>
@@ -380,12 +298,7 @@
                 <div id="riskList" class="space-y-4">
                     <div class="flex gap-4 items-center">
                         <span class="font-bold text-gray-400 w-6 text-right">1.</span>
-                        <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" value="部分从业人员健康证即将到期">
-                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
-                    </div>
-                    <div class="flex gap-4 items-center">
-                        <span class="font-bold text-gray-400 w-6 text-right">2.</span>
-                        <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" value="仓库通风设备噪音较大">
+                        <input type="text" class="input-field flex-grow" value="部分从业人员健康证即将到期">
                         <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
                     </div>
                 </div>
@@ -401,7 +314,7 @@
                 <div id="consensusList" class="space-y-4">
                     <div class="flex gap-4 items-center">
                         <span class="font-bold text-gray-400 w-6 text-right">1.</span>
-                        <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" value="各部门表示将全力配合食品安全整改工作。">
+                        <input type="text" class="input-field flex-grow" value="各部门表示将全力配合食品安全整改工作。">
                         <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
                     </div>
                 </div>
@@ -415,24 +328,19 @@
                     </button>
                 </div>
                 <div class="mb-4 max-w-md">
-                    <label class="block text-sm font-bold text-gray-800 mb-2"><span class="text-red-600 mr-1">*</span>负责人姓名</label>
-                    <input type="text" id="leaderName" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm border-blue-300" placeholder="此项必填">
+                    <label class="input-label"><span class="text-red-600 mr-1">*</span>负责人姓名</label>
+                    <input type="text" id="leaderName" class="input-field border-blue-300" placeholder="此项必填">
                 </div>
                 <div id="reqList" class="space-y-4">
                     <div class="flex gap-4 items-center">
                         <span class="font-bold text-gray-400 w-6 text-right">1.</span>
-                        <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" value="必须严格落实日管控、周排查制度。">
-                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
-                    </div>
-                    <div class="flex gap-4 items-center">
-                        <span class="font-bold text-gray-400 w-6 text-right">2.</span>
-                        <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" value="对排查出的隐患要举一反三，彻底整改。">
+                        <input type="text" class="input-field flex-grow" value="必须严格落实日管控、周排查制度。">
                         <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-md p-6 mb-32">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-12">
                 <div class="flex justify-between items-center mb-4 border-l-4 border-green-600 pl-3">
                     <h2 class="text-gray-700 font-bold text-lg">五、下个月重点工作计划</h2>
                     <button onclick="addListItem('planList')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded font-bold transition flex items-center shadow">
@@ -442,12 +350,7 @@
                 <div id="planList" class="space-y-4">
                     <div class="flex gap-4 items-center">
                         <span class="font-bold text-gray-400 w-6 text-right">1.</span>
-                        <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" value="开展春季传染病预防专题培训。">
-                        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
-                    </div>
-                    <div class="flex gap-4 items-center">
-                        <span class="font-bold text-gray-400 w-6 text-right">2.</span>
-                        <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" value="对后厨设备进行全面检修。">
+                        <input type="text" class="input-field flex-grow" value="开展春季传染病预防专题培训。">
                         <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
                     </div>
                 </div>
@@ -456,34 +359,70 @@
 
     </div>
 
-    <!-- 底部按钮 -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-40 flex gap-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] no-print">
-        <button onclick="resetForm()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg transition text-base">
+    <!-- Bottom Actions -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-40 flex gap-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <button onclick="confirmReset()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg transition text-base">
             <i class="fa-solid fa-rotate-left mr-2"></i>重置
         </button>
         <button onclick="showReportPreview()" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition text-base">
-            <i class="fa-solid fa-file-signature mr-2"></i>预览 / 导出
+            <i class="fa-solid fa-file-signature mr-2"></i>预览报告
         </button>
     </div>
 
+    <!-- Preview Overlay -->
     <div id="previewOverlay" class="hidden">
-        <!-- 打印区域 -->
         <div id="previewPaper"></div>
-        
-        <!-- 底部操作栏 -->
-        <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 flex gap-4 justify-center no-print">
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 flex gap-4 justify-center">
             <button onclick="closePreview()" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">返回修改</button>
-            <button onclick="generatePDF(event)" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center">
-                <i class="fa-solid fa-file-pdf mr-2"></i> 导出PDF文件
-            </button>
-            <button onclick="generateFinalHTML(event)" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center">
-                <i class="fa-solid fa-code mr-2"></i> 导出HTML源码
-            </button>
+            <button onclick="exportHTML()" id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg">导出HTML</button>
+        </div>
+    </div>
+
+    <!-- Custom Notification Modal -->
+    <div id="customModal">
+        <div class="modal-content">
+            <div id="modalIcon" class="text-4xl mb-4"></div>
+            <p id="modalMsg" class="text-gray-800 font-bold mb-6"></p>
+            <div class="flex gap-3 justify-center">
+                <button id="modalSecondary" class="bg-gray-200 px-6 py-2 rounded font-bold text-gray-700 hidden">取消</button>
+                <button id="modalPrimary" class="bg-blue-600 px-6 py-2 rounded font-bold text-white">确定</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // 日期格式化
+        // Notification System
+        function showNotify(msg, icon = '⚠️', onConfirm = null, isConfirm = false) {
+            const modal = document.getElementById('customModal');
+            const primary = document.getElementById('modalPrimary');
+            const secondary = document.getElementById('modalSecondary');
+            document.getElementById('modalMsg').innerText = msg;
+            document.getElementById('modalIcon').innerText = icon;
+            
+            modal.style.display = 'flex';
+            
+            if(isConfirm) secondary.classList.remove('hidden');
+            else secondary.classList.add('hidden');
+
+            const handlePrimary = () => {
+                modal.style.display = 'none';
+                if(onConfirm) onConfirm();
+                cleanup();
+            };
+            const handleSecondary = () => {
+                modal.style.display = 'none';
+                cleanup();
+            };
+            const cleanup = () => {
+                primary.removeEventListener('click', handlePrimary);
+                secondary.removeEventListener('click', handleSecondary);
+            };
+
+            primary.addEventListener('click', handlePrimary);
+            secondary.addEventListener('click', handleSecondary);
+        }
+
+        // Date Format YYYY/M/D
         const formatSlashString = (dateString) => {
             if (!dateString) return "____/__/__";
             const parts = dateString.split('-'); 
@@ -495,19 +434,42 @@
         document.addEventListener('DOMContentLoaded', () => {
             const todayISO = new Date().toISOString().split('T')[0];
             document.getElementById('meetingDate').value = todayISO;
+            document.getElementById('checkDeadline').value = todayISO;
+            autoFillDateInfo(); // 自动填充初始日期的信息
+            calcRmRate();
         });
 
-        // 逻辑计算函数
+        // 自动填充日期相关信息
+        function autoFillDateInfo() {
+            const dateVal = document.getElementById('meetingDate').value;
+            if (dateVal) {
+                const dateObj = new Date(dateVal);
+                // 解决时区偏移问题：直接解析字符串
+                const parts = dateVal.split('-');
+                const y = parts[0];
+                const m = parts[1];
+                const d = parts[2];
+
+                // 填充年份和月份
+                document.getElementById('meetingYear').value = parseInt(y);
+                document.getElementById('meetingMonth').value = parseInt(m);
+
+                // 填充记录编号 (YYYYMMDD)
+                document.getElementById('recordNo').value = `${y}${m}${d}`;
+            }
+        }
+
         function calcRmRate() {
             const total = parseInt(document.getElementById('rmTotal').value) || 0;
             const qual = parseInt(document.getElementById('rmQualified').value) || 0;
             const unqual = total - qual;
             document.getElementById('rmUnqualified').value = unqual >= 0 ? unqual : 0;
+            
             if (total > 0 && qual >= 0 && qual <= total) {
                 const rate = ((qual / total) * 100).toFixed(1) + '%';
                 document.getElementById('rmRate').value = rate;
             } else {
-                document.getElementById('rmRate').value = '';
+                document.getElementById('rmRate').value = '0%';
             }
         }
 
@@ -532,30 +494,28 @@
             div.className = 'flex gap-4 items-center animate-fade-in';
             div.innerHTML = `
                 <span class="font-bold text-gray-400 w-6 text-right">${count}.</span>
-                <input type="text" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm flex-grow" placeholder="输入内容...">
+                <input type="text" class="input-field flex-grow" placeholder="输入内容...">
                 <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2"><i class="fa-solid fa-trash fa-lg"></i></button>
             `;
             container.appendChild(div);
         }
 
-        // 生成预览
         function showReportPreview() {
-            const rep1 = document.getElementById('reporter1').value;
-            const leaderName = document.getElementById('leaderName').value;
+            const rep1 = document.getElementById('reporter1').value.trim();
+            const leaderName = document.getElementById('leaderName').value.trim();
 
-            if (!rep1 || !rep1.trim()) {
-                alert('请填写【汇报人】姓名！');
+            if (!rep1) {
+                showNotify('请填写【汇报人】姓名！', '✍️');
                 document.getElementById('reporter1').focus();
-                document.getElementById('reporter1').scrollIntoView({behavior: "smooth", block: "center"});
                 return;
             }
-            if (!leaderName || !leaderName.trim()) {
-                alert('请填写【负责人姓名】！');
+            if (!leaderName) {
+                showNotify('请填写【负责人姓名】！', '✍️');
                 document.getElementById('leaderName').focus();
-                document.getElementById('leaderName').scrollIntoView({behavior: "smooth", block: "center"});
                 return;
             }
 
+            // Data Extraction
             const recordNo = document.getElementById('recordNo').value || "________";
             const year = document.getElementById('meetingYear').value || "____";
             const month = document.getElementById('meetingMonth').value || "__";
@@ -566,10 +526,10 @@
             const loc = document.getElementById('location').value || "________";
             const att = document.getElementById('attendees').value || "________";
 
-            const rmTotal = document.getElementById('rmTotal').value || "_";
-            const rmQual = document.getElementById('rmQualified').value || "_";
-            const rmUnqual = document.getElementById('rmUnqualified').value || "_";
-            const rmRate = document.getElementById('rmRate').value || "_%";
+            const rmTotal = document.getElementById('rmTotal').value || "0";
+            const rmQual = document.getElementById('rmQualified').value || "0";
+            const rmUnqual = document.getElementById('rmUnqualified').value || "0";
+            const rmRate = document.getElementById('rmRate').value || "0%";
             const rmName = document.getElementById('rmBadName').value || "无";
             const rmReason = document.getElementById('rmBadReason').value || "无";
             const rmMeasure = document.getElementById('rmBadMeasure').value || "无";
@@ -595,7 +555,7 @@
             const getListHTML = (id) => {
                 const inputs = document.querySelectorAll(`#${id} input`);
                 if(inputs.length === 0) return "<div class='doc-text'>无。</div>";
-                return Array.from(inputs).map((inp, idx) => `<div class="doc-text">（${idx+1}）${inp.value}；</div>`).join('');
+                return Array.from(inputs).map((inp, idx) => `<div class="doc-list-item">（${idx+1}）${inp.value}；</div>`).join('');
             };
 
             const riskHTML = getListHTML('riskList');
@@ -607,7 +567,6 @@
                 <div>
                     <div class="doc-header-right">附件4</div>
                     <div class="doc-title">每月食品安全调度会议纪要</div>
-                    
                     <div class="doc-record-no">记录编号：（${recordNo}）</div>
                     
                     <table class="doc-table">
@@ -635,34 +594,28 @@
 
                     <div style="font-weight:bold; margin: 20px 0 10px 0; font-family: 'SimHei';">会议内容记录：</div>
 
-                    <div class="doc-section-title keep-together">一、食品安全管理工作情况汇报（汇报人：${rep1}）</div>
-                    
+                    <div class="doc-section-title">一、食品安全管理工作情况汇报（汇报人：${rep1}）</div>
                     <div class="doc-text"><span class="doc-text-bold">1. 当月问题汇总及整改落实情况：</span>（见附件及日管控、周排查记录）</div>
-
                     <div class="doc-text"><span class="doc-text-bold">2. 食品原料验收情况：</span>本月到货总批数 <span class="u-line">${rmTotal}</span> 批次，合格 <span class="u-line">${rmQual}</span> 批次，不合格 <span class="u-line">${rmUnqual}</span> 批次，到货合格率 <span class="u-line">${rmRate}</span>。</div>
                     <div class="doc-text">不合格原料为：${rmName}，不合格原因：${rmReason}，对不合格原料采取的处理措施：${rmMeasure}。</div>
-
                     <div class="doc-text"><span class="doc-text-bold">3. 投诉处理情况：</span>本月质量投诉起数为 <span class="u-line">${cpTotal}</span> 起，有效投诉 <span class="u-line">${cpEff}</span> 起，无效投诉 <span class="u-line">${cpInv}</span> 起。</div>
                     <div class="doc-text">投诉产品主要为：${cpProd}；投诉主要原因为：${cpRes}；采取的主要改进措施为：${cpMeas}。</div>
-
                     <div class="doc-text"><span class="doc-text-bold">4. 供应商管理：</span>本月对供应商审核情况：${sup}</div>
-
                     <div class="doc-text"><span class="doc-text-bold">5. 从业人员培训情况：</span>本月开展培训 <span class="u-line">${tTimes}</span> 次，合计 <span class="u-line">${tHours}</span> 学时，参加人员 <span class="u-line">${tPpl}</span> 人。</div>
-
                     <div class="doc-text"><span class="doc-text-bold">6. 日管控问题落实：</span>（1）本月日常检查问题 <span class="u-line">${ckTot}</span> 项，已整改 <span class="u-line">${ckFix}</span> 项，待整改 <span class="u-line">${ckPen}</span> 项，计划整改时间为 <span class="u-line">${ckDate}</span>；（2）责任部门配合情况：${ckCoop}。</div>
 
                     <div class="doc-section-title keep-together">二、较大风险隐患排查情况</div>
                     <div class="doc-text">存在的主要风险隐患问题如下：</div>
-                    <div style="margin-left: 1em;">${riskHTML}</div>
+                    <div style="margin-left: 0;">${riskHTML}</div>
 
                     <div class="doc-section-title keep-together">三、食品安全相关部门发言及达成的共识</div>
-                    <div style="margin-left: 1em;">${consensusHTML}</div>
+                    <div style="margin-left: 0;">${consensusHTML}</div>
 
                     <div class="doc-section-title keep-together">四、企业主要负责人工作要求（负责人：${leaderName}）</div>
-                    <div style="margin-left: 1em;">${reqHTML}</div>
+                    <div style="margin-left: 0;">${reqHTML}</div>
 
                     <div class="doc-section-title keep-together">五、下个月食品安全管理重点工作计划</div>
-                    <div style="margin-left: 1em;">${planHTML}</div>
+                    <div style="margin-left: 0;">${planHTML}</div>
 
                     <div class="doc-footer">
                         <div style="flex:1;">汇报人/日期：${rep1} / ${mDate}</div>
@@ -678,136 +631,98 @@
 
         function closePreview() { document.getElementById('previewOverlay').classList.add('hidden'); }
 
-        // PDF 生成核心函数
-        function generatePDF(event) {
-            const btn = event.currentTarget;
+        function exportHTML() {
+            const btn = document.getElementById('exportBtn');
             const originalText = btn.innerHTML;
-            const body = document.body;
-            
-            // UI 反馈
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 生成中...';
             btn.disabled = true;
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>正在导出...';
 
-            // 关键：添加生成状态类，触发 CSS 去除阴影和边距
-            body.classList.add('pdf-generating');
-
-            const mMonth = document.getElementById('meetingMonth').value;
-            const mYear = document.getElementById('meetingYear').value;
-            const filename = `${mYear}年${mMonth}月食品安全调度会议纪要.pdf`;
-            const element = document.getElementById('previewPaper');
-
-            // 配置
-            const opt = {
-                /* 修复核心：
-                   margin: [15, 0, 15, 0] 
-                   - 为每一页（包括第一页和后续页）强制增加上下15mm的物理白边
-                   - 这解决了第二页顶部内容紧贴页面边缘的问题
-                   - 同时 CSS 中将 padding 上下设为了 0 或较小值，避免双重间距
-                */
-                margin:       [15, 0, 15, 0], 
-                filename:     filename,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    scrollY: 0, 
-                    logging: false,
-                    backgroundColor: '#ffffff', // 强制白底，防止变黑
-                    // 再次确保克隆体无杂质
-                    onclone: (clonedDoc) => {
-                        const paper = clonedDoc.getElementById('previewPaper');
-                        if(paper) {
-                            paper.style.boxShadow = 'none';
-                            paper.style.background = '#ffffff';
-                            // 确保文本层级高于一切背景
-                            const texts = paper.querySelectorAll('*');
-                            texts.forEach(el => {
-                                el.style.position = 'relative'; 
-                                el.style.zIndex = '100';
-                            });
-                        }
-                    }
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // 执行转换
-            html2pdf().set(opt).from(element).save().then(() => {
-                // 恢复
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                body.classList.remove('pdf-generating');
-            }).catch(err => {
-                console.error("PDF生成错误:", err);
-                alert("PDF生成失败，请重试。");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                body.classList.remove('pdf-generating');
-            });
-        }
-
-        function generateFinalHTML(event) {
-            // (保持原有HTML生成逻辑不变)
-            const btn = event.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 生成中...';
-            
             try {
-                const previewContent = document.getElementById('previewPaper').innerHTML;
-                const mMonth = document.getElementById('meetingMonth').value;
-                const mYear = document.getElementById('meetingYear').value;
+                const mMonth = document.getElementById('meetingMonth').value || "2";
+                const content = document.getElementById('previewPaper').innerHTML;
                 
-                const fullHTML = `<!DOCTYPE html>
+                const htmlStr = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>${mYear}年${mMonth}月食品安全调度会议纪要</title>
+    <title>${mMonth}月食品安全调度会议纪要</title>
     <style>
-        body { font-family: "SimSun", serif; color: #000; line-height: 1.6; font-size: 16px; margin: 0; padding: 0; background: #fff; }
-        .container { width: 210mm; margin: 0 auto; padding: 25mm 31mm; box-sizing: border-box; }
-        .doc-header-right { text-align: right; font-size: 14px; margin-bottom: 5px; font-family: 'SimHei'; }
-        .doc-title { text-align: center; font-size: 28px; font-weight: bold; font-family: 'SimHei'; margin: 20px 0; }
-        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .doc-table td { border: 1px solid #000; padding: 8px 10px; }
-        .doc-label-cell { font-family: 'SimHei'; font-weight: bold; text-align: center; }
-        .doc-section-title { font-family: 'SimHei'; font-weight: bold; font-size: 18px; margin: 24px 0 12px 0; border-bottom: 1px solid #000; padding-bottom: 4px; }
-        .doc-text { text-align: justify; margin-bottom: 8px; text-indent: 2em; }
+        body { background-color: #f3f4f6; padding: 40px; display: flex; justify-content: center; }
+        #paper {
+            width: 210mm; 
+            min-height: 297mm; 
+            background: white; 
+            padding: 25mm 31mm; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-family: "SimSun", "Songti SC", serif; 
+            color: #000;
+            line-height: 1.6;
+            font-size: 16px; 
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+        .doc-header-right { text-align: right; font-size: 14px; margin-bottom: 5px; font-family: 'SimHei', sans-serif; }
+        .doc-title { 
+            text-align: center; font-size: 28px; font-weight: bold; 
+            font-family: 'SimHei', sans-serif; margin-bottom: 20px; 
+            margin-top: 10px; letter-spacing: 2px;
+        }
+        .doc-record-no { margin-bottom: 10px; font-family: "SimSun"; font-size: 14px; }
+        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 16px; table-layout: fixed; }
+        .doc-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; word-wrap: break-word; }
+        .doc-label-cell { font-family: 'SimHei', sans-serif; font-weight: bold; width: 100px; text-align: center; background-color: #fcfcfc; }
+        .doc-section-title { 
+            font-family: 'SimHei', sans-serif; font-weight: bold; font-size: 18px; 
+            margin-top: 25px; margin-bottom: 10px; 
+        }
+        .doc-text { text-align: justify; margin-bottom: 6px; text-indent: 2em; }
         .doc-text-bold { font-weight: bold; font-family: 'SimHei'; }
-        .u-line { border-bottom: 1px solid #000; padding: 0 4px; display: inline-block; min-width: 30px; text-align: center; }
-        .doc-footer { margin-top: 60px; display: flex; justify-content: space-between; }
+        .u-line { border-bottom: 1px solid #000; padding: 0 4px; font-family: "SimSun"; display: inline-block; min-width: 30px; text-align: center; }
+        .doc-footer { margin-top: 60px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+        .keep-together { page-break-inside: avoid; break-inside: avoid; }
+        .doc-list-item { text-indent: 2em; margin-bottom: 4px; }
     </style>
 </head>
-<body><div class="container">${previewContent}</div></body></html>`;
-                
-                const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
+<body>
+    <div id="paper">
+        ${content}
+    </div>
+</body>
+</html>`;
+
+                const blob = new Blob([htmlStr], { type: 'text/html;charset=utf-8' });
                 const link = document.createElement('a');
-                link.href = url;
-                link.download = `${mYear}年${mMonth}月食品安全调度会议纪要.html`;
-                document.body.appendChild(link);
+                link.href = URL.createObjectURL(blob);
+                link.download = `${mMonth}月食品安全调度会议纪要.html`;
                 link.click();
-                setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); btn.innerHTML = originalText; }, 100);
-            } catch (error) {
-                alert('出错'); btn.innerHTML = originalText;
+                showNotify('HTML导出成功！', '✅');
+            } catch (e) {
+                console.error(e);
+                showNotify('导出失败', '❌');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
-        function resetForm() {
-            if(confirm('确定要清空所有内容吗？')) {
+        function confirmReset() {
+            showNotify('确定要清空所有已填写的记录吗？', '❓', () => {
                 const inputs = document.querySelectorAll('input:not(#meetingYear):not(#meetingMonth), textarea');
                 inputs.forEach(i => i.value = '');
-                document.getElementById('meetingYear').value = '2026';
-                document.getElementById('meetingMonth').value = '2';
+                
+                // 重置后重新触发日期逻辑
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('meetingDate').value = today;
+                autoFillDateInfo();
+
                 document.getElementById('startTime').value = '14:00';
                 document.getElementById('endTime').value = '15:30';
                 ['riskList', 'consensusList', 'reqList', 'planList'].forEach(id => {
                     document.getElementById(id).innerHTML = '';
                     addListItem(id);
                 });
-            }
+                calcRmRate();
+            }, true);
         }
     </script>
 </body>
