@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>每月食品安全调度会议纪要 - 移动端适配版</title>
+    <title>每月食品安全调度会议纪要 - 打印专用修复版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 引入 html2pdf.js -->
@@ -19,26 +19,30 @@
         }
         
         /* ================================================================
-           电脑端/默认：A4纸张容器 (保持原样)
+           核心修复：PDF/打印 专用排版规则 
            ================================================================
         */
+
+        /* 规则一：A4纸张容器 - 移除所有阴影和背景干扰 */
         #previewPaper {
             width: 210mm; 
             min-height: 297mm; 
-            background-color: #ffffff; 
+            background-color: #ffffff; /* 强制纯白 */
             margin: 30px auto; 
-            padding: 15mm 31mm; 
+            padding: 15mm 31mm; /* 调整：上下padding减小，改由PDF margin控制，防止双重留白 */
+            /* 屏幕预览时保留阴影以便区分，但在PDF生成模式下会通过JS移除 */
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
             font-family: "SimSun", "Songti SC", serif; 
             color: #000;
             line-height: 1.6;
             font-size: 16px; 
             box-sizing: border-box;
-            position: relative; 
+            position: relative; /* 必须是 relative，不能是 fixed/absolute */
             z-index: 1;
         }
 
-        /* 基础排版类 (保持原样) */
+        /* 规则二：防止遮挡 - 强制正文层级最高 */
+        /* 关键修复：提升所有文本元素的层级，防止被背景渲染错误遮挡 */
         #previewPaper p, 
         #previewPaper div, 
         #previewPaper h1, 
@@ -51,17 +55,20 @@
             z-index: 10;
         }
 
+        /* 规则三：移除网页装饰 - 章节标题改为文档风格 */
         .doc-section-title { 
             font-family: 'SimHei', sans-serif; 
             font-weight: bold; 
             font-size: 18px; 
             margin-top: 24px; 
             margin-bottom: 12px;
+            /* 关键：使用边框分割，代替背景色块 */
             border-bottom: 1px solid #000; 
             padding-bottom: 4px;
-            background: none !important; 
+            background: none !important; /* 禁止背景色 */
         }
 
+        /* 规则四：表格样式 - 纯黑白边框 */
         .doc-table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -73,7 +80,7 @@
             border: 1px solid #000; 
             padding: 8px 10px; 
             vertical-align: middle; 
-            background: transparent !important; 
+            background: transparent !important; /* 防止单元格背景变黑 */
             position: relative; 
             z-index: 10;
         }
@@ -82,9 +89,10 @@
             font-weight: bold; 
             width: 110px; 
             text-align: center; 
-            background-color: transparent !important; 
+            background-color: transparent !important; /* 移除灰底，防止变黑 */
         }
 
+        /* 排版辅助类 */
         .doc-header-right { text-align: right; font-size: 14px; margin-bottom: 5px; font-family: 'SimHei', sans-serif; }
         .doc-title { 
             text-align: center; font-size: 28px; font-weight: bold; 
@@ -96,10 +104,11 @@
             text-align: justify; 
             margin-bottom: 8px; 
             text-indent: 2em; 
-            line-height: 1.8; 
+            line-height: 1.8; /* 增加行高，提升阅读体验 */
         }
         .doc-text-bold { font-weight: bold; font-family: 'SimHei'; }
         
+        /* 下划线 - 确保是纯黑色 */
         .u-line { 
             border-bottom: 1px solid #000; 
             padding: 0 4px; 
@@ -111,229 +120,62 @@
         }
         
         .doc-footer { margin-top: 60px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+        
+        /* 规则五：分页控制 - 防止文字切断 */
         .keep-together { page-break-inside: avoid; break-inside: avoid; }
 
+        /* 预览遮罩层 */
         #previewOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #374151; z-index: 50; overflow-y: auto; padding-bottom: 80px;
         }
 
-        /* ================================================================
-           移动端阅读与填写模式适配 (Mobile Optimization)
-           ================================================================ 
-        */
-        @media screen and (max-width: 768px) {
-            
-            /* 基础布局优化 */
-            #mainFormContainer .grid {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            /* 保持时间选择器并排 */
-            #mainFormContainer .grid-cols-2 {
-                flex-direction: row;
-                gap: 12px;
-            }
-
-            /* 通用隐藏 - 仅隐藏PDF按钮，保留HTML按钮 */
-            #btn-export-pdf, .mobile-hidden-field {
-                display: none !important;
-            }
-            /* HTML导出按钮宽度占满 */
-            #btn-export-html {
-                flex: 1 !important; 
-                width: 100%;
-            }
-
-            /* --- 核心优化：会议基本信息区域 (第一个白色卡片) --- */
-            /* 使用 :first-child 定位，不修改 HTML */
-            #mainFormContainer > div:first-child {
-                background: #ffffff;
-                padding: 20px;
-                border-radius: 12px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.03); /* 更柔和的阴影 */
-                margin-bottom: 16px;
-                border: 1px solid rgba(0,0,0,0.02);
-            }
-
-            /* 标题优化 */
-            #mainFormContainer > div:first-child h2 {
-                font-size: 18px;
-                color: #1f2937;
-                margin-bottom: 16px;
-                font-weight: 700;
-                border-left: 4px solid #2563eb; /* 蓝色左竖线，公文感 */
-                padding-left: 10px;
-                line-height: 1;
-            }
-
-            /* 字段组优化：标签在上，内容在下，紧凑型 */
-            #mainFormContainer > div:first-child div > div {
-                margin-bottom: 8px; /* 减小行间距 */
-            }
-
-            /* 标签样式：小、灰、紧贴内容 */
-            #mainFormContainer > div:first-child label {
-                font-size: 13px;
-                color: #6b7280; /* Gray-500 */
-                font-weight: normal;
-                margin-bottom: 2px;
-                display: block;
-                letter-spacing: 0.5px;
-            }
-
-            /* 输入框样式：下划线风格，模拟纸质填写 */
-            #mainFormContainer > div:first-child input[type="text"], 
-            #mainFormContainer > div:first-child input[type="number"], 
-            #mainFormContainer > div:first-child input[type="date"], 
-            #mainFormContainer > div:first-child input[type="time"] {
-                width: 100%;
-                font-size: 16px;
-                font-weight: 500;
-                color: #111827; /* Gray-900 */
-                padding: 6px 0; /* 上下紧凑 */
-                height: auto;
-                border: none;
-                border-bottom: 1px solid #e5e7eb; /* 浅灰底线 */
-                background-color: transparent;
-                border-radius: 0; /* 去除圆角 */
-                box-shadow: none;
-                margin-top: 0;
-                transition: border-color 0.2s;
-            }
-
-            /* 输入框聚焦状态 */
-            #mainFormContainer > div:first-child input:focus {
-                border-bottom: 2px solid #2563eb; /* 聚焦变蓝 */
-                outline: none;
-                ring: 0;
-            }
-
-            /* --- 其他区域（汇报内容等）保持卡片样式，稍微区分 --- */
-            #mainFormContainer > div:not(:first-child) {
-                border-radius: 12px;
-                padding: 16px;
-                margin-bottom: 16px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            }
-            
-            /* 其他区域的输入框保持气泡式，区分“基本信息”和“大段填报” */
-            #mainFormContainer > div:not(:first-child) input,
-            #mainFormContainer > div:not(:first-child) textarea {
-                width: 100%;
-                font-size: 16px;
-                padding: 10px;
-                border-radius: 8px;
-                border: 1px solid #e5e7eb;
-                background-color: #f9fafb;
-                margin-top: 4px;
-            }
-
-            /* --- 预览页适配 (已移除移动端卡片化样式，恢复A4) --- */
-            /* 让手机端预览容器支持缩放或横向滚动，以便查看完整的A4页面 */
-            #previewOverlay {
-                overflow-x: auto !important; /* 允许横向滚动 */
-                -webkit-overflow-scrolling: touch;
-                background-color: #374151 !important; /* 保持深色背景突出A4纸 */
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            /* 在手机上，让A4纸稍微缩小一点以适应屏幕，或者保持原样允许滚动 */
-            #previewPaper {
-                /* 缩放以适应手机屏幕宽度，这里使用 zoom (非标准但兼容性好) 或 transform */
-                zoom: 0.45; /* 大约将210mm缩放到手机宽度的比例 */
-                margin: 20px auto !important;
-                /* 确保样式优先级，不被上面的移动端样式覆盖（如果还有残留） */
-                width: 210mm !important;
-                min-height: 297mm !important;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;
-            }
-
-            /* 底部操作栏适配 */
-            #previewOverlay + div, .fixed.bottom-0 {
-                position: fixed !important;
-                bottom: 0;
-                width: 100%;
-            }
+        /* 移动端适配 */
+        @media (max-width: 800px) {
+            #previewPaper { width: 95%; padding: 15px; margin: 10px auto; zoom: 0.6; }
         }
 
         /* ================================================================
            PDF 生成时的专用状态类 (.pdf-generating)
+           由 JS 在生成前添加，生成后移除
            ================================================================ 
         */
         .pdf-generating #previewPaper {
             margin: 0 !important;
-            padding: 0 31mm !important; 
-            box-shadow: none !important; 
+            padding: 0 31mm !important; /* 生成时只保留左右padding，上下由margin控制 */
+            box-shadow: none !important; /* 彻底移除阴影，防止黑条 */
             border: none !important;
             background-color: #ffffff !important;
         }
 
+        /* 强制移除分页处的装饰 */
         .pdf-generating * {
             box-decoration-break: clone;
-            background-color: transparent !important; 
+            background-color: transparent !important; /* 除非特指，全部透明 */
         }
         
+        /* 恢复容器白底 */
         .pdf-generating #previewPaper {
             background-color: #ffffff !important;
         }
 
+        /* 禁用绝对定位，防止跨页飞出 */
         .pdf-generating .doc-text, 
-        .pdf-generating .doc-section-title, 
+        .pdf-generating .doc-section-title,
         .pdf-generating table {
             position: static !important; 
             float: none !important;
         }
 
-        .pdf-generating *::before, 
+        /* 隐藏装饰性伪元素 */
+        .pdf-generating *::before,
         .pdf-generating *::after {
             display: none !important;
         }
         
+        /* 动画 */
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* ================================================================
-           打印专用修复样式 (Print Only)
-           ================================================================ 
-        */
-        @media print {
-          html, body {
-            width: auto !important;
-            height: auto !important;
-            min-width: 0 !important;
-            transform: none !important;
-            zoom: 1 !important;
-          }
-          * {
-            background-image: none !important;
-            box-shadow: none !important;
-            filter: none !important;
-            max-height: none !important;
-          }
-          * {
-            position: static !important;
-            float: none !important;
-          }
-          * {
-            overflow: visible !important;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 18mm 15mm 18mm 15mm;
-          }
-          div, section, table {
-            break-inside: avoid;
-            page-break-inside: avoid;
-          }
-          p, h1, h2, h3, h4, li, td, th {
-            position: relative !important;
-            z-index: 1 !important;
-          }
-        }
     </style>
 </head>
 <body class="pb-32">
@@ -363,15 +205,13 @@
                     <label class="block text-sm font-bold text-gray-800 mb-2">记录编号</label>
                     <input type="text" id="recordNo" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="例如：20260116">
                 </div>
-                <!-- 手机端隐藏年份，自动根据日期生成 -->
-                <div class="mobile-hidden-field">
+                <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">会议年份</label>
-                    <input type="number" id="meetingYear" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="自动生成">
+                    <input type="number" id="meetingYear" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="2026">
                 </div>
-                <!-- 手机端隐藏月份，自动根据日期生成 -->
-                <div class="mobile-hidden-field">
+                <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">会议月份</label>
-                    <input type="number" id="meetingMonth" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="自动生成">
+                    <input type="number" id="meetingMonth" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" value="2">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">主持人</label>
@@ -633,10 +473,10 @@
         <!-- 底部操作栏 -->
         <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 flex gap-4 justify-center no-print">
             <button onclick="closePreview()" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">返回修改</button>
-            <button id="btn-export-pdf" onclick="generatePDF(event)" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center">
+            <button onclick="generatePDF(event)" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center">
                 <i class="fa-solid fa-file-pdf mr-2"></i> 导出PDF文件
             </button>
-            <button id="btn-export-html" onclick="generateFinalHTML(event)" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center">
+            <button onclick="generateFinalHTML(event)" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center">
                 <i class="fa-solid fa-code mr-2"></i> 导出HTML源码
             </button>
         </div>
@@ -651,33 +491,10 @@
             return `${parts[0]}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
         };
 
-        // Init - 增强版日期自动填充与同步逻辑
+        // Init
         document.addEventListener('DOMContentLoaded', () => {
-            const dateInput = document.getElementById('meetingDate');
-            const yearInput = document.getElementById('meetingYear');
-            const monthInput = document.getElementById('meetingMonth');
-            
-            // 1. 如果日期为空，则填充今天
-            if (!dateInput.value) {
-                const now = new Date();
-                const todayISO = now.toISOString().split('T')[0];
-                dateInput.value = todayISO;
-                
-                // 填充年份和月份字段
-                if (yearInput && !yearInput.value) yearInput.value = now.getFullYear();
-                if (monthInput && !monthInput.value) monthInput.value = now.getMonth() + 1; // getMonth() returns 0-11
-            }
-
-            // 2. 监听日期变化，自动同步年份和月份
-            dateInput.addEventListener('change', function() {
-                if (this.value) {
-                    const selectedDate = new Date(this.value);
-                    if (!isNaN(selectedDate.getTime())) {
-                        yearInput.value = selectedDate.getFullYear();
-                        monthInput.value = selectedDate.getMonth() + 1;
-                    }
-                }
-            });
+            const todayISO = new Date().toISOString().split('T')[0];
+            document.getElementById('meetingDate').value = todayISO;
         });
 
         // 逻辑计算函数
@@ -982,13 +799,8 @@
             if(confirm('确定要清空所有内容吗？')) {
                 const inputs = document.querySelectorAll('input:not(#meetingYear):not(#meetingMonth), textarea');
                 inputs.forEach(i => i.value = '');
-                
-                // 重置逻辑也要更新：重置为当天日期
-                const now = new Date();
-                document.getElementById('meetingYear').value = now.getFullYear();
-                document.getElementById('meetingMonth').value = now.getMonth() + 1;
-                document.getElementById('meetingDate').value = now.toISOString().split('T')[0];
-                
+                document.getElementById('meetingYear').value = '2026';
+                document.getElementById('meetingMonth').value = '2';
                 document.getElementById('startTime').value = '14:00';
                 document.getElementById('endTime').value = '15:30';
                 ['riskList', 'consensusList', 'reqList', 'planList'].forEach(id => {
