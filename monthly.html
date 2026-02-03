@@ -119,11 +119,72 @@
         }
 
         /* ================================================================
-           新增：移动端阅读与填写模式适配 (Mobile Optimization)
-           只在屏幕宽度小于 768px 时生效，不影响电脑端导出
+           移动端阅读与填写模式适配 (Mobile Optimization)
            ================================================================ 
         */
         @media screen and (max-width: 768px) {
+            /* 隐藏指定元素 */
+            .mobile-hidden-field {
+                display: none !important;
+            }
+
+            /* 输入框优化：大尺寸、圆角 */
+            #mainFormContainer input[type="text"], 
+            #mainFormContainer input[type="number"], 
+            #mainFormContainer input[type="date"], 
+            #mainFormContainer input[type="time"],
+            #mainFormContainer textarea {
+                width: 100%;
+                font-size: 16px; /* 防止iOS缩放 */
+                padding: 12px 14px;
+                height: auto;
+                border-radius: 8px;
+                border: 1px solid #d1d5db;
+                background-color: #fff;
+                margin-top: 4px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            }
+
+            /* 标签优化 */
+            #mainFormContainer label {
+                font-size: 15px;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 6px;
+                display: block;
+            }
+
+            /* 卡片容器优化 */
+            #mainFormContainer .bg-white {
+                border-radius: 12px;
+                padding: 20px 16px; /* 增加内边距 */
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                margin-bottom: 20px;
+            }
+
+            /* 标题优化 */
+            #mainFormContainer h2 {
+                font-size: 1.125rem; /* 18px */
+                margin-bottom: 16px;
+                padding-left: 10px;
+                border-left-width: 5px;
+            }
+
+            /* Grid 布局改为单列流式 */
+            #mainFormContainer .grid {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            /* 列表项优化 */
+            #riskList > div, #consensusList > div, #reqList > div, #planList > div {
+                background-color: #f9fafb;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+            }
+
             /* 1. 容器适配：取消A4固定宽度，改为流式 */
             #previewPaper {
                 width: 100% !important;
@@ -263,7 +324,7 @@
         }
 
         .pdf-generating .doc-text, 
-        .pdf-generating .doc-section-title,
+        .pdf-generating .doc-section-title, 
         .pdf-generating table {
             position: static !important; 
             float: none !important;
@@ -362,11 +423,13 @@
                     <label class="block text-sm font-bold text-gray-800 mb-2">记录编号</label>
                     <input type="text" id="recordNo" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="例如：20260116">
                 </div>
-                <div>
+                <!-- 手机端隐藏年份，自动根据日期生成 -->
+                <div class="mobile-hidden-field">
                     <label class="block text-sm font-bold text-gray-800 mb-2">会议年份</label>
                     <input type="number" id="meetingYear" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="自动生成">
                 </div>
-                <div>
+                <!-- 手机端隐藏月份，自动根据日期生成 -->
+                <div class="mobile-hidden-field">
                     <label class="block text-sm font-bold text-gray-800 mb-2">会议月份</label>
                     <input type="number" id="meetingMonth" class="w-full border border-gray-300 rounded p-3 text-sm focus:border-blue-500 focus:ring-blue-500 transition bg-white shadow-sm" placeholder="自动生成">
                 </div>
@@ -648,26 +711,33 @@
             return `${parts[0]}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
         };
 
-        // Init - 增强版日期自动填充
+        // Init - 增强版日期自动填充与同步逻辑
         document.addEventListener('DOMContentLoaded', () => {
             const dateInput = document.getElementById('meetingDate');
+            const yearInput = document.getElementById('meetingYear');
+            const monthInput = document.getElementById('meetingMonth');
             
-            // 如果日期为空，则填充今天
+            // 1. 如果日期为空，则填充今天
             if (!dateInput.value) {
                 const now = new Date();
                 const todayISO = now.toISOString().split('T')[0];
                 dateInput.value = todayISO;
                 
-                // 同时也填充年份和月份字段
-                const year = now.getFullYear();
-                const month = now.getMonth() + 1; // getMonth() returns 0-11
-                
-                const yearInput = document.getElementById('meetingYear');
-                const monthInput = document.getElementById('meetingMonth');
-                
-                if (yearInput && !yearInput.value) yearInput.value = year;
-                if (monthInput && !monthInput.value) monthInput.value = month;
+                // 填充年份和月份字段
+                if (yearInput && !yearInput.value) yearInput.value = now.getFullYear();
+                if (monthInput && !monthInput.value) monthInput.value = now.getMonth() + 1; // getMonth() returns 0-11
             }
+
+            // 2. 监听日期变化，自动同步年份和月份
+            dateInput.addEventListener('change', function() {
+                if (this.value) {
+                    const selectedDate = new Date(this.value);
+                    if (!isNaN(selectedDate.getTime())) {
+                        yearInput.value = selectedDate.getFullYear();
+                        monthInput.value = selectedDate.getMonth() + 1;
+                    }
+                }
+            });
         });
 
         // 逻辑计算函数
