@@ -176,6 +176,63 @@
         /* 动画 */
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ================================================================
+           新增：移动端PDF/打印 专用修复样式 (User Requested)
+           ================================================================ 
+        */
+        @media print {
+            /* 强制PDF使用桌面文档流布局，而不是手机视口布局 */
+            html, body {
+                width: 210mm !important;
+                height: auto !important;
+                min-width: 1024px !important;
+                overflow: visible !important;
+            }
+
+            /* 移除移动端常见导致黑块的布局影响 */
+            * {
+                max-height: none !important;
+            }
+
+            /* 修复手机端100vh、fixed、sticky导致的分页黑条问题 */
+            [style*="100vh"],
+            .vh-100,
+            .full-height {
+                height: auto !important;
+            }
+
+            .fixed,
+            .fixed-bottom,
+            .sticky,
+            [style*="position:fixed"],
+            [style*="position: sticky"] {
+                position: static !important;
+            }
+
+            /* 防止内容被裁切 */
+            * {
+                overflow: visible !important;
+            }
+
+            /* 确保正文在最上层，防止被背景遮挡 */
+            p, h1, h2, h3, h4, li, span, td {
+                position: relative !important;
+                z-index: 2 !important;
+            }
+
+            /* 规范分页间距，防止第二页顶到页面顶部 */
+            @page {
+                size: A4;
+                margin: 20mm 15mm 20mm 15mm;
+            }
+
+            /* 避免模块被分页切断 */
+            div, section, article {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
     </style>
 </head>
 <body class="pb-32">
