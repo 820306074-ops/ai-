@@ -216,8 +216,7 @@
 
 <div class="header">
     <h1>食品合规卫士 Pro</h1>
-    <p>本地快查 + AI 视觉提取 + AI 深度核规</p>
-    如有疑问，可企业微信联系李川。
+    <p>本地快查 + AI 视觉提取 + 国家级 AI 法规审查</p>
 </div>
 
 <div class="container">
@@ -237,13 +236,14 @@
             <span class="tag" onclick="fill('金银花')">金银花</span>
             <span class="tag" onclick="fill('肉苁蓉')">肉苁蓉</span>
             <span class="tag" onclick="fill('一枝黄花')">一枝黄花</span>
-            <span class="tag" onclick="fill('NMN')">NMN</span>
+            <span class="tag" onclick="fill('双花')">双花</span>
+            <span class="tag" onclick="fill('透明质酸钠')">玻尿酸</span>
         </div>
     </div>
 
     <div id="resultView" class="card"></div>
     
-    <div class="version">System V21.1 · AI Powered by Kimi-k2.5</div>
+    <div class="version">System V23.0 · Powered by Kimi-k2.5 & 国家级法规智库</div>
 </div>
 
 <script>
@@ -261,34 +261,69 @@
     };
 
     // 预设 AI 首席专家人设及输出规范
-    const SYSTEM_PROMPT = `你是一个专门协助企业员工审查食品原料合法性的 AI 专家。你的核心职责是严格依据国家现行的食品安全法律法规、国家标准及官方公告，准确、客观、严谨地判断用户查询的物质是否可作为合法的食品原料使用。
+    const SYSTEM_PROMPT = `你是一名国家级食品安全法规数据库专家，专精中国现行食品安全法律法规检索与合规判定。你的所有判断必须基于当前最新官方公开数据，不得使用过期、作废或未经证实的信息。
 
-🔴 核心红线原则 (Core Rules - 必须严格遵守):
-1. 绝对严谨，零幻觉：你不能进行任何主观猜测、常识推理或联想。如果检索不到该物质的明确法定依据，必须直接回答“未查询到该物质作为合法食品原料的明确依据”，绝不可自行编造法规或公告。
-2. 依据为王：任何“合法”或“条件性合法”的结论，都必须附带具体的法规名称、标准号、目录名称或官方公告文号。
-3. 区分普通与保健食品：必须明确界定该原料是只能用于保健食品，还是可以用于普通食品。
-4. 禁止提供医疗建议：无论该物质是否有药用价值，你的回答仅限于其作为“食品原料”的合规性。
+【强制数据规则】
+必须优先检索并依据以下最新官方文件：
+- 国家卫生健康委员会最新公告
+- 国家市场监督管理总局最新公告
+- 《既是食品又是中药材的物质目录》最新版本
+- 新食品原料公告最新版本
+- 食品添加剂使用标准 GB 2760 最新版本
+- 食品安全国家标准最新修订版
+- 药食同源目录最新版本
+若某目录当前未发布新版，必须说明：“当前未见更新公告，沿用最近正式发布版本数据。”
+严禁：
+- 使用网络文章或非官方解释
+- 使用已废止文件
+- 主观推断
+- 模糊判断
 
-📚 审查分类及法定判定标准:
-在分析用户查询的物质时，请将其归类至以下法定类别之一，并寻找对应依据：
-- 普通食品原料（具传统食用习惯，或列入相关国家标准）
-- 食药物质 / 药食同源（列入《既是食品又是中药材的物质目录》及相关增补公告）
-- 新食品原料（原新资源食品，需具有国家卫健委/原卫计委/卫生部发布的具体批准公告）
-- 食品添加剂或营养强化剂（必须符合 GB 2760 或 GB 14880 及相关增补公告）
-- 保健食品专用原料（列入《保健食品原料目录》或仅限保健食品使用的物品名单，不可用于普通食品）
-- 禁用物质（列入《可能违法添加的非食用物质名单》、《保健食品中可能非法添加的物质名单》或缺乏食用历史且未获批的物质）
+【核心任务】
+对输入的原料名称进行严格合规分类，并必须明确判定：
+- 是否属于普通食品原料
+- 是否属于香辛料
+- 是否属于新食品原料
+- 是否属于药食同源物质
+- 是否属于保健食品原料
+- 是否仅限药品使用
+- 是否存在限量或用途限制
 
-📝 输出格式要求:
-当员工查询任何物质时，请严格按照以下标准化格式输出结果，不可遗漏任何字段。并且绝对不要输出分割线如“---”或“***”：
-- **【查询物质名称】**：[提取用户查询的名称]
-- **【合规结论】**：[明确输出：合法 / 不合法 / 条件性合法 / 信息不足]
-- **【原料法定分类】**：[如：新食品原料、药食同源物质、食品添加剂等]
-- **【法定支持依据】**：[必须具体到公告号或标准号，例如：国家卫健委202X年第X号公告 / 《既是食品又是中药材的物质目录》]
-- **【使用限制与要求】**：[如法规中有规定，严格提取其食用量限制、适用范围、不适宜人群、提取工艺要求、质量规格等。若查无限制则填“法规未作明确特殊限制”]
-- **【合规风险提示】**：[如果属于易混淆名称、具有不适用人群（如孕妇、婴幼儿禁用），需在此处做高亮提示]
+【输出格式必须严格如下】（请勿输出 Markdown 分隔线如 --- 或 ***）
+【原料名称】：
+一、属性判定
+普通食品：是 / 否
+香辛料：是 / 否
+药食同源：是 / 否
+新食品原料：是 / 否
+保健食品原料：是 / 否
+仅限药品：是 / 否
 
-⚠️ 免责声明 (固定在每次回答末尾):
-“*本查询结果基于系统检索生成，仅供内部初步合规参考。最终判定请务必以国家最新法律法规及监管部门意见为准。*”`;
+二、最新官方依据
+公告名称：
+公告年份：
+公告编号：
+是否为当前最新版本：是 / 否
+如无更新说明是否沿用旧版：
+
+三、合规使用边界
+是否可用于普通食品生产：
+是否存在限量要求：
+是否限制用途：
+是否允许功能宣称：
+
+四、法律风险提示
+若违规使用可能违反的法律条款：
+可能承担的法律后果：
+
+五、最终结论（必须一句话明确结论）
+【合规结论】：（必须以这五个字开头，一句话明确输出：合法 / 不合法 / 条件性合法 / 禁用）
+
+【判定原则】
+- 数据优先级：最新公告 > 最新国家标准 > 既往公告
+- 如存在监管灰色地带，必须明确提示“存在监管不确定性”
+- 结论必须明确，不得含糊
+- 如未检索到合法食品使用依据，必须输出：“未检索到该原料的合法食品使用依据，不建议用于普通食品生产。”`;
 
     function fill(val) {
         document.getElementById('searchInput').value = val;
@@ -304,23 +339,79 @@
             .replace(/\n/g, '<br>');
     }
 
-    // 解析 AI 文本中的合规结论以决定卡片颜色
+    // 解析 AI 文本中的“最终结论”或“是否可用于普通食品生产”以决定卡片颜色
     function determineColorFromAIText(text) {
-        const match = text.match(/【合规结论】[^：:]*[：:]\s*(.*?)(<br>|\n|$)/);
-        if (match && match[1]) {
-            const conclusion = match[1];
-            if (conclusion.includes('不合法') || conclusion.includes('禁用') || conclusion.includes('不可')) {
+        const lowerText = text.toLowerCase();
+        
+        // 优先看最终结论
+        const matchConclusion = text.match(/五、最终结论.*?<br>(.*?)(<br>|$)/i) || text.match(/最终结论[：:](.*?)(<br>|$)/i);
+        if (matchConclusion && matchConclusion[1]) {
+            const conclusion = matchConclusion[1];
+            if (conclusion.includes('不建议') || conclusion.includes('不可') || conclusion.includes('禁止') || conclusion.includes('不合法') || conclusion.includes('仅限药')) {
                 return 'red';
-            } else if (conclusion.includes('条件性合法') || conclusion.includes('条件')) {
+            }
+            if (conclusion.includes('条件') || conclusion.includes('限量') || conclusion.includes('存在监管不确定性')) {
                 return 'yellow';
-            } else if (conclusion.includes('合法')) {
+            }
+            if (conclusion.includes('合法') || conclusion.includes('可以') || conclusion.includes('允许')) {
                 return 'green';
             }
         }
-        return 'purple'; // 默认色
+        
+        // 备用判断：通过“是否可用于普通食品生产：否”来判断
+        if (lowerText.includes('是否可用于普通食品生产：否') || lowerText.includes('未检索到该原料的合法食品使用依据')) {
+             return 'red';
+        }
+        if (lowerText.includes('存在监管不确定性')) {
+             return 'yellow';
+        }
+
+        return 'purple'; // 默认深度核查色
     }
 
-    // 调用 AI 执行合规审核
+    // 调用 AI 执行药材标准名称核验 (前置处理)
+    async function getStandardNameFromAI(ingredient) {
+        const ALIAS_PROMPT = `你是一名国家级中药材标准数据库专家，精通《中国药典》现行最新版、中药材标准名称规范及国家相关公告。
+你的任务是：对输入的“药材别名”进行标准名称核验，并输出该药材在《中国药典》最新版收载的正统标准名称。
+【严格输出要求】
+1. 必须只输出正统标准名称文本本身（如：金银花、黄芪）。
+2. 绝对禁止输出任何标点符号、前缀、后缀或多余的解释说明。
+3. 如果输入的内容本身就是标准名称，或者不是中药材（例如普通食材水、白糖、猪肉等），请直接原样输出用户输入的内容，不要做任何改动。`;
+
+        const payload = {
+            model: AI_CONFIG.MODEL,
+            messages: [
+                { role: "system", content: ALIAS_PROMPT },
+                { role: "user", content: ingredient }
+            ],
+            temperature: 0.1
+        };
+
+        try {
+            const response = await fetch(AI_CONFIG.URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${AI_CONFIG.KEY}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (data.error) return ingredient;
+            
+            let stdName = data.choices[0].message.content.trim();
+            // 兜底清理可能残留的无关内容
+            stdName = stdName.replace(/^["'【\[]+|["'】\]]+$/g, '');
+            stdName = stdName.replace(/（.*）|\(.*\)|\{.*\}/g, ''); // 去除括号内解释
+            return stdName || ingredient;
+        } catch (e) {
+            console.error("名称核验失败:", e);
+            return ingredient;
+        }
+    }
+
+    // 调用 AI 执行深度合规审核
     async function callAIAudit(ingredient) {
         const payload = {
             model: AI_CONFIG.MODEL,
@@ -359,48 +450,74 @@
         view.style.display = 'block';
 
         try {
+            // 1. 启动合规查询引擎（包含本地先查、无果转标准名再查、无果AI深查）
             const res = await getComplianceResult(input);
-            view.innerHTML = renderResult(res.color, res.title, res.desc, input);
+            view.innerHTML = renderResult(res.color, res.title, res.desc, res.displayKw);
         } catch (e) {
             alert("查询逻辑出错: " + e.message);
             view.style.display = 'none';
         }
     }
 
-    // 获取综合合规结果（先查本地，查不到则调 AI）
+    // 获取综合合规结果：严格执行 先查本地 -> 本地没查到转标准名再查本地 -> 还是查不到调用AI深度查 的原则
     async function getComplianceResult(input) {
-        const localRes = checkIngredient(input);
+        // 第一步：用原词直接秒查本地大数据库
+        const localResDirect = checkIngredient(input);
         
-        // 如果本地数据库判定为“未知”，则触发 AI 深度分析
-        if (localRes.isUnknown) {
-            try {
-                const aiTextRaw = await callAIAudit(input);
-                const aiHtmlFormatted = formatMarkdown(aiTextRaw);
-                const computedColor = determineColorFromAIText(aiHtmlFormatted);
-                
-                // 根据推断的颜色动态决定卡片标题
-                let dynamicTitle = '深度核查结果 (AI辅助)';
-                if(computedColor === 'red') dynamicTitle = '可能不合法 (AI辅助)';
-                if(computedColor === 'green') dynamicTitle = '看似合法 (AI辅助)';
-                if(computedColor === 'yellow') dynamicTitle = '条件限制 (AI辅助)';
-
-                return { 
-                    color: computedColor, 
-                    title: dynamicTitle, 
-                    desc: aiHtmlFormatted
-                };
-            } catch (e) {
-                return { 
-                    color: 'red', 
-                    title: '未收录 / 核查失败', 
-                    desc: `本地未收录该物质，且 AI 云端核查失败 (${e.message})。若为中药材或野生动植物，请默认禁止使用。` 
-                };
-            }
+        // 如果本地数据库判定结果不是“未知”，说明找到了，直接返回本地结果（无需任何网络请求）
+        if (!localResDirect.isUnknown) {
+            return { 
+                color: localResDirect.color, 
+                title: localResDirect.title, 
+                desc: localResDirect.desc,
+                displayKw: input // 原样展示
+            };
         }
-        return localRes;
+        
+        // 第二步：本地查不到（大概率是别名或生僻物料），触发 AI 标准名称核验
+        const stdName = await getStandardNameFromAI(input);
+        const displayKw = (stdName !== input && !stdName.includes(input)) ? `${input} ➡️ ${stdName}` : input;
+
+        // 第三步：用 AI 转换后的正统标准名字，【再次】查本地大数据库
+        const localResStd = checkIngredient(stdName);
+        if (!localResStd.isUnknown) {
+            return { 
+                color: localResStd.color, 
+                title: localResStd.title, 
+                desc: localResStd.desc,
+                displayKw: displayKw // 展示别名到正名的映射
+            };
+        }
+
+        // 第四步：连标准名字在本地大数据库里都没有，触发终极 AI 深度合规审查
+        try {
+            const aiTextRaw = await callAIAudit(stdName);
+            const aiHtmlFormatted = formatMarkdown(aiTextRaw);
+            const computedColor = determineColorFromAIText(aiHtmlFormatted);
+            
+            // 根据推断的颜色动态决定卡片标题
+            let dynamicTitle = '深度核查结果 (国家级智库)';
+            if(computedColor === 'red') dynamicTitle = '高风险/不可用 (深度核查)';
+            if(computedColor === 'green') dynamicTitle = '合规可用 (深度核查)';
+            if(computedColor === 'yellow') dynamicTitle = '有条件/限量 (深度核查)';
+
+            return { 
+                color: computedColor, 
+                title: dynamicTitle, 
+                desc: aiHtmlFormatted,
+                displayKw: displayKw
+            };
+        } catch (e) {
+            return { 
+                color: 'red', 
+                title: '未收录 / 核查失败', 
+                desc: `本地未收录该物质，且 AI 云端核查失败 (${e.message})。若为中药材或野生动植物，请默认禁止使用。`,
+                displayKw: displayKw 
+            };
+        }
     }
 
-    // --- 核心判定逻辑 (本地秒查) ---
+    // --- 核心判定逻辑 (独立本地秒查模块) ---
     function checkIngredient(input) {
         let cleanInput = input.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ''); // 清理标点符号
 
@@ -441,7 +558,7 @@
         if (DATA.CHP.has(cleanInput)) {
             return { color: 'red', title: '禁止入菜 (纯药品)', desc: '收录于《中国药典》且未列入食品白名单。属于“纯中药材”，餐饮环节严禁使用！' };
         }
-        // 9. 未知 (标记 isUnknown 让外层去调用 AI)
+        // 9. 未知 (标记 isUnknown 让外层去决定是否调用 AI)
         return { isUnknown: true };
     }
 
@@ -553,7 +670,7 @@
                 throw new Error("未识别到清晰的配料成分");
             }
 
-            // 【新增逻辑】：将识别出的原料名称自动填充到搜索框中
+            // 将识别出的原料名称自动填充到搜索框中
             document.getElementById('searchInput').value = ingredientsList.join(', ');
 
             // 5. 渲染基础框架并逐一核查（采用串行核查以防触发 API 限流）
@@ -561,9 +678,10 @@
             view.innerHTML = finalHtml;
             
             for (const item of ingredientsList) {
+                // 使用重构后的统一流：本地查 -> AI正名 -> 本地查 -> AI深查
                 const res = await getComplianceResult(item);
                 // 累加结果并实时更新到视图
-                finalHtml += renderResult(res.color, res.title, res.desc, item);
+                finalHtml += renderResult(res.color, res.title, res.desc, res.displayKw);
                 view.innerHTML = finalHtml;
             }
             
@@ -585,14 +703,14 @@
         HEALTH_BANNED: new Set(("八角莲 八角枫 兰花参 千金子 土青木香 山莨菪 川乌 广防己 马钱子 六角莲 天仙子 巴豆 水银 长春花 甘遂 仙茅 白屈菜 夹竹桃 朱砂 米壳 罂粟壳 红升丹 红豆杉 红茴香 红大戟 羊角拗 羊踯躅 丽江山慈菇 京大戟 昆明山海棠 河豚 闹羊花 狗舌草 金不换 金线甲素 铃兰 钩吻 祖师麻 洋地黄 班哈卡 鬼臼 曼陀罗 狼毒 黄花夹竹桃 雪上一枝蒿 硫黄 雄黄 雌黄 商陆 斑蝥 蟾酥").split(' ')),
         INFANT_PROBIOTICS: new Set(("嗜酸乳杆菌 动物双歧杆菌 乳双歧杆菌 短双歧杆菌 发酵乳杆菌 瑞士乳杆菌 鼠李糖乳杆菌 副干酪乳杆菌 罗伊氏乳杆菌 嗜热链球菌").split(' ')),
         PROBIOTICS: new Set(("地衣芽孢杆菌 凝结芽孢杆菌 青春双歧杆菌 动物双歧杆菌 两歧双歧杆菌 短双歧杆菌 婴儿双歧杆菌 长双歧杆菌 嗜酸乳杆菌 嗜淀粉乳杆菌 产阿米尔乳杆菌 短乳杆菌 干酪乳杆菌 棒状乳杆菌 德氏乳杆菌 发酵乳杆菌 加氏乳杆菌 瑞士乳杆菌 约氏乳杆菌 乳酸乳杆菌 副干酪乳杆菌 植物乳杆菌 罗伊氏乳杆菌 鼠李糖乳杆菌 唾液乳杆菌 清酒乳杆菌 乳酸乳球菌 肠膜明串珠菌 嗜热链球菌 酿酒酵母 乳克鲁维酵母").split(' ')),
-        ORDINARY: new Set(("水 饮用水 纯净水 白砂糖 糖 食盐 盐 大米 小麦 面粉 玉米 高粱 黄豆 大豆 绿豆 红豆 黑豆 燕麦 荞麦 白菜 萝卜 黄瓜 西红柿 辣椒 茄子 芹菜 菠菜 韭菜 芫荽 香菜 苹果 梨 香蕉 葡萄 西瓜 橘子 橙子 柠檬 柚子 草莓 蓝莓 猪肉 牛肉 羊肉 鸡肉 鸭肉 鸡蛋 鸭蛋 牛奶 羊奶 核桃 榛子 松子 开心果 腰果 葵花籽 南瓜子 西瓜子 花生 芝麻 莲子 百合 银耳 木耳 香菇 金针菇 辣椒粉 孜然 胡椒 咖喱粉 芥末 普洱茶 绿茶 红茶 乌龙茶 茉莉花茶 玫瑰花 桂花 茉莉花 洛神花 菊花 金银花 魔芋 琼脂 五指毛桃 牛蒡根 大麦苗 针叶樱桃 酵母抽提物 麦芽糊精 淀粉 果葡糖浆").split(' ')),
+        ORDINARY: new Set(("水 饮用水 纯净水 白砂糖 糖 食盐 盐 大米 小麦 面粉 玉米 高粱 黄豆 大豆 绿豆 红豆 黑豆 燕麦 荞麦 白菜 萝卜 黄瓜 西红柿 辣椒 茄子 芹菜 菠菜 无花果 韭菜 芫荽 香菜 苹果 梨 香蕉 葡萄 西瓜 橘子 橙子 柠檬 柚子 草莓 蓝莓 猪肉 牛肉 羊肉 鸡肉 鸭肉 鸡蛋 鸭蛋 牛奶 羊奶 核桃 榛子 松子 开心果 腰果 葵花籽 南瓜子 西瓜子 花生 芝麻 莲子 百合 银耳 木耳 香菇 金针菇 辣椒粉 孜然 胡椒 咖喱粉 芥末 普洱茶 绿茶 红茶 乌龙茶 茉莉花茶 玫瑰花 桂花 茉莉花 洛神花 菊花 金银花 魔芋 琼脂 五指毛桃 牛蒡根 大麦苗 针叶樱桃 酵母抽提物 麦芽糊精 淀粉 果葡糖浆").split(' ')),
         ORDINARY_APPROVED: {
             "五指毛桃": "卫健委复函同意作为普通食品。", "牛蒡根": "卫健委复函同意作为普通食品。",
             "普洱茶": "终止审查，按普通食品管理。", "玫瑰花": "重瓣红玫瑰，普通食品。",
             "大麦苗": "终止审查，普通食品。", "针叶樱桃": "终止审查，普通食品。"
         },
         SPICE: new Set(("菖蒲 洋葱 大葱 小葱 韭葱 蒜 高良姜 豆蔻 香豆蔻 草果 砂仁 莳萝 土茴香 圆叶当归 细叶芹 芹菜 辣根 龙蒿 杨桃 黑芥籽 刺山柑 辣椒 葛缕子 桂皮 肉桂 阴香 大清桂 芫荽 藏红花 枯茗 姜黄 香茅 枫茅 小豆蔻 阿魏 小茴香 甘草 八角 刺柏 山奈 木姜子 月桂 芒果 薄荷 椒样薄荷 留兰香 调料九里香 肉豆蔻 甜罗勒 甘牛至 牛至 欧芹 多香果 草拔 黑胡椒 白胡椒 石榴 迷迭香 胡麻 芝麻 白欧芥 丁香 罗晃子 蒙百里香 百里香 香椿 香早芹 葫芦巴 香荚兰 花椒 姜 生姜").split(' ')),
-        HOMOLOGY: new Set(("丁香 八角茴香 刀豆 小茴香 小蓟 山药 山楂 马齿苋 乌梢蛇 乌梅 木瓜 火麻仁 代代花 玉竹 甘草 白芷 白果 白扁豆 白扁豆花 龙眼肉 决明子 百合 肉豆蔻 肉桂 余甘子 佛手 杏仁 沙棘 牡蛎 芡实 花椒 赤小豆 阿胶 鸡内金 麦芽 昆布 枣 罗汉果 郁李仁 金银花 青果 鱼腥草 姜 干姜 生姜 枳苁蓉 枸杞子 栀子 砂仁 胖大海 茯苓 香橼 香薷 桃仁 桑叶 桑椹 桔梗 益智仁 荷叶 莱菔子 莲子 高良姜 淡竹叶 淡豆豉 菊花 菊苣 黄芥子 黄精 紫苏 紫苏子 葛根 黑芝麻 黑胡椒 槐米 槐花 蒲公英 蜂蜜 榧子 酸枣仁 鲜白茅根 鲜芦根 橘皮 薄荷 薏苡仁 薤白 覆盆子 藿香 当归 山柰 西红花 草果 姜黄 荜茇 党参 肉苁蓉 铁皮石斛 西洋参 黄芪 灵芝 山茱萸 天麻 杜仲叶 地黄 麦冬 天冬 化橘红").split(' ')),
+        HOMOLOGY: new Set(("丁香 八角茴香 刀豆 小茴香 小蓟 山药 山楂 马齿苋 乌梢蛇 乌梅 木瓜 火麻仁 代代花 玉竹 甘草 白芷 白果 白扁豆 白扁豆花 龙眼肉 决明子 百合 肉豆蔻 肉桂 余甘子 佛手 杏仁 沙棘 牡蛎 芡实 花椒 赤小豆 阿胶 鸡内金 麦芽 昆布 枣 罗汉果 郁李仁 金银花 青果 鱼腥草 姜 干姜 生姜 枳苁蓉 枸杞子 栀子 砂仁 胖大海 茯苓 香橼 香薷 桃仁 桑叶 桑椹 桔梗 益智仁 荷叶 莱菔子 莲子 高良姜 淡竹叶 淡豆豉 菊花 菊苣 黄芥子 黄精 紫苏 紫苏子 葛根 黑芝麻 黑胡椒 槐米 槐花 蒲公英 蜂蜜 榧子 酸枣仁 鲜白茅根 鲜芦根 橘皮 薄荷 薏苡仁 薤白 覆盆子 藿香 当归 山柰 西红花 草果 姜黄 荜茇 党参 肉苁蓉 铁皮石斛 西洋参 黄芪 灵芝 山茱萸 天麻 杜仲叶 地黄 生地 熟地 麦冬 天冬 化橘红").split(' ')),
         NEW_RESOURCE: {
             "人参": { limit: "≤ 3克/天", risk: "🚫 孕妇、14岁以下儿童不宜" },
             "人参叶": { limit: "≤ 3克/天", risk: "🚫 孕妇、14岁以下儿童不宜" },
