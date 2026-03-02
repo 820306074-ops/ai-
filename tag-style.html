@@ -20,7 +20,7 @@
             --c-yellow: #FFD166; --bg-yellow: #FFF9E6;
             --c-red: #EF476F; --bg-red: #FFF0F3;
             --c-black: #2B2D42; --bg-black: #E9ECEF;
-            --c-purple: #9D4EDD; --bg-purple: #F3E8FF; /* AI 深度分析专属颜色 */
+            --c-purple: #9D4EDD; --bg-purple: #F3E8FF; /* AI 深度分析默认备用颜色 */
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -171,7 +171,7 @@
         }
 
         /* Markdown 增强样式 */
-        .risk-alert strong { font-weight: 800; }
+        .risk-alert strong { font-weight: 800; color: #111827; }
         .risk-alert em { font-style: italic; opacity: 0.8; font-size: 12px; display: block; margin-top: 10px; }
 
         /* 状态主题定义 */
@@ -217,6 +217,7 @@
 <div class="header">
     <h1>食品合规卫士 Pro</h1>
     <p>本地快查 + AI 视觉提取 + AI 深度核规</p>
+    如有疑问，可企业微信联系李川。
 </div>
 
 <div class="container">
@@ -243,7 +244,7 @@
 
     <div id="resultView" class="card"></div>
     
-    <div class="version">System V21.0 · AI Powered by Kimi-k2.5</div>
+    <div class="version">System V21.1 · AI Powered by Kimi-k2.5</div>
 </div>
 
 <script>
@@ -279,7 +280,7 @@
 - 禁用物质（列入《可能违法添加的非食用物质名单》、《保健食品中可能非法添加的物质名单》或缺乏食用历史且未获批的物质）
 
 📝 输出格式要求:
-当员工查询任何物质时，请严格按照以下标准化格式输出结果，不可遗漏任何字段：
+当员工查询任何物质时，请严格按照以下标准化格式输出结果，不可遗漏任何字段。并且绝对不要输出分割线如“---”或“***”：
 - **【查询物质名称】**：[提取用户查询的名称]
 - **【合规结论】**：[明确输出：合法 / 不合法 / 条件性合法 / 信息不足]
 - **【原料法定分类】**：[如：新食品原料、药食同源物质、食品添加剂等]
@@ -295,12 +296,29 @@
         doSearch();
     }
 
-    // 格式化 AI 的 Markdown 输出为 HTML
+    // 格式化 AI 的 Markdown 输出为 HTML，并清理不必要的符号
     function formatMarkdown(text) {
-        return text
+        let cleanText = text.replace(/---+/g, '').replace(/\*\*\*+/g, ''); // 移除分割线
+        return cleanText
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/\n/g, '<br>');
+    }
+
+    // 解析 AI 文本中的合规结论以决定卡片颜色
+    function determineColorFromAIText(text) {
+        const match = text.match(/【合规结论】[^：:]*[：:]\s*(.*?)(<br>|\n|$)/);
+        if (match && match[1]) {
+            const conclusion = match[1];
+            if (conclusion.includes('不合法') || conclusion.includes('禁用') || conclusion.includes('不可')) {
+                return 'red';
+            } else if (conclusion.includes('条件性合法') || conclusion.includes('条件')) {
+                return 'yellow';
+            } else if (conclusion.includes('合法')) {
+                return 'green';
+            }
+        }
+        return 'purple'; // 默认色
     }
 
     // 调用 AI 执行合规审核
@@ -357,11 +375,20 @@
         // 如果本地数据库判定为“未知”，则触发 AI 深度分析
         if (localRes.isUnknown) {
             try {
-                const aiText = await callAIAudit(input);
+                const aiTextRaw = await callAIAudit(input);
+                const aiHtmlFormatted = formatMarkdown(aiTextRaw);
+                const computedColor = determineColorFromAIText(aiHtmlFormatted);
+                
+                // 根据推断的颜色动态决定卡片标题
+                let dynamicTitle = '深度核查结果 (AI辅助)';
+                if(computedColor === 'red') dynamicTitle = '可能不合法 (AI辅助)';
+                if(computedColor === 'green') dynamicTitle = '看似合法 (AI辅助)';
+                if(computedColor === 'yellow') dynamicTitle = '条件限制 (AI辅助)';
+
                 return { 
-                    color: 'purple', 
-                    title: 'AI 深度核查报告', 
-                    desc: formatMarkdown(aiText)
+                    color: computedColor, 
+                    title: dynamicTitle, 
+                    desc: aiHtmlFormatted
                 };
             } catch (e) {
                 return { 
@@ -526,6 +553,9 @@
             if (!Array.isArray(ingredientsList) || ingredientsList.length === 0) {
                 throw new Error("未识别到清晰的配料成分");
             }
+
+            // 【新增逻辑】：将识别出的原料名称自动填充到搜索框中
+            document.getElementById('searchInput').value = ingredientsList.join(', ');
 
             // 5. 渲染基础框架并逐一核查（采用串行核查以防触发 API 限流）
             let finalHtml = `<div style="font-size: 14px; color: var(--text-sub); margin-bottom: 15px; text-align: center;">📸 成功提取 ${ingredientsList.length} 种配料成分，正在逐一核对...</div>`;
