@@ -3,412 +3,577 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>食品合规卫士 V23.0 (官方批复全集版)</title>
+    <title>食品合规卫士 Pro (AI 视觉深度版)</title>
     <style>
-        /* --- UI 保持 V22.0 现代风格 --- */
+        /* --- UI 重构核心样式 --- */
         :root {
-            --primary: #4361EE; --primary-dark: #3F37C9;
-            --bg-color: #F8F9FE; --card-shadow: 0 10px 30px -10px rgba(67, 97, 238, 0.15);
-            --text-main: #2B2D42; --text-sub: #8D99AE;
+            --primary: #4361EE;
+            --primary-dark: #3F37C9;
+            --bg-color: #F8F9FE;
+            --card-shadow: 0 10px 30px -10px rgba(67, 97, 238, 0.15);
+            --text-main: #2B2D42;
+            --text-sub: #8D99AE;
+            
+            /* 状态色 - 更加柔和现代 */
             --c-green: #06D6A0; --bg-green: #E6FFFA;
             --c-blue: #4CC9F0; --bg-blue: #E0F7FA;
-            --c-yellow: #F59E0B; --bg-yellow: #FFFBEB;
+            --c-yellow: #FFD166; --bg-yellow: #FFF9E6;
             --c-red: #EF476F; --bg-red: #FFF0F3;
             --c-black: #2B2D42; --bg-black: #E9ECEF;
+            --c-purple: #9D4EDD; --bg-purple: #F3E8FF; /* AI 深度分析专属颜色 */
         }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg-color); color: var(--text-main); line-height: 1.6; }
         
-        .header { background: linear-gradient(135deg, #4361EE, #7209B7); color: white; padding: 40px 20px 80px; text-align: center; border-radius: 0 0 30px 30px; position: relative; }
-        .header h1 { margin: 0; font-size: 26px; font-weight: 800; }
-        .header p { font-size: 13px; opacity: 0.9; margin-top: 8px; }
-        
-        .container { max-width: 600px; margin: -50px auto 30px; padding: 0 20px; position: relative; z-index: 10; }
-        .card { background: #FFF; border-radius: 24px; padding: 25px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
-        
-        .search-box { display: flex; gap: 12px; }
-        .input-wrap { flex: 1; background: #F8F9FA; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; height: 56px; border: 2px solid transparent; transition: all 0.3s; }
-        .input-wrap:focus-within { background: #FFF; border-color: var(--primary); box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2); }
-        .search-input { border: none; background: transparent; width: 100%; height: 100%; font-size: 17px; outline: none; color: var(--text-main); }
-        .btn-search { background: var(--primary); color: white; border: none; width: 56px; height: 56px; border-radius: 16px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3); }
-        .btn-search:active { transform: scale(0.95); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
 
+        /* 顶部沉浸式 Header */
+        .header {
+            background: linear-gradient(135deg, #4361EE 0%, #7209B7 100%);
+            color: white;
+            padding: 40px 20px 80px; 
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: ''; position: absolute; top: -50%; left: -20%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .header h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header p { font-size: 13px; opacity: 0.85; margin-top: 8px; font-weight: 500; }
+
+        /* 主容器 */
+        .container {
+            max-width: 600px;
+            margin: -50px auto 30px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 通用卡片 */
+        .card {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        /* 搜索区域 */
+        .search-box { display: flex; gap: 10px; position: relative; }
+        .input-wrap {
+            flex: 1;
+            background: #F8F9FA;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            height: 56px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .input-wrap:focus-within {
+            background: #FFF;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+            transform: translateY(-1px);
+        }
+        .search-input {
+            border: none; background: transparent; width: 100%; height: 100%;
+            font-size: 17px; outline: none; color: var(--text-main); font-weight: 500;
+        }
+        .search-input::placeholder { color: #ADB5BD; }
+        
+        .btn-search {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 56px; height: 56px;
+            border-radius: 16px;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+            transition: transform 0.1s;
+        }
+        .btn-search:active { transform: scale(0.92); }
+        .btn-img {
+            background: #E0F7FA;
+            color: var(--primary);
+            box-shadow: none;
+        }
+
+        /* 快捷标签 */
         .tags { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
-        .tag { padding: 8px 16px; border-radius: 100px; background: #FFF; border: 1px solid #E9ECEF; color: var(--text-sub); font-size: 13px; cursor: pointer; transition: all 0.2s; }
-        .tag:hover { border-color: var(--primary); color: var(--primary); }
+        .tag {
+            padding: 8px 16px;
+            border-radius: 100px;
+            background: #FFF;
+            border: 1px solid #E9ECEF;
+            color: var(--text-sub);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .tag:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+        .tag:active { transform: scale(0.95); }
 
-        #resultView { display: none; animation: slideUp 0.4s ease-out; }
-        .res-header { text-align: center; padding-bottom: 20px; border-bottom: 1px dashed #E9ECEF; margin-bottom: 20px; }
-        .res-icon { font-size: 56px; display: block; margin-bottom: 10px; }
-        .res-title { font-size: 24px; font-weight: 800; margin: 0; }
+        /* 结果展示区 */
+        #resultView { display: none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; }
         
-        .risk-alert { padding: 16px; border-radius: 16px; font-size: 14px; margin-top: 15px; position: relative; overflow: hidden; }
-        .risk-alert::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: currentColor; opacity: 0.5; }
+        .res-card {
+            border: 1px solid #E9ECEF;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: #FAFAFA;
+        }
+        .res-card:last-child { margin-bottom: 0; }
+
+        .res-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .res-icon { font-size: 24px; }
+        .res-title {
+            font-size: 17px; font-weight: 800; margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .risk-alert {
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            position: relative;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+        .risk-alert::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+            background: currentColor; opacity: 0.5;
+        }
+
+        /* Markdown 增强样式 */
+        .risk-alert strong { font-weight: 800; }
+        .risk-alert em { font-style: italic; opacity: 0.8; font-size: 12px; display: block; margin-top: 10px; }
+
+        /* 状态主题定义 */
+        .green { background: #FFF; border-color: var(--c-green); }
+        .green .res-title { color: var(--c-green); }
+        .green .risk-alert { background: var(--bg-green); color: #00695C; }
         
-        .alias-box { background: #E3F2FD; color: #1565C0; padding: 10px 15px; border-radius: 12px; font-size: 13px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border: 1px solid #BBDEFB; }
+        .blue { background: #FFF; border-color: var(--c-blue); }
+        .blue .res-title { color: var(--c-blue); }
+        .blue .risk-alert { background: var(--bg-blue); color: #0277BD; }
+        
+        .yellow { background: #FFF; border-color: #F59E0B; }
+        .yellow .res-title { color: #F59E0B; }
+        .yellow .risk-alert { background: var(--bg-yellow); color: #B45309; }
+        
+        .red { background: #FFF; border-color: var(--c-red); }
+        .red .res-title { color: var(--c-red); }
+        .red .risk-alert { background: var(--bg-red); color: #C92A2A; }
+        
+        .black { background: #FFF; border-color: var(--text-main); }
+        .black .res-title { color: var(--text-main); }
+        .black .risk-alert { background: #E9ECEF; color: #212529; }
 
-        /* 状态颜色 */
-        .green .res-title { color: var(--c-green); } .green .risk-alert { background: var(--bg-green); color: #00695C; }
-        .red .res-title { color: var(--c-red); } .red .risk-alert { background: var(--bg-red); color: #C92A2A; }
-        .yellow .res-title { color: var(--c-yellow); } .yellow .risk-alert { background: var(--bg-yellow); color: #B45309; }
-        .blue .res-title { color: var(--c-blue); } .blue .risk-alert { background: var(--bg-blue); color: #0277BD; }
-        .black .res-title { color: var(--c-black); } .black .risk-alert { background: var(--bg-black); color: #212529; }
+        .purple { background: #FFF; border-color: var(--c-purple); }
+        .purple .res-title { color: var(--c-purple); }
+        .purple .risk-alert { background: var(--bg-purple); color: #4A148C; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .version { text-align: center; color: #B0BEC5; font-size: 12px; margin-top: 30px; }
+        .loading-view { text-align: center; padding: 30px 10px; color: var(--primary); font-weight: bold; }
+        .loading-view img { width: 40px; margin-bottom: 10px; display: block; margin: 0 auto 10px; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .version {
+            text-align: center; color: #B0BEC5; font-size: 12px; margin-top: 30px;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>食品合规卫士 </h1>
-    <p>安全部：李川，如有疑问企业微信联系我</p>
-    <p>全库集成：官方批复普通食品 · 药食同源 · 药典</p>
+    <h1>食品合规卫士 Pro</h1>
+    <p>本地快查 + AI 视觉提取 + AI 深度核规</p>
 </div>
 
 <div class="container">
     <div class="card">
         <div class="search-box">
             <div class="input-wrap">
-                <input type="text" id="searchInput" class="search-input" placeholder="查: 玉米须、纳豆、刺梨、黄芪..." onkeypress="if(event.key==='Enter') doSearch()">
+                <input type="text" id="searchInput" class="search-input" placeholder="输入成分 或 传配料表照片" onkeypress="if(event.key==='Enter') doSearch()">
             </div>
-            <button class="btn-search" onclick="doSearch()">🔍</button>
+            <!-- 触发图片上传 -->
+            <button class="btn-search btn-img" onclick="document.getElementById('imageInput').click()" title="上传图片智能识别">📷</button>
+            <button class="btn-search" onclick="doSearch()" title="文字搜索">🔍</button>
         </div>
+        <!-- 隐藏的 File Input -->
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+
         <div class="tags">
-            <span class="tag" onclick="fill('玉米须')">玉米须(普)</span>
-            <span class="tag" onclick="fill('纳豆')">纳豆(普)</span>
-            <span class="tag" onclick="fill('刺梨')">刺梨(普)</span>
-            <span class="tag" onclick="fill('冬虫夏草')">冬虫夏草(禁)</span>
-            <span class="tag" onclick="fill('大料')">大料(别名)</span>
+            <span class="tag" onclick="fill('金银花')">金银花</span>
+            <span class="tag" onclick="fill('肉苁蓉')">肉苁蓉</span>
+            <span class="tag" onclick="fill('一枝黄花')">一枝黄花</span>
+            <span class="tag" onclick="fill('透明质酸钠')">玻尿酸</span>
+            <span class="tag" onclick="fill('NMN')">NMN</span>
         </div>
     </div>
 
     <div id="resultView" class="card"></div>
-    <div class="version">Database V23.0 · Official Approved List Included</div>
+    
+    <div class="version">System V21.0 · AI Powered by Kimi-k2.5</div>
 </div>
 
 <script>
-    // ==========================================
-    // 1️⃣ 别名数据库 (Alias DB)
-    // ==========================================
-    const ALIAS_RAW = `
-丁香=公丁香=丁子香=支解香=雄丁香
-八角茴香=大料=八角=大茴香
-刀豆=刀豆子=大刀豆=关刀豆
-小茴香=谷茴香=谷茴=小茴=香丝菜=怀香
-小蓟=刺儿菜=刺蓟菜=青青菜=小蓟草
-山药=淮山=怀山药=薯蓣=山芋=白山药
-山楂=红果=山里红=棠棣=酸梅子=山查
-马齿苋=马齿草=马苋=长命菜=五行草=瓜子菜
-乌梢蛇=乌蛇=乌风蛇=剑脊蛇=黑风蛇=黄风蛇
-乌梅=梅实=熏梅=酸梅=梅干
-木瓜=宣木瓜=皱皮木瓜=贴梗海棠=铁脚梨
-火麻仁=大麻仁=麻子仁=麻仁=火麻子
-代代花=玳玳花=玳瑁花=酸橙花
-玉竹=葳蕤=萎蕤=玉术=山玉竹=尾参
-甘草=国老=甜草=粉草=蜜草=甜根子
-白芷=香白芷=杭白芷=川白芷=苻蓠=泽芬
-白果=银杏=公孙树子=鸭脚子
-白扁豆=扁豆=白眉豆=南扁豆=沿篱豆
-白扁豆花=扁豆花=南豆花
-龙眼肉=桂圆肉=元肉=龙眼干=桂元
-决明子=草决明=马蹄决明=羊角豆=假绿豆
-百合=白百合=野百合=山百合=药百合
-肉豆蔻=肉果=玉果=肉蔻=肉豆叩
-肉桂=桂皮=紫桂=玉桂=牡桂=桂心
-余甘子=庵摩勒=牛甘子=油甘子=滇橄榄
-佛手=佛手柑=川佛手=广佛手=蜜罗柑=五指橘
-杏仁=苦杏仁=杏核仁=北杏仁
-沙棘=沙枣=醋柳果=酸刺果=黑刺=沙棘果
-牡蛎=生蚝=牡蛤=蛎黄=海蛎子壳=蛎壳
-芡实=鸡头米=鸡头实=水鸡头=刺莲蓬实
-花椒=川椒=蜀椒=秦椒=红椒=大椒
-赤小豆=红小豆=赤豆=红豆=小豆
-阿胶=驴皮胶=东阿阿胶=胶块=傅致胶
-鸡内金=鸡肫皮=鸡黄皮=鸡胗皮=鸡中金
-麦芽=大麦芽=麦蘖=毛麦芽
-昆布=江白菜=纶布=海昆布=海带花
-枣=大枣=红枣=干枣=美枣=良枣
-罗汉果=拉汗果=假苦瓜=神仙果=金不换
-郁李仁=郁李核=小李仁=李仁肉=郁里仁
-金银花=双花=二花=忍冬花=银花=金花
-青果=橄榄=白榄=甘榄=青橄榄
-鱼腥草=折耳根=蕺菜=岑草=紫蕺=臭腥草
-干姜=白姜=干生姜=均姜=老姜片
-生姜=鲜姜=老姜=嫩姜=紫姜
-枳椇子=拐枣子=鸡爪梨=万寿果=枳枣
-肉苁蓉=寸芸=苁蓉=淡大芸=沙漠人参
-枸杞子=枸杞=杞子=甘杞子=西枸杞=宁夏枸杞
-栀子=山栀=山栀子=黄栀子=红栀子=枝子
-砂仁=阳春砂=缩砂蜜=缩砂仁=砂米=香砂
-胖大海=安南子=大洞果=通大海=大海子=大发
-茯苓=云苓=茯灵=松苓=茯菟=白茯苓=云茯苓
-香橼=香圆=枸橼=香橼皮
-香薷=香茹=香草=石香薷=江香薷
-桃仁=桃核仁=毛桃仁=扁桃仁=山桃仁
-桑叶=霜桑叶=冬桑叶=桑树叶=铁扇子
-桑椹=桑椹子=桑果=桑枣=黑椹=桑实
-桔梗=苦桔梗=白桔梗=玉桔梗=梗草=苦梗
-益智仁=益智=智仁=益智子=摘艼子
-荷叶=莲叶=藕叶=荷钱=芙蓉叶
-莱菔子=萝卜子=萝白子=菜头子
-莲子=莲实=莲米=莲肉=莲蓬子=水芝丹
-高良姜=良姜=小良姜=海良姜=高凉姜
-淡竹叶=竹叶麦冬=山鸡米=淡竹米=竹叶心
-淡豆豉=豆豉=淡豉=香豉=杜豆豉
-菊花=黄菊=白菊=杭菊=滁菊=贡菊=菊华
-菊苣=蓝菊=苦苣=卡斯尼=欧洲菊苣
-黄芥子=芥子
-黄精=黄芝=鸡头黄精=老虎姜=黄鸡菜=野仙姜
-紫苏=苏叶=紫苏叶=赤苏=香苏叶
-紫苏子=苏子=黑苏子=杜苏子=紫苏籽
-葛根=干葛=粉葛=葛条根=葛麻茹
-黑芝麻=胡麻=巨胜子=黑脂麻=胡麻仁
-黑胡椒=胡椒=黑川=浮椒=玉椒
-槐米=槐蕊=槐花米
-槐花=槐华=槐花瓣
-蒲公英=黄花地丁=婆婆丁=蒲公草=黄花苗=地丁
-蜂蜜=蜜糖=蜂糖=白蜜=百花蜜
-榧子=香榧=榧实=玉山果=赤果=榧子仁
-酸枣仁=枣仁=酸枣核=山枣仁=睡仁
-鲜白茅根=茅根=白茅根=茅草根=甜草根=丝茅根
-鲜芦根=芦根=苇根=芦茅根=苇茎=芦竹根
-橘皮=陈皮=广陈皮=新会皮=桔皮=广皮
-薄荷=苏薄荷=薄荷叶=薄荷梗=蕃荷菜=南薄荷
-薏苡仁=薏米=苡米=薏仁=苡米仁=薏珠子=回回米
-薤白=薤根=薤头=野蒜=小蒜=白头蒜
-覆盆子=覆盆=乌藨子=小托盘=覆盆莓=树莓
-藿香=广藿香=土藿香=合香=苍告=山茴香
-当归=干归=秦归=西归=当归身=当归尾=全当归
-山柰=沙姜=山辣=三奈=三奈子=砂姜
-西红花=藏红花=番红花=洎夫蓝=撒馥兰
-草果=草果仁=草果子=老蔻
-姜黄=黄姜=毛姜黄=宝鼎香=黄丝郁金
-荜茇=荜拔=荜拨=毕拨=毕茇=椹圣
-党参=上党人参=潞党参=台党参=黄参=狮头参
-铁皮石斛=铁皮枫斗=枫斗=铁皮兰=黑节草
-西洋参=花旗参=洋参=西洋人参
-黄芪=黄耆=北芪=绵黄芪=箭芪=独根
-灵芝=赤芝=紫芝=灵草=仙草=瑞草=木灵芝
-山茱萸=萸肉=山萸肉=枣皮=蜀枣=药枣
-天麻=明天麻=赤箭=定风草=神草=水洋芋
-杜仲叶=杜仲茶=丝棉木叶=思仲叶
-地黄=生地=生地黄=熟地=熟地黄=怀地黄=干地黄
-麦冬=麦门冬=寸冬=杭麦冬=浙麦冬
-天冬=天门冬=明天冬=天冬草=倪铃=丝冬
-化橘红=化州橘红=橘红=化红=柚皮橘红=毛橘红`;
+    // --- ⚠️ 故障自检代码 ---
+    window.onerror = function(msg, url, line) {
+        console.error("系统加载出错: " + msg + " 行号: " + line);
+        return true;
+    };
 
-    // 初始化别名映射
-    const ALIAS_MAP = {};
-    ALIAS_RAW.trim().split('\n').forEach(line => {
-        if (!line) return;
-        const parts = line.split('=');
-        const standard = parts[0].trim();
-        parts.forEach(alias => {
-            ALIAS_MAP[alias.trim()] = standard;
+    // --- AI 配置 ---
+    const AI_CONFIG = {
+        KEY: "sk-ZTOEfbuGeF0BCuYDNFnN98tuvNJbZ",
+        URL: "https://api.cleanpowerit.cn/v1/chat/completions",
+        MODEL: "kimi-k2.5"
+    };
+
+    // 预设 AI 首席专家人设及输出规范
+    const SYSTEM_PROMPT = `你是一个专门协助企业员工审查食品原料合法性的 AI 专家。你的核心职责是严格依据国家现行的食品安全法律法规、国家标准及官方公告，准确、客观、严谨地判断用户查询的物质是否可作为合法的食品原料使用。
+
+🔴 核心红线原则 (Core Rules - 必须严格遵守):
+1. 绝对严谨，零幻觉：你不能进行任何主观猜测、常识推理或联想。如果检索不到该物质的明确法定依据，必须直接回答“未查询到该物质作为合法食品原料的明确依据”，绝不可自行编造法规或公告。
+2. 依据为王：任何“合法”或“条件性合法”的结论，都必须附带具体的法规名称、标准号、目录名称或官方公告文号。
+3. 区分普通与保健食品：必须明确界定该原料是只能用于保健食品，还是可以用于普通食品。
+4. 禁止提供医疗建议：无论该物质是否有药用价值，你的回答仅限于其作为“食品原料”的合规性。
+
+📚 审查分类及法定判定标准:
+在分析用户查询的物质时，请将其归类至以下法定类别之一，并寻找对应依据：
+- 普通食品原料（具传统食用习惯，或列入相关国家标准）
+- 食药物质 / 药食同源（列入《既是食品又是中药材的物质目录》及相关增补公告）
+- 新食品原料（原新资源食品，需具有国家卫健委/原卫计委/卫生部发布的具体批准公告）
+- 食品添加剂或营养强化剂（必须符合 GB 2760 或 GB 14880 及相关增补公告）
+- 保健食品专用原料（列入《保健食品原料目录》或仅限保健食品使用的物品名单，不可用于普通食品）
+- 禁用物质（列入《可能违法添加的非食用物质名单》、《保健食品中可能非法添加的物质名单》或缺乏食用历史且未获批的物质）
+
+📝 输出格式要求:
+当员工查询任何物质时，请严格按照以下标准化格式输出结果，不可遗漏任何字段：
+- **【查询物质名称】**：[提取用户查询的名称]
+- **【合规结论】**：[明确输出：合法 / 不合法 / 条件性合法 / 信息不足]
+- **【原料法定分类】**：[如：新食品原料、药食同源物质、食品添加剂等]
+- **【法定支持依据】**：[必须具体到公告号或标准号，例如：国家卫健委202X年第X号公告 / 《既是食品又是中药材的物质目录》]
+- **【使用限制与要求】**：[如法规中有规定，严格提取其食用量限制、适用范围、不适宜人群、提取工艺要求、质量规格等。若查无限制则填“法规未作明确特殊限制”]
+- **【合规风险提示】**：[如果属于易混淆名称、具有不适用人群（如孕妇、婴幼儿禁用），需在此处做高亮提示]
+
+⚠️ 免责声明 (固定在每次回答末尾):
+“*本查询结果基于系统检索生成，仅供内部初步合规参考。最终判定请务必以国家最新法律法规及监管部门意见为准。*”`;
+
+    function fill(val) {
+        document.getElementById('searchInput').value = val;
+        doSearch();
+    }
+
+    // 格式化 AI 的 Markdown 输出为 HTML
+    function formatMarkdown(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+
+    // 调用 AI 执行合规审核
+    async function callAIAudit(ingredient) {
+        const payload = {
+            model: AI_CONFIG.MODEL,
+            messages: [
+                { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: `请对原料“${ingredient}”进行合规审核。` }
+            ],
+            temperature: 0.1
+        };
+
+        const response = await fetch(AI_CONFIG.URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AI_CONFIG.KEY}`
+            },
+            body: JSON.stringify(payload)
         });
-    });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message || "AI 接口调用异常");
+        return data.choices[0].message.content.trim();
+    }
+
+    // --- 文本搜索入口 ---
+    async function doSearch() {
+        const input = document.getElementById('searchInput').value.trim();
+        if(!input) return; 
+
+        const view = document.getElementById('resultView');
+        view.innerHTML = `
+            <div class="loading-view">
+                <div style="font-size: 40px; animation: spin 2s linear infinite;">✨</div>
+                <div style="margin-top: 15px;">正在查询 ${input}...</div>
+            </div>`;
+        view.style.display = 'block';
+
+        try {
+            const res = await getComplianceResult(input);
+            view.innerHTML = renderResult(res.color, res.title, res.desc, input);
+        } catch (e) {
+            alert("查询逻辑出错: " + e.message);
+            view.style.display = 'none';
+        }
+    }
+
+    // 获取综合合规结果（先查本地，查不到则调 AI）
+    async function getComplianceResult(input) {
+        const localRes = checkIngredient(input);
+        
+        // 如果本地数据库判定为“未知”，则触发 AI 深度分析
+        if (localRes.isUnknown) {
+            try {
+                const aiText = await callAIAudit(input);
+                return { 
+                    color: 'purple', 
+                    title: 'AI 深度核查报告', 
+                    desc: formatMarkdown(aiText)
+                };
+            } catch (e) {
+                return { 
+                    color: 'red', 
+                    title: '未收录 / 核查失败', 
+                    desc: `本地未收录该物质，且 AI 云端核查失败 (${e.message})。若为中药材或野生动植物，请默认禁止使用。` 
+                };
+            }
+        }
+        return localRes;
+    }
+
+    // --- 核心判定逻辑 (本地秒查) ---
+    function checkIngredient(input) {
+        let cleanInput = input.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ''); // 清理标点符号
+
+        // 1. 💀 剧毒/禁用
+        if (DATA.HEALTH_BANNED.has(cleanInput) || cleanInput.includes('罂粟')) {
+            return { color: 'black', title: '绝对禁止 (有毒/红线)', desc: '该物品属于《保健食品禁用物品》或涉毒原料！具有明显毒性或严重副作用，严禁用于任何食品。' };
+        }
+        // 2. 👶 婴幼儿菌种
+        if (DATA.INFANT_PROBIOTICS.has(cleanInput)) {
+            return { color: 'blue', title: '婴幼儿可用菌种', desc: '列入《可用于婴幼儿食品的菌种名单》，安全性高，可用于宝宝辅食、儿童餐。' };
+        }
+        // 3. 🦠 普通食品菌种
+        if (DATA.PROBIOTICS.has(cleanInput)) {
+            return { color: 'blue', title: '合规菌种 (普通)', desc: '列入《可用于食品的菌种名单》，可用于酸奶、饮料等，但不建议用于婴幼儿食品。' };
+        }
+        // 4. 💊 保健食品专用
+        if (DATA.HEALTH_ONLY.has(cleanInput) && !DATA.HOMOLOGY.has(cleanInput)) {
+            return { color: 'red', title: '禁止入菜 (仅限保健)', desc: '属于《可用于保健食品的物品名单》，且不是药食同源。仅限保健食品生产，餐饮环节违法！' };
+        }
+        // 5. 🌿 药食同源
+        if (DATA.HOMOLOGY.has(cleanInput)) {
+            return { color: 'green', title: '药食同源 (合法)', desc: '列入卫健委《既是食品又是中药材的物质名单》(106种)。结论：合法食品，可用于餐饮。' };
+        }
+        // 6. 🥦 普通食品 / 香辛料
+        if (DATA.ORDINARY.has(cleanInput) || DATA.ORDINARY_APPROVED[cleanInput]) {
+            let detail = DATA.ORDINARY_APPROVED[cleanInput] || "传统食品原料/农副产品";
+            return { color: 'green', title: '普通食品', desc: detail + '<br>结论：无需限制，可按需使用。' };
+        }
+        if (DATA.SPICE.has(cleanInput)) {
+            return { color: 'green', title: '国标香辛料', desc: 'GB/T 12729.1-2008。结论：合法调味品。' };
+        }
+        // 7. 🧪 新资源
+        if (DATA.NEW_RESOURCE[cleanInput]) {
+            let d = DATA.NEW_RESOURCE[cleanInput];
+            return { color: 'yellow', title: '有条件食用', desc: `<strong>限量：</strong>${d.limit}<br><strong>禁忌：</strong>${d.risk}` };
+        }
+        // 8. 📕 药典黑名单
+        if (DATA.CHP.has(cleanInput)) {
+            return { color: 'red', title: '禁止入菜 (纯药品)', desc: '收录于《中国药典》且未列入食品白名单。属于“纯中药材”，餐饮环节严禁使用！' };
+        }
+        // 9. 未知 (标记 isUnknown 让外层去调用 AI)
+        return { isUnknown: true };
+    }
+
+    // --- UI 渲染块 ---
+    function renderResult(color, title, desc, keyword = '') {
+        let iconMap = { green: '🛡️', blue: '✅', yellow: '⚠️', red: '🚫', black: '💀', purple: '🤖' };
+        let kwHtml = keyword ? `<div style="font-size:13px; color:var(--primary); font-weight: bold; margin-bottom:8px;">🎯 识别对象：${keyword}</div>` : '';
+        return `
+            <div class="res-card ${color}">
+                ${kwHtml}
+                <div class="res-header">
+                    <span class="res-icon">${iconMap[color]||'❓'}</span>
+                    <h3 class="res-title">${title}</h3>
+                </div>
+                <div class="risk-alert">${desc}</div>
+            </div>`;
+    }
 
     // ==========================================
-    // 2️⃣ 核心数据库 (DATA)
+    // 📸 AI 图片审核功能模块
+    // ==========================================
+    
+    // 压缩图片并转为 Base64
+    function compressImageToBase64(file, maxWidth = 1024) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.8));
+                };
+                img.onerror = e => reject("图片加载失败");
+            };
+            reader.onerror = e => reject("文件读取失败");
+        });
+    }
+
+    // 处理图片上传
+    async function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const view = document.getElementById('resultView');
+        view.innerHTML = `
+            <div class="loading-view">
+                <div style="font-size: 40px; animation: spin 2s linear infinite;">✨</div>
+                <div style="margin-top: 15px;">Kimi 正在提取配料信息，请稍候...</div>
+            </div>`;
+        view.style.display = 'block';
+
+        try {
+            // 1. 压缩图片
+            const base64Image = await compressImageToBase64(file);
+
+            // 2. 组装 AI 请求 Payload (提取数组)
+            const payload = {
+                model: AI_CONFIG.MODEL,
+                messages: [{
+                    role: "user",
+                    content: [
+                        { 
+                            type: "text", 
+                            text: "你是一个专业的食品安全审核助手。请提取图片中的所有食品配料、食材、中药材名称。请严格输出一个JSON格式的字符串数组，例如：[\"黄芪\", \"大米\", \"水\"]。不要输出任何解释说明，不要包含markdown语法(如```json)。" 
+                        },
+                        { 
+                            type: "image_url", 
+                            image_url: { url: base64Image } 
+                        }
+                    ]
+                }],
+                temperature: 0.1
+            };
+
+            // 3. 发送提取请求
+            const response = await fetch(AI_CONFIG.URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${AI_CONFIG.KEY}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message || "接口调用异常");
+
+            // 4. 解析识别到的配料列表
+            let resultText = data.choices[0].message.content.trim();
+            resultText = resultText.replace(/```json/gi, '').replace(/```/g, '').trim(); // 清理 markdown 标记
+            
+            let ingredientsList = JSON.parse(resultText);
+            
+            if (!Array.isArray(ingredientsList) || ingredientsList.length === 0) {
+                throw new Error("未识别到清晰的配料成分");
+            }
+
+            // 5. 渲染基础框架并逐一核查（采用串行核查以防触发 API 限流）
+            let finalHtml = `<div style="font-size: 14px; color: var(--text-sub); margin-bottom: 15px; text-align: center;">📸 成功提取 ${ingredientsList.length} 种配料成分，正在逐一核对...</div>`;
+            view.innerHTML = finalHtml;
+            
+            for (const item of ingredientsList) {
+                const res = await getComplianceResult(item);
+                // 累加结果并实时更新到视图
+                finalHtml += renderResult(res.color, res.title, res.desc, item);
+                view.innerHTML = finalHtml;
+            }
+            
+            // 将顶部的“正在逐一核对”文字更新为“核对完成”
+            view.innerHTML = finalHtml.replace('正在逐一核对...', '✅ 核对完成');
+
+        } catch (err) {
+            console.error(err);
+            view.innerHTML = renderResult('red', '识别失败', '未能成功识别图片或解析数据：' + err.message);
+        } finally {
+            event.target.value = ''; // 清空 file input，允许重复上传同一张图
+        }
+    }
+
+    // ==========================================
+    // 💾 本地核心数据库 (预制数据保持不变)
     // ==========================================
     const DATA = {
-        // 0. 复函负面清单
-        EXPLICIT_NON_FOOD: {
-            "冬虫夏草": "卫监督函〔2010〕439号：冬虫夏草目前不允许作为普通食品原料使用。",
-            "灵芝孢子粉": "卫健委复函：破壁/未破壁灵芝孢子粉均不作为普通食品原料使用。",
-            "银杏叶": "卫健委复函：银杏叶提取物及银杏叶不能用于普通食品（仅限保健）。",
-            "薰衣草": "卫计委说明：薰衣草不宜作为普通食品原料。",
-            "大豆异黄酮": "卫计委说明：不宜作为普通食品原料。",
-            "羊胎盘": "卫监督函〔2008〕322号：羊胎盘缺乏食用历史，不作为普通食品。",
-            "鹿茸": "卫健委复函：不作为普通食品（除试点地区外）。",
-            "肌酸": "不属于普通食品，属于食品添加剂/营养强化剂。",
-            "红景天": "卫健委复函：属于可用于保健食品的物品，非药食同源，不能作为普通食品。",
-            "刺五加": "卫健委复函：属于可用于保健食品的物品，不能作为普通食品。",
-            "牛樟芝": "卫健委复函：无食用历史，不作为普通食品。",
-            "石榴子": "食药监复函：不是普通食品。",
-            "桃花": "国卫办食品函：未批准为新食品原料，不是普通食品。",
-            "芦荟": "卫健委公告：仅库拉索芦荟凝胶可做新食品原料，芦荟皮、其他品种芦荟禁止。",
-            "猫爪草": "卫健委复函：不作为普通食品。",
-            "三七花": "仅云南省作为地方特色食品，全国范围内非普通食品。",
-            "三七茎叶": "仅云南省作为地方特色食品，全国范围内非普通食品。"
-        },
-        // 1. 剧毒禁用
         HEALTH_BANNED: new Set(("八角莲 八角枫 兰花参 千金子 土青木香 山莨菪 川乌 广防己 马钱子 六角莲 天仙子 巴豆 水银 长春花 甘遂 仙茅 白屈菜 夹竹桃 朱砂 米壳 罂粟壳 红升丹 红豆杉 红茴香 红大戟 羊角拗 羊踯躅 丽江山慈菇 京大戟 昆明山海棠 河豚 闹羊花 狗舌草 金不换 金线甲素 铃兰 钩吻 祖师麻 洋地黄 班哈卡 鬼臼 曼陀罗 狼毒 黄花夹竹桃 雪上一枝蒿 硫黄 雄黄 雌黄 商陆 斑蝥 蟾酥").split(' ')),
-        // 2. 婴幼儿菌种
         INFANT_PROBIOTICS: new Set(("嗜酸乳杆菌 动物双歧杆菌 乳双歧杆菌 短双歧杆菌 发酵乳杆菌 瑞士乳杆菌 鼠李糖乳杆菌 副干酪乳杆菌 罗伊氏乳杆菌 嗜热链球菌").split(' ')),
-        // 3. 普通菌种
         PROBIOTICS: new Set(("地衣芽孢杆菌 凝结芽孢杆菌 青春双歧杆菌 动物双歧杆菌 两歧双歧杆菌 短双歧杆菌 婴儿双歧杆菌 长双歧杆菌 嗜酸乳杆菌 嗜淀粉乳杆菌 产阿米尔乳杆菌 短乳杆菌 干酪乳杆菌 棒状乳杆菌 德氏乳杆菌 发酵乳杆菌 加氏乳杆菌 瑞士乳杆菌 约氏乳杆菌 乳酸乳杆菌 副干酪乳杆菌 植物乳杆菌 罗伊氏乳杆菌 鼠李糖乳杆菌 唾液乳杆菌 清酒乳杆菌 乳酸乳球菌 肠膜明串珠菌 嗜热链球菌 酿酒酵母 乳克鲁维酵母").split(' ')),
-        // 4. 普通食品
-        ORDINARY: new Set(("大米 小麦 面粉 玉米 高粱 黄豆 绿豆 红豆 黑豆 燕麦 荞麦 白菜 萝卜 黄瓜 西红柿 辣椒 茄子 芹菜 菠菜 韭菜 芫荽 香菜 苹果 梨 香蕉 葡萄 西瓜 橘子 橙子 柠檬 柚子 草莓 蓝莓 猪肉 牛肉 羊肉 鸡肉 鸭肉 鸡蛋 鸭蛋 牛奶 核桃 榛子 松子 开心果 腰果 葵花籽 南瓜子 西瓜子 花生 无花果 芝麻 莲子 百合 银耳 木耳 香菇 金针菇 辣椒粉 孜然 胡椒 咖喱粉 芥末 普洱茶 绿茶 红茶 乌龙茶 茉莉花茶 玫瑰花 桂花 茉莉花 洛神花 菊花(食用) 金银花(食用) 魔芋 琼脂 五指毛桃 牛蒡根 大麦苗 针叶樱桃").split(' ')),
-        
-        // 🟢 卫健委批复/终止审查明确为普通食品 (全量补充版)
+        ORDINARY: new Set(("水 饮用水 纯净水 白砂糖 糖 食盐 盐 大米 小麦 面粉 玉米 高粱 黄豆 大豆 绿豆 红豆 黑豆 燕麦 荞麦 白菜 萝卜 黄瓜 西红柿 辣椒 茄子 芹菜 菠菜 韭菜 芫荽 香菜 苹果 梨 香蕉 葡萄 西瓜 橘子 橙子 柠檬 柚子 草莓 蓝莓 猪肉 牛肉 羊肉 鸡肉 鸭肉 鸡蛋 鸭蛋 牛奶 羊奶 核桃 榛子 松子 开心果 腰果 葵花籽 南瓜子 西瓜子 花生 芝麻 莲子 百合 银耳 木耳 香菇 金针菇 辣椒粉 孜然 胡椒 咖喱粉 芥末 普洱茶 绿茶 红茶 乌龙茶 茉莉花茶 玫瑰花 桂花 茉莉花 洛神花 菊花 金银花 魔芋 琼脂 五指毛桃 牛蒡根 大麦苗 针叶樱桃 酵母抽提物 麦芽糊精 淀粉 果葡糖浆").split(' ')),
         ORDINARY_APPROVED: {
-            "纳豆": "卫法监发〔2002〕308号：以纳豆芽孢杆菌发酵生产，按普通食品管理。",
-            "油菜花粉": "卫生部公告2004年第17号：普通食品。",
-            "玉米花粉": "卫生部公告2004年第17号：普通食品。",
-            "松花粉": "卫生部公告2004年第17号：人工采集马尾松花粉，普通食品。",
-            "向日葵花粉": "卫生部公告2004年第17号：普通食品。",
-            "紫云英花粉": "卫生部公告2004年第17号：普通食品。",
-            "荞麦花粉": "卫生部公告2004年第17号：普通食品。",
-            "芝麻花粉": "卫生部公告2004年第17号：普通食品。",
-            "高粱花粉": "卫生部公告2004年第17号：普通食品。",
-            "魔芋": "卫生部公告2004年第17号：普通食品。",
-            "钝顶螺旋藻": "卫生部公告2004年第17号：普通食品。",
-            "极大螺旋藻": "卫生部公告2004年第17号：普通食品。",
-            "刺梨": "卫生部公告2004年第17号：普通食品。",
-            "玫瑰茄": "卫生部公告2004年第17号：普通食品。",
-            "蕺菜": "卫生部公告2004年第17号：普通食品（即鱼腥草，亦为药食同源）。",
-            "酸枣": "卫生部公告2009年第18号：普通食品。",
-            "玫瑰花": "卫生部公告2010年第3号：重瓣红玫瑰，普通食品。",
-            "凉粉草": "卫生部公告2010年第3号：仙草，普通食品。",
-            "针叶樱桃果": "卫生部公告2010年第9号：普通食品。",
-            "水苏糖": "卫生部公告2010年第17号：普通食品。",
-            "木犀科粗壮女贞": "卫监函〔2011〕428号：苦丁茶，普通食品。",
-            "苦丁茶": "卫监函〔2011〕428号/卫计函〔2013〕86号：普通食品。",
-            "平卧菊三七": "卫生部公告2012年第3号：普通食品。",
-            "大麦苗": "卫生部公告2012年第3号：普通食品。",
-            "抗性糊精": "卫生部公告2012年第16号：普通食品。",
-            "梨果仙人掌": "卫生部公告2012年第19号：普通食品。",
-            "梅花鹿副产品": "卫监函〔2012〕8号：除鹿茸、鹿角、鹿胎外的其他养殖梅花鹿副产品，普通食品。",
-            "膳食纤维": "卫办监督函〔2012〕262号：普通食品。",
-            "玉米须": "卫监函〔2012〕306号：普通食品。",
-            "沙棘叶": "卫计委公告2013年第3号：普通食品。",
-            "天贝": "卫计委公告2013年第3号：普通食品。",
-            "小麦苗": "卫监函〔2013〕17号：普通食品。",
-            "冬青科苦丁茶": "卫计函〔2013〕86号：普通食品。",
-            "牛蒡根": "国卫食品〔2013〕83号：普通食品。",
-            "低聚果糖": "国卫食品〔2013〕118号：普通食品。",
-            "中链甘油三酯": "国卫食品〔2013〕514号：普通食品。",
-            "海藻糖": "卫计委公告2014年第15号：普通食品。",
-            "五指毛桃": "国卫食品〔2014〕205号：普通食品。",
-            "耳叶牛皮消": "国卫食品〔2014〕427号：普通食品。",
-            "黄明胶": "国卫食品〔2014〕570号：普通食品。",
-            "酪蛋白酸钠": "国卫食品〔2014〕897号：普通食品。",
-            "酪蛋白酸钙": "国卫食品〔2014〕897号：普通食品。",
-            "酪蛋白酸镁": "国卫食品〔2014〕897号：普通食品。",
-            "白毛银露梅": "国卫食品〔2014〕1075号：普通食品。",
-            "蔬菜水果籽": "国卫食品评函〔2014〕148号：传统可食部分未提取浓缩，普通食品。",
-            "聚葡萄糖": "国卫食品评函〔2014〕241号：普通食品。",
-            "中国苦水玫瑰": "国卫办食品〔2016〕39号：普通食品。",
-            "墨鱼粉": "国食评函〔2016〕198号：普通食品。"
+            "五指毛桃": "卫健委复函同意作为普通食品。", "牛蒡根": "卫健委复函同意作为普通食品。",
+            "普洱茶": "终止审查，按普通食品管理。", "玫瑰花": "重瓣红玫瑰，普通食品。",
+            "大麦苗": "终止审查，普通食品。", "针叶樱桃": "终止审查，普通食品。"
         },
-        // 5. 香辛料
-        SPICE: new Set(("菖蒲 洋葱 大葱 小葱 韭葱 蒜 高良姜 豆蔻 香豆蔻 草果 砂仁 莳萝 土茴香 圆叶当归 细叶芹 芹菜 辣根 龙蒿 杨桃 黑芥籽 刺山柑 辣椒 葛缕子 桂皮 肉桂 阴香 大清桂 芫荽 藏红花 枯茗 姜黄 香茅 枫茅 小豆蔻 阿魏 小茴香 甘草 八角 刺柏 山奈 木姜子 月桂 芒果 薄荷 椒样薄荷 留兰香 调料九里香 肉豆蔻 甜罗勒 甘牛至 牛至 欧芹 多香果 草拔 黑胡椒 白胡椒 石榴 迷迭香 胡麻 芝麻 白欧芥 丁香 罗晃子 蒙百里香 百里香 香椿 香早芹 金鸡纳 树皮 达迷草叶 苏合香 白藓牛至 苦艾 药蜀葵 香蜂草 毕澄茄 葫芦巴 香荚兰 花椒 姜").split(' ')),
-        // 6. 药食同源
+        SPICE: new Set(("菖蒲 洋葱 大葱 小葱 韭葱 蒜 高良姜 豆蔻 香豆蔻 草果 砂仁 莳萝 土茴香 圆叶当归 细叶芹 芹菜 辣根 龙蒿 杨桃 黑芥籽 刺山柑 辣椒 葛缕子 桂皮 肉桂 阴香 大清桂 芫荽 藏红花 枯茗 姜黄 香茅 枫茅 小豆蔻 阿魏 小茴香 甘草 八角 刺柏 山奈 木姜子 月桂 芒果 薄荷 椒样薄荷 留兰香 调料九里香 肉豆蔻 甜罗勒 甘牛至 牛至 欧芹 多香果 草拔 黑胡椒 白胡椒 石榴 迷迭香 胡麻 芝麻 白欧芥 丁香 罗晃子 蒙百里香 百里香 香椿 香早芹 葫芦巴 香荚兰 花椒 姜 生姜").split(' ')),
         HOMOLOGY: new Set(("丁香 八角茴香 刀豆 小茴香 小蓟 山药 山楂 马齿苋 乌梢蛇 乌梅 木瓜 火麻仁 代代花 玉竹 甘草 白芷 白果 白扁豆 白扁豆花 龙眼肉 决明子 百合 肉豆蔻 肉桂 余甘子 佛手 杏仁 沙棘 牡蛎 芡实 花椒 赤小豆 阿胶 鸡内金 麦芽 昆布 枣 罗汉果 郁李仁 金银花 青果 鱼腥草 姜 干姜 生姜 枳苁蓉 枸杞子 栀子 砂仁 胖大海 茯苓 香橼 香薷 桃仁 桑叶 桑椹 桔梗 益智仁 荷叶 莱菔子 莲子 高良姜 淡竹叶 淡豆豉 菊花 菊苣 黄芥子 黄精 紫苏 紫苏子 葛根 黑芝麻 黑胡椒 槐米 槐花 蒲公英 蜂蜜 榧子 酸枣仁 鲜白茅根 鲜芦根 橘皮 薄荷 薏苡仁 薤白 覆盆子 藿香 当归 山柰 西红花 草果 姜黄 荜茇 党参 肉苁蓉 铁皮石斛 西洋参 黄芪 灵芝 山茱萸 天麻 杜仲叶 地黄 麦冬 天冬 化橘红").split(' ')),
-        // 7. 新资源
         NEW_RESOURCE: {
             "人参": { limit: "≤ 3克/天", risk: "🚫 孕妇、14岁以下儿童不宜" },
             "人参叶": { limit: "≤ 3克/天", risk: "🚫 孕妇、14岁以下儿童不宜" },
             "蛹虫草": { limit: "≤ 2克/天", risk: "🚫 婴幼儿、孕妇不宜" },
             "玛咖粉": { limit: "≤ 25克/天", risk: "🚫 婴幼儿、孕妇不宜" },
-            "透明质酸钠": { limit: "≤ 200mg/天", risk: "🚫 婴幼儿、孕妇不宜" },
-            "库拉索芦荟凝胶": { limit: "≤ 30克/天", risk: "🚫 孕妇、婴幼儿不宜" }
+            "透明质酸钠": { limit: "≤ 200mg/天", risk: "🚫 婴幼儿、孕妇不宜" }
         },
-        // 8. 保健专用
         HEALTH_ONLY: new Set(("人参叶 人参果 三七 土贝母 大蓟 女贞子 川牛膝 川贝母 川芎 马鹿胎 马鹿骨 太子参 五加皮 五味子 牛蒡子 巴戟天 丹参 乌梢蛇 功劳木 仙鹤草 白及 白术 白芍 白豆蔻 石决明 石斛 地骨皮 竹茹 红花 红景天 芍药 怀牛膝 杜仲 沙苑子 牡丹皮 芦荟 苍术 补骨脂 诃子 赤芍 远志 龟甲 佩兰 侧柏叶 制大黄 制何首乌 刺五加 刺玫果 苦丁茶 苦玄参 枳壳 枳实 柏子仁 珍珠 珍珠母 胡芦巴 茜草 荜茇 韭菜子 首乌藤 香附 骨碎补 桑白皮 桑枝 浙贝母 积雪草 淫羊藿 菟丝子 野菊花 银杏叶 湖北贝母 番泻叶 蛤蚧 越橘 槐实 蒲黄 蒺藜 蜂胶 酸枣仁 墨旱莲 熟地黄 鳖甲 礞石").split(' ')),
-        // 9. 药典1000种
-        CHP: new Set(("一枝黄花 丁公藤 丁香 八角茴香 人工牛黄 人参 人参叶 儿茶 九里香 九香虫 刀豆 三七 三白草 三棱 三颗针 干姜 炮姜 干漆 土木香 土贝母 土荆皮 土茯苓 土鳖虫 大青盐 大蓟 大腹皮 大黄 大蒜 大青叶 大枣 山麦冬 山豆根 山茱萸 山药 山楂 山柰 山银花 千金子 川木香 川木通 川贝母 川牛膝 川乌 川芎 马钱子 马兜铃 马鞭草 马齿苋 马鹿茸 马勃 王不留行 天冬 天花粉 天南星 天麻 天葵子 木瓜 木香 木贼 木通 木蝴蝶 木鳖子 五加皮 五味子 五倍子 太子参 车前子 车前草 瓦松 瓦楞子 牛黄 牛膝 升麻 片姜黄 乌药 乌梢蛇 乌梅 火麻仁 巴豆 巴戟天 水牛角 水红花子 水蛭 玉竹 功劳木 艾叶 石韦 石决明 石斛 石膏 石菖蒲 石榴皮 布渣叶 龙胆 龙眼肉 龙齿 龙骨 龙葵 平贝母 北沙参 北豆根 北苍术 生姜 仙茅 仙鹤草 白及 白术 白芍 白芷 白附子 白茅根 白矾 白果 白前 白扁豆 白蔹 白鲜皮 白头翁 白薇 白僵蚕 瓜蒌 瓜蒌子 瓜蒌皮 冬瓜皮 冬虫夏草 冬瓜子 冬葵子 玄参 半边莲 半枝莲 半夏 母丁香 丝瓜络 老鹳草 地枫皮 地骨皮 地黄 熟地黄 地榆 地锦草 地肤子 当归 朱砂 朱砂根 延胡索 华山参 伊贝母 血竭 全蝎 合欢皮 合欢花 决明子 冰片 关黄柏 防己 防风 红大戟 红花 红景天 麦冬 麦芽 远志 连翘 吴茱萸 牡丹皮 牡蛎 何首乌 制何首乌 伸筋草 皂角刺 佛手 余甘子 谷芽 龟甲 龟甲胶 辛夷 羌活 沙苑子 沙参 沉香 没药 诃子 补骨脂 阿胶 阿魏 陈皮 附子 忍冬藤 鸡血藤 鸡冠花 鸡内金 鸡血藤膏 青风藤 青蒿 青黛 青皮 青葙子 苦杏仁 苦参 苦楝皮 苘麻子 枇杷叶 板蓝根 松花粉 枫香脂 刺五加 郁李仁 郁金 虎杖 昆布 明党参 罗汉果 知母 垂盆草 使君子 侧柏叶 佩兰 金沸草 金果榄 金钱白花蛇 金钱草 金银花 金樱子 鱼腥草 狗脊 京大戟 卷柏 炉甘石 泽泻 泽兰 降香 细辛 珍珠 珍珠母 荆芥 茜草 荜茇 荜澄茄 草乌 草豆蔻 草果 茵陈 茯苓 茯苓皮 茺蔚子 胡芦巴 胡黄连 胡椒 胡桃仁 胡麻仁 南沙参 南板蓝根 枳壳 枳实 栀子 枸杞子 柿蒂 威灵仙 厚朴 厚朴花 姜黄 前胡 首乌藤 钩藤 香加皮 香附 香橼 重楼 禹余粮 独活 急性子 穿山甲 穿心莲 穿龙薯蓣 秦艽 秦皮 莲子 莲子心 莲房 莲须 莪术 荷叶 桂枝 桔梗 桃仁 盐附子 柴胡 党参 铁苋菜 积雪草 射干 徐长卿 高良姜 益智仁 益母草 海风藤 海金沙 海螵蛸 海藻 浮萍 通草 桑叶 桑白皮 桑枝 桑椹 桑寄生 黄芩 黄芪 黄连 黄柏 黄精 黄藤 菟丝子 菊苣 菊花 梅花 常山 野菊花 蛇床子 蛇蜕 银杏叶 银柴胡 猪苓 麻黄 麻黄根 鹿角 鹿角胶 鹿角霜 鹿茸 商陆 旋覆花 羚羊角 淫羊藿 淡竹叶 淡豆豉 密蒙花 续断 绵马贯众 绵萆薢 紫苏子 紫苏叶 紫苏梗 葛根 葛花 葫芦巴 葱白 葶苈子 蛤蚧 黑芝麻 锁阳 滑石 棕榈 款冬花 紫石英 紫花地丁 紫草 紫河车 紫珠叶 紫萁贯众 蛤壳 黑顺片 黑种草子 黑胡椒 蓖麻子 蒺藜 蒲公英 蒲黄 椿皮 槐角 槐花 雷丸 雷公藤 漏芦 熊胆粉 赭石 僵蚕 槟榔 酸枣仁 磁石 豨莶草 蝉蜕 罂粟壳 蕲蛇 槲寄生 樟脑 稻芽 僵蛹 鹤虱 薏苡仁 薄荷 颠茄草 橘红 化橘红 藁本 檀香 藕节 礞石 瞿麦 藿香 蟾酥 鳖甲 鳖甲胶 麝香 大皂角 小皂角 人中黄 人中白 八角莲 八角枫根 八仙草 八月札 八角茴香 九里香 九节菖蒲 十大功劳叶 十大功劳根 丁香油 丁香罗勒油 八角茴香油 人参芦 人参须 人参皂苷 儿茶膏 二色补血草 十大功劳 七叶一枝花 七叶莲 七厘散 七叶胆 刀豆壳 刀豆子 三尖杉 三棱草 三白草根 三分三 三桠苦 三棵针 土大黄 土牛膝 土贝母 土荆芥 土茯苓 土党参 土黄芪 土当归 土三七 土麦冬 大血藤 大青叶 大青根 大蓟根 大腹毛 大豆黄卷 大皂角刺 大叶紫珠 大蓟炭 大黄炭 大腹皮 大蒜 大枣 山茱萸 山萸肉 山药 山楂 山楂炭 山柰 山银花 山豆根 山慈菇 山茱萸肉 山麦冬 山茶花 山苍子 山苍子油 千金子霜 川木香 川木通 川贝母 川牛膝 川乌头 川槿皮 川芎 川白芷 川防风 川羌活 川独活 川续断 川楝子 川楝皮 广藿香 广陈皮 广郁金 广地龙 广木香 广酸枣 广豆根 广藿香 女贞子 女贞叶 小叶海藻 小蓟 小蓟炭 小驳骨 小叶枇杷 小飞扬草 小通草 小檗 小檗皮 马尾连 马齿苋 马勃 马钱子粉 马蔺子 马蔺花 马蔺根 马兜铃 马鞭草 王不留行 王母桃 天冬 天花粉 天南星 天麻 天葵子 天仙藤 天竹子 天竺黄 天浆壳 天荞麦根 无花果 无花果叶 无花果根 木瓜 木瓜核 木香 木贼 木通 木蝴蝶 木鳖子 木防己 木槿花 木槿皮 木槿子 木芙蓉叶 木芙蓉花 五加皮 五加皮 五味子 五倍子 五灵脂 五指毛桃 五谷虫 五香草 五加皮 太子参 车前子 车前草 瓦楞子 瓦松 牛黄 牛蒡子 牛蒡根 牛膝 牛膝炭 升麻 片姜黄 乌药 乌梢蛇 乌梅 乌梅炭 火麻仁 巴豆 巴豆霜 巴戟天 水牛角 水牛角浓缩粉 水红花子 水蛭 玉竹 玉簪花 玉簪根 功劳木 艾叶 艾叶炭 石韦 石决明 石斛 石膏 煅石膏 石菖蒲 石榴皮 石榴根 石楠叶 石吊兰 石南藤 石打穿 石见穿 布渣叶 龙胆 龙胆草 龙眼肉 龙齿 龙骨 煅龙骨 龙葵 平贝母 北沙参 北豆根 北苍术 北柴胡 北细辛 生姜 生姜皮 生姜汁 仙茅 仙鹤草 白及 白术 土白术 炒白术 焦白术 白芍 酒白芍 炒白芍 土白芍 白芷 白附子 白茅根 白茅花 白矾 枯矾 白果 白果仁 白果叶 白前 白扁豆 炒白扁豆 白扁豆花 白蔹 白鲜皮 白头翁 白薇 白僵蚕 炒僵蚕 瓜蒌 瓜蒌子 炒瓜蒌子 瓜蒌皮 蜜瓜蒌 冬瓜皮 冬瓜子 冬虫夏草 冬葵子 玄参 半边莲 半枝莲 半夏 法半夏 姜半夏 清半夏 母丁香 丝瓜络 老鹳草 地枫皮 地骨皮 地黄 生地黄 熟地黄 地榆 地榆炭 地锦草 地肤子 地胆草 地枇杷 当归 当归头 当归身 当归尾 酒当归 朱砂 朱砂根 延胡索 醋延胡索 华山参 伊贝母 血竭 全蝎 合欢皮 合欢花 决明子 炒决明子 冰片 合成冰片 天然冰片 关黄柏 关木通 防己 防风 红大戟 红花 红景天 麦冬 麦芽 炒麦芽 焦麦芽 远志 制远志 蜜远志 连翘 吴茱萸 制吴茱萸 牡丹皮 牡蛎 煅牡蛎 何首乌 制何首乌 伸筋草 皂角刺 佛手 余甘子 谷芽 炒谷芽 焦谷芽 龟甲 醋龟甲 龟甲胶 辛夷 羌活 沙苑子 沙参 南沙参 北沙参 沉香 没药 制没药 诃子 诃子肉 补骨脂 盐补骨脂 阿胶 阿胶珠 阿魏 陈皮 陈皮炭 附子 黑附片 白附片 淡附片 忍冬藤 鸡血藤 鸡冠花 鸡冠花子 鸡内金 炒鸡内金 醋鸡内金 鸡血藤膏 青风藤 青蒿 青黛 青皮 醋青皮 青葙子 苦杏仁 燀苦杏仁 炒苦杏仁 苦参 苦楝皮 苘麻子 枇杷叶 蜜枇杷叶 板蓝根 松花粉 枫香脂 刺五加 郁李仁 炒郁李仁 郁金 醋郁金 虎杖 昆布 明党参 罗汉果 知母 盐知母 垂盆草 使君子 使君子仁 侧柏叶 侧柏炭 佩兰 金沸草 金果榄 金钱白花蛇 金钱草 广金钱草 金银花 金樱子 金樱子肉 鱼腥草 狗脊 烫狗脊 京大戟 醋京大戟 卷柏 炉甘石 煅炉甘石 泽泻 盐泽泻 泽兰 降香 细辛 北细辛 华细辛 珍珠 珍珠母 煅珍珠母 荆芥 荆芥炭 茜草 茜草炭 荜茇 荜澄茄 草乌 制草乌 草豆蔻 草果 茵陈 茯苓 茯苓皮 茯神 茺蔚子 胡芦巴 盐胡芦巴 胡黄连 胡椒 黑胡椒 白胡椒 胡桃仁 胡麻仁 南沙参 南板蓝根 枳壳 麸炒枳壳 枳实 麸炒枳实 栀子 炒栀子 焦栀子 枸杞子 柿蒂 威灵仙 棉团铁线莲 东北铁线莲 厚朴 姜厚朴 厚朴花 姜黄 片姜黄 前胡 白花前胡 紫花前胡 首乌藤 钩藤 香加皮 香附 醋香附 香橼 重楼 禹余粮 煅禹余粮 独活 急性子 穿山甲 炮山甲 醋山甲 穿心莲 穿龙薯蓣 秦艽 秦皮 莲子 莲子心 莲房 莲须 荷叶 荷叶炭 桂枝 桔梗 桃仁 燀桃仁 炒桃仁 盐附子 黑顺片 白附片 柴胡 北柴胡 南柴胡 党参 素花党参 川党参 铁苋菜 积雪草 射干 徐长卿 高良姜 益智仁 盐益智仁 益母草 海风藤 海金沙 海螵蛸 海藻 大叶海藻 小叶海藻 浮萍 通草 小通草 桑叶 蜜桑叶 桑白皮 蜜桑白皮 桑枝 炒桑枝 桑椹 桑寄生 槲寄生 黄芩 酒黄芩 黄芩炭 黄芪 炙黄芪 黄连 酒黄连 姜黄连 萸黄连 黄柏 盐黄柏 黄柏炭 黄精 酒黄精 黄藤 菟丝子 盐菟丝子 菊苣 菊花 白菊花 黄菊花 野菊花 梅花 绿萼梅 常山 酒常山 野菊花 蛇床子 蛇蜕 银杏叶 银柴胡 猪苓 麻黄 炙麻黄 麻黄根 鹿角 鹿角胶 鹿角霜 鹿茸 马鹿茸 花鹿茸 商陆 醋商陆 旋覆花 蜜旋覆花 羚羊角 羚羊角粉 淫羊藿 炙淫羊藿 淡竹叶 淡豆豉 密蒙花 续断 酒续断 盐续断 绵马贯众 绵马贯众炭 绵萆薢 粉萆薢 紫苏子 炒紫苏子 紫苏叶 紫苏梗 葛根 粉葛 葛花 葫芦巴 葱白 葶苈子 南葶苈子 北葶苈子 蛤蚧 黑芝麻 锁阳 滑石 滑石粉 棕榈 棕榈炭 款冬花 蜜款冬花 紫石英 煅紫石英 紫花地丁 紫草 新疆紫草 内蒙紫草 紫河车 制紫河车 紫珠叶 紫萁贯众 蛤壳 煅蛤壳 黑顺片 黑种草子 黑胡椒 蓖麻子 蒺藜 炒蒺藜 盐蒺藜 蒲公英 蒲黄 蒲黄炭 椿皮 麸炒椿皮 槐角 蜜槐角 槐花 炒槐花 槐花炭 雷丸 雷公藤 漏芦 禹州漏芦 熊胆粉 赭石 煅赭石 僵蚕 麸炒僵蚕 槟榔 焦槟榔 酸枣仁 炒酸枣仁 磁石 煅磁石 豨莶草 酒豨莶草 蝉蜕 罂粟壳 醋罂粟壳 蕲蛇 五步蛇 槲寄生 樟脑 稻芽 炒稻芽 焦稻芽 僵蛹 鹤虱 南鹤虱 北鹤虱 薏苡仁 炒薏苡仁 薄荷 颠茄草 橘红 化橘红 藁本 鸡骨草 檀香 藕节 藕节炭 礞石 煅礞石 瞿麦 藿香 蟾酥 酒蟾酥 乳蟾酥 鳖甲 醋鳖甲 鳖甲胶 麝香 人工麝香").split(' ')),
+        CHP: new Set(("一枝黄花 丁公藤 丁香 八角茴香 人工牛黄 人参 人参叶 儿茶 九里香 九香虫 刀豆 三七 三白草 三棱 三颗针 干姜 炮姜 干漆 土木香 土贝母 土荆皮 土茯苓 土鳖虫 大青盐 大蓟 大腹皮 大黄 大蒜 大青叶 大枣 山麦冬 山豆根 山茱萸 山药 山楂 山柰 山银花 千金子 川木香 川木通 川贝母 川牛膝 川乌 川芎 马钱子 马兜铃 马鞭草 马齿苋 马鹿茸 马勃 王不留行 天冬 天花粉 天南星 天麻 天葵子 木瓜 木香 木贼 木通 木蝴蝶 木鳖子 五加皮 五味子 五倍子 太子参 车前子 车前草 瓦松 瓦楞子 牛黄 牛膝 升麻 片姜黄 乌药 乌梢蛇 乌梅 火麻仁 巴豆 巴戟天 水牛角 水红花子 水蛭 玉竹 功劳木 艾叶 石韦 石决明 石斛 石膏 石菖蒲 石榴皮 布渣叶 龙胆 龙眼肉 龙齿 龙骨 龙葵 平贝母 北沙参 北豆根 北苍术 生姜 仙茅 仙鹤草 白及 白术 白芍 白芷 白附子 白茅根 白矾 白果 白前 白扁豆 白蔹 白鲜皮 白头翁 白薇 白僵蚕 瓜蒌 瓜蒌子 瓜蒌皮 冬瓜皮 冬虫夏草 冬瓜子 冬葵子 玄参 半边莲 半枝莲 半夏 母丁香 丝瓜络 老鹳草 地枫皮 地骨皮 地黄 熟地黄 地榆 地锦草 地肤子 当归 朱砂 朱砂根 延胡索 华山参 伊贝母 血竭 全蝎 合欢皮 合欢花 决明子 冰片 关黄柏 防己 防风 红大戟 红花 红景天 麦冬 麦芽 远志 连翘 吴茱萸 牡丹皮 牡蛎 何首乌 制何首乌 伸筋草 皂角刺 佛手 余甘子 谷芽 龟甲 龟甲胶 辛夷 羌活 沙苑子 沙参 沉香 没药 诃子 补骨脂 阿胶 阿魏 陈皮 附子 忍冬藤 鸡血藤 鸡冠花 鸡内金 鸡血藤膏 青风藤 青蒿 青黛 青皮 青葙子 苦杏仁 苦参 苦楝皮 苘麻子 枇杷叶 板蓝根 松花粉 枫香脂 刺五加 郁李仁 郁金 虎杖 昆布 明党参 罗汉果 知母 垂盆草 使君子 侧柏叶 佩兰 金沸草 金果榄 金钱白花蛇 金钱草 金银花 金樱子 鱼腥草 狗脊 京大戟 卷柏 炉甘石 泽泻 泽兰 降香 细辛 珍珠 珍珠母 荆芥 茜草 荜茇 荜澄茄 草乌 草豆蔻 草果 茵陈 茯苓 茯苓皮 茺蔚子 胡芦巴 胡黄连 胡椒 胡桃仁 胡麻仁 南沙参 南板蓝根 枳壳 枳实 栀子 枸杞子 柿蒂 威灵仙 厚朴 厚朴花 姜黄 前胡 首乌藤 钩藤 香加皮 香附 香橼 重楼 禹余粮 独活 急性子 穿山甲 穿心莲 穿龙薯蓣 秦艽 秦皮 莲子 莲子心 莲房 莲须 莪术 荷叶 桂枝 桔梗 桃仁 盐附子 柴胡 党参 铁苋菜 积雪草 射干 徐长卿 高良姜 益智仁 益母草 海风藤 海金沙 海螵蛸 海藻 浮萍 通草 桑叶 桑白皮 桑枝 桑椹 桑寄生 黄芩 黄芪 黄连 黄柏 黄精 黄藤 菟丝子 菊苣 菊花 梅花 常山 野菊花 蛇床子 蛇蜕 银杏叶 银柴胡 猪苓 麻黄 麻黄根 鹿角 鹿角胶 鹿角霜 鹿茸 商陆 旋覆花 羚羊角 淫羊藿 淡竹叶 淡豆豉 密蒙花 续断 绵马贯众 绵萆薢 紫苏子 紫苏叶 紫苏梗 葛根 葛花 葫芦巴 葱白 葶苈子 蛤蚧 黑芝麻 锁阳 滑石 棕榈 款冬花 紫石英 紫花地丁 紫草 紫河车 紫珠叶 紫萁贯众 蛤壳 黑顺片 黑种草子 黑胡椒 蓖麻子 蒺藜 蒲公英 蒲黄 椿皮 槐角 槐花 雷丸 雷公藤 漏芦 熊胆粉 赭石 僵蚕 槟榔 酸枣仁 磁石 豨莶草 蝉蜕 罂粟壳 蕲蛇 槲寄生 樟脑 稻芽 僵蛹 鹤虱 薏苡仁 薄荷 颠茄草 橘红 化橘红 藁本 檀香 藕节 礞石 瞿麦 藿香 蟾酥 鳖甲 鳖甲胶 麝香 大皂角 小皂角 人中黄 人中白 八角莲 八角枫根 八仙草 八月札 八角茴香 九里香 九节菖蒲 十大功劳叶 十大功劳根 丁香油 丁香罗勒油 八角茴香油 人参芦 人参须 人参皂苷 儿茶膏 二色补血草 十大功劳 七叶一枝花 七叶莲 七厘散 七叶胆 刀豆壳 刀豆子 三尖杉 三棱草 三白草根 三分三 三桠苦 三棵针 土大黄 土牛膝 土贝母 土荆芥 土茯苓 土党参 土黄芪 土当归 土三七 土麦冬 大血藤 大青叶 大青根 大蓟根 大腹毛 大豆黄卷 大皂角刺 大叶紫珠 大蓟炭 大黄炭 大腹皮 大蒜 大枣 山茱萸 山萸肉 山药 山楂 山楂炭 山柰 山银花 山豆根 山慈菇 山茱萸肉 山麦冬 山茶花 山苍子 山苍子油 千金子霜 川木香 川木通 川贝母 川牛膝 川乌头 川槿皮 川芎 川白芷 川防风 川羌活 川独活 川续断 川楝子 川楝皮 广藿香 广陈皮 广郁金 广地龙 广木香 广酸枣 广豆根 广藿香 女贞子 女贞叶 小叶海藻 小蓟 小蓟炭 小驳骨 小叶枇杷 小飞扬草 小通草 小檗 小檗皮 马尾连 马齿苋 马勃 马钱子粉 马蔺子 马蔺花 马蔺根 马兜铃 马鞭草 王不留行 王母桃 天冬 天花粉 天南星 天麻 天葵子 天仙藤 天竹子 天竺黄 天浆壳 天荞麦根 无花果 无花果叶 无花果根 木瓜 木瓜核 木香 木贼 木通 木蝴蝶 木鳖子 木防己 木槿花 木槿皮 木槿子 木芙蓉叶 木芙蓉花 五加皮 五加皮 五味子 五倍子 五灵脂 五指毛桃 五谷虫 五香草 五加皮 太子参 车前子 车前草 瓦楞子 瓦松 牛黄 牛蒡子 牛蒡根 牛膝 牛膝炭 升麻 片姜黄 乌药 乌梢蛇 乌梅 乌梅炭 火麻仁 巴豆 巴豆霜 巴戟天 水牛角 水牛角浓缩粉 水红花子 水蛭 玉竹 玉簪花 玉簪根 功劳木 艾叶 艾叶炭 石韦 石决明 石斛 石膏 煅石膏 石菖蒲 石榴皮 石榴根 石楠叶 石吊兰 石南藤 石打穿 石见穿 布渣叶 龙胆 龙胆草 龙眼肉 龙齿 龙骨 煅龙骨 龙葵 平贝母 北沙参 北豆根 北苍术 北柴胡 北细辛 生姜 生姜皮 生姜汁 仙茅 仙鹤草 白及 白术 土白术 炒白术 焦白术 白芍 酒白芍 炒白芍 土白芍 白芷 白附子 白茅根 白茅花 白矾 枯矾 白果 白果仁 白果叶 白前 白扁豆 炒白扁豆 白扁豆花 白蔹 白鲜皮 白头翁 白薇 白僵蚕 炒僵蚕 瓜蒌 瓜蒌子 炒瓜蒌子 瓜蒌皮 蜜瓜蒌 冬瓜皮 冬瓜子 冬虫夏草 冬葵子 玄参 半边莲 半枝莲 半夏 法半夏 姜半夏 清半夏 母丁香 丝瓜络 老鹳草 地枫皮 地骨皮 地黄 生地黄 熟地黄 地榆 地榆炭 地锦草 地肤子 地胆草 地枇杷 当归 当归头 当归身 当归尾 酒当归 朱砂 朱砂根 延胡索 醋延胡索 华山参 伊贝母 血竭 全蝎 合欢皮 合欢花 决明子 炒决明子 冰片 合成冰片 天然冰片 关黄柏 关木通 防己 防风 红大戟 红花 红景天 麦冬 麦芽 炒麦芽 焦麦芽 远志 制远志 蜜远志 连翘 吴茱萸 制吴茱萸 牡丹皮 牡蛎 煅牡蛎 何首乌 制何首乌 伸筋草 皂角刺 佛手 余甘子 谷芽 炒谷芽 焦谷芽 龟甲 醋龟甲 龟甲胶 辛夷 羌活 沙苑子 沙参 南沙参 北沙参 沉香 没药 制没药 诃子 诃子肉 补骨脂 盐补骨脂 阿胶 阿胶珠 阿魏 陈皮 陈皮炭 附子 黑附片 白附片 淡附片 忍冬藤 鸡血藤 鸡冠花 鸡冠花子 鸡内金 炒鸡内金 醋鸡内金 鸡血藤膏 青风藤 青蒿 青黛 青皮 醋青皮 青葙子 苦杏仁 燀苦杏仁 炒苦杏仁 苦参 苦楝皮 苘麻子 枇杷叶 蜜枇杷叶 板蓝根 松花粉 枫香脂 刺五加 郁李仁 炒郁李仁 郁金 醋郁金 虎杖 昆布 明党参 罗汉果 知母 盐知母 垂盆草 使君子 使君子仁 侧柏叶 侧柏炭 佩兰 金沸草 金果榄 金钱白花蛇 金钱草 广金钱草 金银花 金樱子 金樱子肉 鱼腥草 狗脊 烫狗脊 京大戟 醋京大戟 卷柏 炉甘石 煅炉甘石 泽泻 盐泽泻 泽兰 降香 细辛 北细辛 华细辛 珍珠 珍珠母 煅珍珠母 荆芥 荆芥炭 茜草 茜草炭 荜茇 荜澄茄 草乌 制草乌 草豆蔻 草果 茵陈 茯苓 茯苓皮 茯神 茺蔚子 胡芦巴 盐胡芦巴 胡黄连 胡椒 黑胡椒 白胡椒 胡桃仁 胡麻仁 南沙参 南板蓝根 枳壳 麸炒枳壳 枳实 麸炒枳实 栀子 炒栀子 焦栀子 枸杞子 柿蒂 威灵仙 棉团铁线莲 东北铁线莲 厚朴 姜厚朴 厚朴花 姜黄 片姜黄 前胡 白花前胡 紫花前胡 首乌藤 钩藤 香加皮 香附 醋香附 香橼 重楼 禹余粮 煅禹余粮 独活 急性子 穿山甲 炮山甲 醋山甲 穿心莲 穿龙薯蓣 秦艽 秦皮 莲子 莲子心 莲房 莲须 荷叶 荷叶炭 桂枝 桔梗 桃仁 燀桃仁 炒桃仁 盐附子 黑顺片 白附片 柴胡 北柴胡 南柴胡 党参 素花党参 川党参 铁苋菜 积雪草 射干 徐长卿 高良姜 益智仁 盐益智仁 益母草 海风藤 海金沙 海螵蛸 海藻 大叶海藻 小叶海藻 浮萍 通草 小通草 桑叶 蜜桑叶 桑白皮 蜜桑白皮 桑枝 炒桑枝 桑椹 桑寄生 槲寄生 黄芩 酒黄芩 黄芩炭 黄芪 炙黄芪 黄连 酒黄连 姜黄连 萸黄连 黄柏 盐黄柏 黄柏炭 黄精 酒黄精 黄藤 菟丝子 盐菟丝子 菊苣 菊花 白菊花 黄菊花 野菊花 梅花 绿萼梅 常山 酒常山 野菊花 蛇床子 蛇蜕 银杏叶 银柴胡 猪苓 麻黄 炙麻黄 麻黄根 鹿角 鹿角胶 鹿角霜 鹿茸 马鹿茸 花鹿茸 商陆 醋商陆 旋覆花 蜜旋覆花 羚羊角 羚羊角粉 淫羊藿 炙淫羊藿 淡竹叶 淡豆豉 密蒙花 续断 酒续断 盐续断 绵马贯众 绵马贯众炭 绵萆薢 粉萆薢 紫苏子 炒紫苏子 紫苏叶 紫苏梗 葛根 粉葛 葛花 葫芦巴 葱白 葶苈子 南葶苈子 北葶苈子 蛤蚧 黑芝麻 锁阳 滑石 滑石粉 棕榈 棕榈炭 款冬花 蜜款冬花 紫石英 煅紫石英 紫花地丁 紫草 新疆紫草 内蒙紫草 紫河车 制紫河车 紫珠叶 紫萁贯众 蛤壳 煅蛤壳 黑顺片 黑种草子 黑胡椒 蓖麻子 蒺藜 炒蒺藜 盐蒺藜 蒲公英 蒲黄 蒲黄炭 椿皮 麸炒椿皮 槐角 蜜槐角 槐花 炒槐花 槐花炭 雷丸 雷公藤 漏芦 禹州漏芦 熊胆粉 赭石 煅赭石 僵蚕 麸炒僵蚕 槟榔 焦槟榔 酸枣仁 炒酸枣仁 磁石 煅磁石 豨莶草 酒豨莶草 蝉蜕 罂粟壳 醋罂粟壳 蕲蛇 五步蛇 槲寄生 樟脑 稻芽 炒稻芽 焦稻芽 僵蛹 鹤虱 南鹤虱 北鹤虱 薏苡仁 炒薏苡仁 薄荷 颠茄草 橘红 化橘红 鸡骨草 藁本 檀香 藕节 藕节炭 礞石 煅礞石 瞿麦 藿香 蟾酥 酒蟾酥 乳蟾酥 鳖甲 醋鳖甲 鳖甲胶 麝香 人工麝香").split(' ')),
     };
-
-    function fill(val) { document.getElementById('searchInput').value = val; doSearch(); }
-
-    function doSearch() {
-        let input = document.getElementById('searchInput').value.trim();
-        if(!input) return;
-
-        let html = '';
-        const view = document.getElementById('resultView');
-        let aliasTip = '';
-
-        // 🧠 智能别名映射
-        let searchKey = input;
-        if (ALIAS_MAP[input]) {
-            searchKey = ALIAS_MAP[input];
-            if (input !== searchKey) {
-                aliasTip = `<div class="alias-box"><span>💡</span> 智能识别：<strong>${input}</strong> 是 <strong>${searchKey}</strong> 的别名</div>`;
-            }
-        }
-
-        try {
-            // --- 判定逻辑 ---
-            
-            // 1. 💀 剧毒/禁用
-            if (DATA.HEALTH_BANNED.has(input) || input.includes('罂粟') || DATA.HEALTH_BANNED.has(searchKey)) {
-                html = renderResult('black', '💀 绝对禁止 (有毒/红线)', '该物品属于《保健食品禁用物品》或涉毒原料！具有明显毒性或严重副作用，严禁用于任何食品。');
-            }
-            
-            // 2. 🚫 批复禁止
-            else if (DATA.EXPLICIT_NON_FOOD[input] || DATA.EXPLICIT_NON_FOOD[searchKey]) {
-                let reason = DATA.EXPLICIT_NON_FOOD[searchKey] || DATA.EXPLICIT_NON_FOOD[input];
-                html = renderResult('red', '🚫 禁止入菜 (卫健委批复)', `<strong>官方复函：</strong>${reason}<br><strong>结论：</strong>被明确回复“不作为”普通食品原料。`);
-            }
-
-            // 3. 👶 婴幼儿菌种
-            else if (DATA.INFANT_PROBIOTICS.has(input)) {
-                html = renderResult('blue', '👶 婴幼儿可用菌种', '列入《可用于婴幼儿食品的菌种名单》，安全性高。');
-            }
-            // 4. 🦠 普通菌种
-            else if (DATA.PROBIOTICS.has(input)) {
-                html = renderResult('blue', '🦠 合规菌种 (普通)', '列入《可用于食品的菌种名单》，可用于酸奶、饮料等。');
-            }
-
-            // 5. 💊 保健食品专用 (排除已转正的药食同源)
-            else if ((DATA.HEALTH_ONLY.has(input) || DATA.HEALTH_ONLY.has(searchKey)) && !DATA.HOMOLOGY.has(searchKey)) {
-                html = renderResult('red', '💊 禁止入菜 (仅限保健)', '属于《可用于保健食品的物品名单》，且不是药食同源。仅限保健食品生产，餐饮环节违法！');
-            }
-
-            // 6. 🌿 药食同源 (绿灯)
-            else if (DATA.HOMOLOGY.has(searchKey)) {
-                html = renderResult('green', '🌿 药食同源 (合法)', '列入卫健委《既是食品又是中药材的物质名单》。<br><strong>结论：</strong>具有合法食品身份，可用于餐饮。');
-            }
-
-            // 7. 🥦 普通食品 / 卫健委批复普通 / 香辛料
-            else if (DATA.ORDINARY.has(input) || DATA.ORDINARY_APPROVED[input] || DATA.ORDINARY_APPROVED[searchKey]) {
-                let detail = DATA.ORDINARY_APPROVED[searchKey] || DATA.ORDINARY_APPROVED[input] || "传统食品原料/农副产品";
-                html = renderResult('green', '🥦 普通食品', detail + '<br>结论：无需限制，可按需使用。');
-            }
-            else if (DATA.SPICE.has(input) || DATA.SPICE.has(searchKey)) {
-                html = renderResult('green', '🌶️ 国标香辛料', 'GB/T 12729.1-2008。结论：合法调味品。');
-            }
-
-            // 8. 🧪 新资源 (黄灯)
-            else if (DATA.NEW_RESOURCE[input] || DATA.NEW_RESOURCE[searchKey]) {
-                let d = DATA.NEW_RESOURCE[searchKey] || DATA.NEW_RESOURCE[input];
-                html = renderResult('yellow', '🧪 有条件食用', `<strong>限量：</strong>${d.limit}<br><strong>禁忌：</strong>${d.risk}`);
-            }
-
-            // 9. 📕 药典黑名单 (1000种)
-            else if (DATA.CHP.has(input) || DATA.CHP.has(searchKey)) {
-                html = renderResult('red', '🚫 禁止入菜 (纯药品)', '收录于《中国药典》且未列入食品白名单。属于“纯中药材”，餐饮环节严禁使用！');
-            }
-
-            // 10. 未知
-            else {
-                html = renderResult('red', '❓ 未收录 / 慎用', '系统未在任何白名单中找到该物品。若为中药材或野生菌，默认禁止使用。');
-            }
-
-            view.innerHTML = aliasTip + html;
-            view.style.display = 'block';
-
-        } catch (e) {
-            alert("查询逻辑出错: " + e.message);
-        }
-    }
-
-    function renderResult(color, title, desc) {
-        let iconMap = { green: '🛡️', blue: '✅', yellow: '⚠️', red: '🚫', black: '💀' };
-        return `
-            <div class="${color}">
-                <div class="res-header">
-                    <span class="res-icon">${iconMap[color]||'❓'}</span>
-                    <h2 class="res-title">${title}</h2>
-                </div>
-                <div class="risk-alert">${desc}</div>
-            </div>`;
-    }
 </script>
-
 </body>
 </html>
