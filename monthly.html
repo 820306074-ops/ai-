@@ -529,11 +529,12 @@
                                                 <textarea v-model="getDailyRecord(item.id).remark" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 transition-all duration-200 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none resize-none placeholder-slate-400 !border-red-200 focus:!border-red-400 focus:!ring-red-400/20 flex-1 h-24 lg:h-full" placeholder="用白话描述问题，点击右上角 AI 规范化；或右侧上传现场照片自动分析(支持多图)..."></textarea>
                                                 
                                                 <!-- 多图上传区 -->
-                                                <div class="w-full lg:w-72 h-[5.5rem] lg:h-full shrink-0 bg-white border-2 border-dashed border-red-200 rounded-xl p-2 flex gap-2 overflow-x-auto items-center relative custom-scrollbar"
-                                                     @dragenter.prevent.stop
-                                                     @dragover.prevent.stop
-                                                     @dragleave.prevent.stop
-                                                     @drop.prevent.stop="handleImageDrop($event, item)">
+                                                <div class="w-full lg:w-72 h-[5.5rem] lg:h-full shrink-0 bg-white border-2 border-dashed rounded-xl p-2 flex gap-2 overflow-x-auto items-center relative custom-scrollbar transition-all"
+                                                     :class="dragActive === item.id ? 'border-red-500 bg-red-50/80 scale-[1.02]' : 'border-red-200'"
+                                                     @dragenter.prevent.stop="dragActive = item.id"
+                                                     @dragover.prevent.stop="dragActive = item.id"
+                                                     @dragleave.prevent.stop="dragActive = null"
+                                                     @drop.prevent.stop="dragActive = null; handleImageDrop($event, item)">
                                                     <input type="file" class="hidden" multiple accept="image/*" @change="handleImageUpload($event, item)" :id="'upload-'+item.id">
                                                     
                                                     <div v-for="(img, idx) in getRecordImages(item.id)" :key="idx" class="relative group w-[4.5rem] h-[4.5rem] shrink-0 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
@@ -1321,6 +1322,7 @@
             const folderNameInput = ref('');
             const currentStoragePath = ref('');
             const loadingStates = reactive({}); 
+            const dragActive = ref(null); // 添加拖拽状态追踪
             
             const today = new Date().toISOString().split('T')[0];
             const selectedDate = ref(today);
@@ -1356,7 +1358,6 @@
                 if (!db.daily[dateKey]) db.daily[dateKey] = { meta: { completed: false } };
                 AUDIT_ITEMS.forEach(item => {
                     if (!db.daily[dateKey][item.id]) {
-                        // 新增 images 数组支持多图
                         db.daily[dateKey][item.id] = { status: 'pass', remark: '', images: [] };
                     }
                 });
@@ -1377,7 +1378,6 @@
                 return r ? r.status : 'pass';
             };
 
-            // 兼容老数据结构，并支持返回数组
             const getRecordImages = (id) => {
                 const r = getDailyRecord(id);
                 if (!r) return [];
@@ -1398,16 +1398,14 @@
                     if (status === 'pass') {
                         rec.remark = '';
                         rec.images = [];
-                        rec.image = null; // 清理旧数据
+                        rec.image = null; 
                     }
                 }
             };
 
-            // 移除特定图片
             const removeImage = (id, idx) => {
                 const record = getDailyRecord(id);
                 if (record) {
-                    // 如果存在旧结构则先行转换
                     if (!record.images && record.image) {
                         record.images = [record.image];
                         record.image = null;
@@ -1777,7 +1775,6 @@
                 }
             };
 
-            // 多图上传处理核心
             const processFiles = async (files, item) => {
                 loadingStates['img_' + item.id] = true;
                 const newImages = [];
@@ -1790,20 +1787,18 @@
                 
                 if (newImages.length > 0) {
                     const record = getDailyRecord(item.id);
-                    // 兼容旧数据
                     if (!record.images) record.images = record.image ? [record.image] : [];
                     
                     const wasEmpty = record.images.length === 0;
                     record.images.push(...newImages);
-                    record.image = null; // 清除老记录避免数据臃肿
+                    record.image = null;
                     saveData();
                     
-                    // 如果原本没有图，则首次传图自动触发一次AI（使用第一张）
                     if (wasEmpty) {
                         await aiAnalyzeDailyIssue(item, null); 
                     }
                 } else {
-                    showToast('未检测到有效的图片文件', 'error');
+                    showToast('未检测到有效的本地图片文件', 'error');
                 }
                 loadingStates['img_' + item.id] = false;
             };
@@ -1812,13 +1807,11 @@
                 const files = Array.from(e.target.files);
                 if (!files.length) return;
                 await processFiles(files, item);
-                // 清空 input 使得同一张图可以再次选择
                 e.target.value = '';
             };
             
             const handleImageDrop = async (e, item) => {
                 // 在线环境（特别是HTTP或iframe嵌套环境）下，优先直接同步读取 files 集合
-                // 因为在某些安全策略下，items 会被限制访问或在极短时间内被浏览器清空
                 let files = [];
                 
                 if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -1832,11 +1825,16 @@
                     }
                 }
                 
-                // 过滤出真正的图片文件 (防范从其他网页拖入的 URL 链接)
+                if (!files.length) {
+                    showToast('受浏览器/跨域策略限制无法读取拖拽文件，请点击虚线框上传', 'error');
+                    return;
+                }
+
+                // 过滤出真正的图片文件
                 const validFiles = files.filter(f => f.type && f.type.startsWith('image/'));
                 
                 if (!validFiles.length) {
-                    showToast('未读取到图片，可能受浏览器安全/跨域策略限制，请点击虚线框上传', 'error');
+                    showToast('请拖拽有效的图片文件', 'error');
                     return;
                 }
                 
@@ -2054,7 +2052,7 @@
 
             return {
                 sidebarCollapsed, currentView, showSettings, isPreviewMode, previewType, isExporting, isBackgroundExport, showDownloadCompleteModal,
-                toast, isStorageConfigOpen, folderNameInput, currentStoragePath, saveStoragePath, loadingStates,
+                toast, isStorageConfigOpen, folderNameInput, currentStoragePath, saveStoragePath, loadingStates, dragActive,
                 selectedDate, currentDateFormatted, navItems, isDayCompleted, isMonthCompleted, isWeeklyCompleted,
                 currentWeekRangeStart, currentWeekRangeEnd,
                 currentMonthCN, db, dailyFlattened: AUDIT_ITEMS, dailyGroups: computed(() => {
