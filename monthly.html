@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>食品安全数智化管理系统 - 专业版</title>
+    <title>食品安全数智化管理系统 - 多图专业版</title>
     <!-- 核心库引入 -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,11 +17,7 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8'
+                            50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8'
                         }
                     }
                 }
@@ -56,7 +52,7 @@
         }
         @keyframes slideDown { from { transform: translate(-50%, -20px) scale(0.9); opacity: 0; } to { transform: translate(-50%, 0) scale(1); opacity: 1; } }
 
-        /* ================= 打印与预览核心逻辑 (重构后) ================= */
+        /* ================= 打印与预览核心逻辑 ================= */
         .print-container { display: none; }
         .print-active .app-main { display: none; } 
         .print-active .print-container { 
@@ -78,16 +74,12 @@
             color: #000; box-sizing: border-box; margin: 0 auto;
             display: flex; flex-direction: column; line-height: 1.5;
         }
-        /* A4 内部包裹层 (改为 block 防止 flex 拉伸导致的 PDF 空白尾页) */
         .a4-paper > div { display: block; min-height: 100%; }
-        
-        /* 导出时的强制高度消除，彻底根除空白尾页 */
         .print-container.off-screen-render .a4-paper { box-shadow: none; margin: 0; min-height: 0; height: auto; }
 
         /* 公文页眉排版 */
         .doc-header { text-align: center; margin-bottom: 12px; }
         .doc-title { font-size: 20px; font-weight: bold; font-family: 'SimHei', 'STHeiti', sans-serif; margin-bottom: 10px; letter-spacing: 2px; color: #000; line-height: 1.3; }
-        .doc-subtitle { font-size: 13px; font-family: 'SimHei', 'STHeiti', sans-serif; margin-bottom: 8px; text-align: left; }
         .doc-meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-family: 'SimSun', serif; align-items: flex-end;}
         .doc-value { border-bottom: 1px solid #000; padding: 0 8px; min-width: 80px; display: inline-block; text-align: center; font-family: 'SimSun', serif; }
 
@@ -97,8 +89,8 @@
         .doc-table th { background-color: #f2f2f2; font-family: 'SimHei', 'STHeiti', sans-serif; font-weight: bold; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000; }
         tr { page-break-inside: avoid; break-inside: avoid; }
 
-        /* 日管控表格及紧凑模式(专为一页显示设计) */
-        .compact-daily { padding: 8mm 12mm; } /* 缩小页面上下左右边距 */
+        /* 日管控表格及紧凑模式 */
+        .compact-daily { padding: 8mm 12mm; }
         .compact-daily .doc-header { margin-bottom: 5px; }
         .compact-daily .doc-title { font-size: 18px; margin-bottom: 5px; }
         .compact-daily .doc-meta { margin-top: 5px; margin-bottom: 2px; font-size: 11px; }
@@ -108,9 +100,9 @@
         .daily-table td { font-size: 10px; padding: 2px 3px; line-height: 1.15; } 
         .daily-table td.align-left { text-align: justify; text-justify: inter-ideograph; padding: 2px 4px; } 
         
-        /* 修复图片行高逻辑：无图紧凑，有图撑开 */
-        .img-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 22px; padding: 2px; box-sizing: border-box; }
-        .img-wrapper img { max-width: 100%; max-height: 55px; object-fit: contain; display: block; }
+        /* 修复图片行高逻辑：支持多图平铺展示 */
+        .img-wrapper { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; align-items: center; width: 100%; min-height: 22px; padding: 2px; box-sizing: border-box; }
+        .img-wrapper img { max-width: 45px; max-height: 45px; object-fit: cover; display: block; border: 1px solid #e2e8f0; border-radius: 2px;}
         
         .status-fail { color: #000 !important; font-weight: bold !important; font-family: 'SimHei', sans-serif;} 
         .status-pass { color: #000 !important; font-weight: normal !important; }
@@ -142,12 +134,12 @@
         .u-line { border-bottom: 1px solid #000; padding: 0 6px; font-family: "Arial", sans-serif; display: inline-block; min-width: 30px; text-align: center; font-weight: bold;}
         .keep-together { page-break-inside: avoid; break-inside: avoid; }
 
-        /* 勾选框优化 */
+        /* 勾选框 */
         .check-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 6px; vertical-align: middle; position: relative; }
         .check-box.checked::after { content: '✔'; position: absolute; top: -3px; left: 1px; font-weight: bold; font-size: 14px; font-family: Arial, sans-serif;}
 
         /* 页脚与签字区 */
-        .doc-footer-area { margin-top: 15px; padding-top: 15px; page-break-inside: avoid; } /* 移除强制 auto 压底，改为随内容流动，杜绝多页空白 */
+        .doc-footer-area { margin-top: 15px; padding-top: 15px; page-break-inside: avoid; } 
         .signature-row { display: flex; justify-content: flex-end; font-family: 'SimSun'; font-size: 13px; margin-bottom: 15px; align-items: center; }
         .monthly-signature { display: flex; justify-content: space-between; font-family: 'SimSun'; font-size: 13px; padding-top: 20px; border-top: 1px solid #000; margin-top: 20px; page-break-inside: avoid; }
         .page-number { text-align: center; font-size: 11px; font-family: Arial, sans-serif; color: #333; margin-top: 10px; }
@@ -257,7 +249,7 @@
                                 <div class="flex justify-between items-start">
                                     <h3 class="text-purple-700 text-sm font-bold tracking-wider flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>AI 专家引擎</h3>
                                 </div>
-                                <div class="mt-4 text-sm font-medium text-purple-800 leading-relaxed">全流程智能监管就绪，提供现场图片合规校验与整改建议生成支持。</div>
+                                <div class="mt-4 text-sm font-medium text-purple-800 leading-relaxed">支持多现场图证上传，AI 自动抽检首张图进行合规校验与整改建议生成。</div>
                             </div>
                         </div>
 
@@ -392,7 +384,7 @@
                                                     </td>
                                                     <td>
                                                         <div class="img-wrapper">
-                                                            <img v-if="getRecordImage(item.id)" :src="getRecordImage(item.id)">
+                                                            <img v-for="(img, imgIdx) in getRecordImages(item.id)" :key="imgIdx" :src="img">
                                                         </div>
                                                     </td>
                                                     <td class="align-left">{{ getRecordRemark(item.id) }}</td>
@@ -529,33 +521,31 @@
                                                 <span class="text-sm font-bold text-red-800 flex items-center"><i class="fa-solid fa-circle-exclamation mr-2 text-red-500"></i> 问题及整改记录</span>
                                                 <button @click="aiAnalyzeDailyIssue(item, getRecordRemark(item.id))" class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-purple-500/20 transition-all duration-200 active:scale-95 disabled:opacity-70 !px-3 !py-1.5 text-xs shadow-none" :disabled="loadingStates['daily_'+item.id] || loadingStates['img_'+item.id]">
                                                     <i v-if="loadingStates['daily_'+item.id] || loadingStates['img_'+item.id]" class="fa-solid fa-spinner fa-spin mr-1.5"></i>
-                                                    <i v-else class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> {{ getRecordImage(item.id) ? 'AI 视觉分析' : 'AI 规范化术语' }}
+                                                    <i v-else class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> {{ getRecordImages(item.id).length > 0 ? 'AI 视觉分析(取图1)' : 'AI 规范化术语' }}
                                                 </button>
                                             </div>
                                             
-                                            <div class="flex gap-4 h-28">
-                                                <textarea v-model="getDailyRecord(item.id).remark" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 transition-all duration-200 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none resize-none placeholder-slate-400 !border-red-200 focus:!border-red-400 focus:!ring-red-400/20 flex-1 h-full" placeholder="用白话描述问题，点击右上角 AI 规范化；或右侧上传现场照片自动分析..."></textarea>
+                                            <div class="flex flex-col lg:flex-row gap-4 h-auto lg:h-28">
+                                                <textarea v-model="getDailyRecord(item.id).remark" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 transition-all duration-200 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none resize-none placeholder-slate-400 !border-red-200 focus:!border-red-400 focus:!ring-red-400/20 flex-1 h-24 lg:h-full" placeholder="用白话描述问题，点击右上角 AI 规范化；或右侧上传现场照片自动分析(支持多图)..."></textarea>
                                                 
-                                                <div class="w-32 h-full shrink-0 bg-white border-2 border-dashed border-red-200 rounded-xl flex flex-col items-center justify-center text-red-400 hover:border-red-400 hover:bg-red-50/50 cursor-pointer relative overflow-hidden group transition-all"
-                                                     @click="$event.currentTarget.querySelector('input').click()"
+                                                <!-- 多图上传区 -->
+                                                <div class="w-full lg:w-72 h-[5.5rem] lg:h-full shrink-0 bg-white border-2 border-dashed border-red-200 rounded-xl p-2 flex gap-2 overflow-x-auto items-center relative custom-scrollbar"
                                                      @dragover.prevent
                                                      @drop.prevent="handleImageDrop($event, item)">
-                                                    <input type="file" class="hidden" accept="image/*" @change="handleImageUpload($event, item)">
+                                                    <input type="file" class="hidden" multiple accept="image/*" @change="handleImageUpload($event, item)" :id="'upload-'+item.id">
                                                     
-                                                    <template v-if="getRecordImage(item.id)">
-                                                        <img :src="getRecordImage(item.id)" class="w-full h-full object-cover">
-                                                        <div class="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium backdrop-blur-sm">
-                                                            <i class="fa-solid fa-camera-rotate text-xl mb-2"></i>
-                                                            <span>重新上传</span>
-                                                        </div>
-                                                    </template>
-                                                    <template v-else>
-                                                        <i v-if="loadingStates['img_'+item.id]" class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i>
+                                                    <div v-for="(img, idx) in getRecordImages(item.id)" :key="idx" class="relative group w-[4.5rem] h-[4.5rem] shrink-0 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                                                        <img :src="img" class="w-full h-full object-cover">
+                                                        <button @click.stop="removeImage(item.id, idx)" class="absolute top-1 right-1 bg-red-500/90 hover:bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-xmark"></i></button>
+                                                    </div>
+                                                    
+                                                    <label :for="'upload-'+item.id" class="w-[4.5rem] h-[4.5rem] shrink-0 bg-slate-50 border border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-300 cursor-pointer transition-colors m-0">
+                                                        <i v-if="loadingStates['img_'+item.id]" class="fa-solid fa-circle-notch fa-spin text-lg mb-1"></i>
                                                         <template v-else>
-                                                            <i class="fa-solid fa-cloud-arrow-up text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                                                            <span class="text-xs font-medium text-center leading-tight">传图智检<br><span class="text-[10px] opacity-70">(支持拖拽)</span></span>
+                                                            <i class="fa-solid fa-cloud-arrow-up text-lg mb-1"></i>
+                                                            <span class="text-[10px] font-medium leading-tight text-center">传多图<br><span class="scale-90 inline-block opacity-70">(可拖拽)</span></span>
                                                         </template>
-                                                    </template>
+                                                    </label>
                                                 </div>
                                             </div>
                                         </div>
@@ -934,7 +924,7 @@
                             </td>
                             <td>
                                 <div class="img-wrapper">
-                                    <img v-if="getRecordImage(item.id)" :src="getRecordImage(item.id)">
+                                    <img v-for="(img, imgIdx) in getRecordImages(item.id)" :key="imgIdx" :src="img">
                                 </div>
                             </td>
                             <td class="align-left">{{ getRecordRemark(item.id) }}</td>
@@ -1170,24 +1160,27 @@
 <script>
     const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
 
-    const compressImage = (file, callback) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let w = img.width, h = img.height;
-                const max = 800;
-                if (w > h && w > max) { h *= max / w; w = max; }
-                else if (h > max) { w *= max / h; h = max; }
-                canvas.width = w; canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-                callback(canvas.toDataURL('image/jpeg', 0.6)); 
+    // 图像压缩方法，封装为 Promise
+    const compressImageAsync = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    const max = 800;
+                    if (w > h && w > max) { h *= max / w; w = max; }
+                    else if (h > max) { w *= max / h; h = max; }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+                };
+                img.src = e.target.result;
             };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
+        });
     };
 
     const callAI = async (sysPrompt, userPrompt, isJson, maxRetries, imageUrl) => {
@@ -1361,7 +1354,8 @@
                 if (!db.daily[dateKey]) db.daily[dateKey] = { meta: { completed: false } };
                 AUDIT_ITEMS.forEach(item => {
                     if (!db.daily[dateKey][item.id]) {
-                        db.daily[dateKey][item.id] = { status: 'pass', remark: '', image: null };
+                        // 新增 images 数组支持多图
+                        db.daily[dateKey][item.id] = { status: 'pass', remark: '', images: [] };
                     }
                 });
             };
@@ -1381,9 +1375,13 @@
                 return r ? r.status : 'pass';
             };
 
-            const getRecordImage = (id) => {
+            // 兼容老数据结构，并支持返回数组
+            const getRecordImages = (id) => {
                 const r = getDailyRecord(id);
-                return r ? r.image : null;
+                if (!r) return [];
+                if (r.images && Array.isArray(r.images)) return r.images;
+                if (r.image) return [r.image];
+                return [];
             };
 
             const getRecordRemark = (id) => {
@@ -1397,7 +1395,24 @@
                     rec.status = status;
                     if (status === 'pass') {
                         rec.remark = '';
-                        rec.image = null;
+                        rec.images = [];
+                        rec.image = null; // 清理旧数据
+                    }
+                }
+            };
+
+            // 移除特定图片
+            const removeImage = (id, idx) => {
+                const record = getDailyRecord(id);
+                if (record) {
+                    // 如果存在旧结构则先行转换
+                    if (!record.images && record.image) {
+                        record.images = [record.image];
+                        record.image = null;
+                    }
+                    if (record.images && record.images.length > idx) {
+                        record.images.splice(idx, 1);
+                        saveData();
                     }
                 }
             };
@@ -1684,8 +1699,10 @@
                     let userPrompt = "";
                     let imageUrl = null;
                     
-                    if (record.image) {
-                        imageUrl = record.image;
+                    const images = getRecordImages(itemDef.id);
+                    
+                    if (images && images.length > 0) {
+                        imageUrl = images[0]; // **核心逻辑：只取第一张图给 AI 分析**
                         sysPrompt = "你是一名具有执法资质的食品安全监管人员，长期从事现场监督检查。\n" +
                             "本次分析为“基于现场照片”的合规判断。\n" +
                             "你必须严格遵守以下规则：\n" +
@@ -1744,7 +1761,7 @@
                             "6. 仅输出JSON";
                     }
                     const result = await callAI(sysPrompt, userPrompt, true, 2, imageUrl);
-                    if (record.image && result["是否违规"] === "否") { showToast('AI 引擎判定：未见明显异常', 'success'); }
+                    if (images && images.length > 0 && result["是否违规"] === "否") { showToast('AI 引擎判定：首张图未见明显异常', 'success'); }
                     record.remark = result["综合描述"] || Object.values(result)[0] || "未发现异常。";
                     showToast('AI 智能分析执行完毕', 'success');
                 } catch (e) {
@@ -1754,32 +1771,49 @@
                 }
             };
 
-            const handleImageUpload = (e, item) => {
-                const file = e.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    loadingStates['img_' + item.id] = true;
-                    compressImage(file, async (base64Url) => {
-                        getDailyRecord(item.id).image = base64Url;
-                        saveData();
-                        await aiAnalyzeDailyIssue(item, null); 
-                        loadingStates['img_' + item.id] = false;
-                    });
+            // 多图上传处理核心
+            const processFiles = async (files, item) => {
+                loadingStates['img_' + item.id] = true;
+                const newImages = [];
+                for(const file of files) {
+                    if (file.type.startsWith('image/')) {
+                        const base64Url = await compressImageAsync(file);
+                        newImages.push(base64Url);
+                    }
                 }
+                
+                if (newImages.length > 0) {
+                    const record = getDailyRecord(item.id);
+                    // 兼容旧数据
+                    if (!record.images) record.images = record.image ? [record.image] : [];
+                    
+                    const wasEmpty = record.images.length === 0;
+                    record.images.push(...newImages);
+                    record.image = null; // 清除老记录避免数据臃肿
+                    saveData();
+                    
+                    // 如果原本没有图，则首次传图自动触发一次AI（使用第一张）
+                    if (wasEmpty) {
+                        await aiAnalyzeDailyIssue(item, null); 
+                    }
+                } else {
+                    showToast('未检测到有效的图片文件', 'error');
+                }
+                loadingStates['img_' + item.id] = false;
+            };
+
+            const handleImageUpload = async (e, item) => {
+                const files = Array.from(e.target.files);
+                if (!files.length) return;
+                await processFiles(files, item);
+                // 清空 input 使得同一张图可以再次选择
+                e.target.value = '';
             };
             
-            const handleImageDrop = (e, item) => {
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    loadingStates['img_' + item.id] = true;
-                    compressImage(file, async (base64Url) => {
-                        getDailyRecord(item.id).image = base64Url;
-                        saveData();
-                        await aiAnalyzeDailyIssue(item, null);
-                        loadingStates['img_' + item.id] = false;
-                    });
-                } else {
-                    showToast('无法识别的格式，请重试', 'error');
-                }
+            const handleImageDrop = async (e, item) => {
+                const files = Array.from(e.dataTransfer.files);
+                if (!files.length) return;
+                await processFiles(files, item);
             };
 
             const aiGenerateWeeklyMeasures = async () => {
@@ -1999,7 +2033,7 @@
                 currentMonthCN, db, dailyFlattened: AUDIT_ITEMS, dailyGroups: computed(() => {
                     const g = {}; AUDIT_ITEMS.forEach(it => { if(!g[it.cat]) g[it.cat] = []; g[it.cat].push(it); }); return g;
                 }),
-                getDailyStatus, getRecordImage, getRecordRemark, setDailyStatus, getDailyRecord, changeDate,
+                getDailyStatus, getRecordImages, getRecordRemark, setDailyStatus, getDailyRecord, changeDate,
                 weeklyData, addWeeklyIssue, removeWeeklyIssue, weeklyAutoIssues, importWeeklyIssues,
                 monthlyData, addMonthlyItem, removeMonthlyItem, formatSlashString,
                 todayStats, currentWeekStats,
@@ -2010,7 +2044,7 @@
                 downloadDailyReportDirectly, downloadWeeklyReportDirectly, downloadMonthlyReportDirectly,
                 today, aiAnalyzeDailyIssue, aiGenerateWeeklyMeasures, aiGenerateMonthlyPlans, aiExtractHighRisks,
                 currentWeekKey, monthlyViewMonth, changeMonthlyViewMonth,
-                handleImageDrop, handleImageUpload
+                handleImageDrop, handleImageUpload, removeImage
             };
         }
     }).mount('#app');
