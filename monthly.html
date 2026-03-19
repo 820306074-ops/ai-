@@ -56,50 +56,106 @@
         }
         @keyframes slideDown { from { transform: translate(-50%, -20px) scale(0.9); opacity: 0; } to { transform: translate(-50%, 0) scale(1); opacity: 1; } }
 
-        /* 打印与预览核心逻辑 */
+        /* ================= 打印与预览核心逻辑 (重构后) ================= */
         .print-container { display: none; }
         .print-active .app-main { display: none; } 
-        .print-active .print-container { display: flex; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; min-height: 100%; background: #e2e8f0; z-index: 9999; padding: 40px 0; }
-        .print-container.off-screen-render { display: block !important; position: fixed; left: -10000px; top: 0; width: 210mm; height: auto; background: white; z-index: -9999; padding: 0; }
+        .print-active .print-container { 
+            display: flex; justify-content: center; position: absolute; 
+            top: 0; left: 0; width: 100%; min-height: 100%; 
+            background: #525659; z-index: 9999; padding: 80px 0 40px 0; overflow-y: auto;
+        }
+        .print-container.off-screen-render { 
+            display: block !important; position: fixed; left: -20000px; top: 0; 
+            width: 210mm; height: auto; background: white; z-index: -9999; padding: 0; 
+        }
 
-        .a4-paper { width: 210mm; min-height: 297mm; background: white; padding: 15mm 20mm; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.1); font-family: "SimSun", "Songti SC", serif; color: #000; box-sizing: border-box; }
+        /* A4纸张标准设定 */
+        .a4-paper { 
+            width: 210mm; min-height: 297mm; background: white; 
+            padding: 10mm 15mm; position: relative; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+            font-family: "SimSun", "STSong", "Songti SC", serif; 
+            color: #000; box-sizing: border-box; margin: 0 auto;
+            display: flex; flex-direction: column; line-height: 1.5;
+        }
+        /* A4 内部包裹层 (改为 block 防止 flex 拉伸导致的 PDF 空白尾页) */
+        .a4-paper > div { display: block; min-height: 100%; }
+        
+        /* 导出时的强制高度消除，彻底根除空白尾页 */
+        .print-container.off-screen-render .a4-paper { box-shadow: none; margin: 0; min-height: 0; height: auto; }
 
-        /* PDF文档渲染结构（严格保护，不动逻辑） */
-        .doc-header { text-align: center; margin-bottom: 20px; }
-        .doc-title { font-size: 24px; font-weight: bold; font-family: 'SimHei', sans-serif; margin-bottom: 8px; letter-spacing: 2px; color: #000; }
-        .doc-subtitle { font-size: 14px; font-weight: bold; font-family: 'SimSun', serif; margin-bottom: 10px; text-align: center; }
-        .doc-meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; font-family: 'SimSun', serif; }
-        .doc-table { width: 100%; border-collapse: collapse; margin: 5px 0; font-size: 12px; font-family: 'SimSun', serif; table-layout: fixed; }
-        .doc-table th, .doc-table td { border: 1px solid #000; padding: 6px 4px; vertical-align: middle; word-wrap: break-word; line-height: 1.3; }
-        .daily-table th { background-color: #f3f3f3; font-family: 'SimHei', sans-serif; font-weight: bold; text-align: center; height: 32px; font-size: 13px; }
-        .daily-table td { text-align: center; font-size: 12px; } 
-        .daily-table td.align-left { text-align: left; padding-left: 6px; } 
-        .status-fail { color: #dc2626 !important; font-weight: bold !important; }
-        .status-pass { color: black !important; font-weight: normal !important; }
-        .weekly-table th { background-color: #f8f9fa; font-family: 'SimHei'; font-weight: bold; text-align: center; height: 36px; }
-        .weekly-table td { text-align: center; padding: 8px 4px; font-size: 12px; }
+        /* 公文页眉排版 */
+        .doc-header { text-align: center; margin-bottom: 12px; }
+        .doc-title { font-size: 20px; font-weight: bold; font-family: 'SimHei', 'STHeiti', sans-serif; margin-bottom: 10px; letter-spacing: 2px; color: #000; line-height: 1.3; }
+        .doc-subtitle { font-size: 13px; font-family: 'SimHei', 'STHeiti', sans-serif; margin-bottom: 8px; text-align: left; }
+        .doc-meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-family: 'SimSun', serif; align-items: flex-end;}
+        .doc-value { border-bottom: 1px solid #000; padding: 0 8px; min-width: 80px; display: inline-block; text-align: center; font-family: 'SimSun', serif; }
+
+        /* 公用表格规范 */
+        .doc-table { width: 100%; border-collapse: collapse; margin: 5px 0 10px 0; font-size: 11px; font-family: 'SimSun', serif; table-layout: fixed; border: 1.5px solid #000; }
+        .doc-table th, .doc-table td { border: 1px solid #000; padding: 4px 4px; vertical-align: middle; word-wrap: break-word; line-height: 1.2; text-align: center; }
+        .doc-table th { background-color: #f2f2f2; font-family: 'SimHei', 'STHeiti', sans-serif; font-weight: bold; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000; }
+        tr { page-break-inside: avoid; break-inside: avoid; }
+
+        /* 日管控表格及紧凑模式(专为一页显示设计) */
+        .compact-daily { padding: 8mm 12mm; } /* 缩小页面上下左右边距 */
+        .compact-daily .doc-header { margin-bottom: 5px; }
+        .compact-daily .doc-title { font-size: 18px; margin-bottom: 5px; }
+        .compact-daily .doc-meta { margin-top: 5px; margin-bottom: 2px; font-size: 11px; }
+        .compact-daily .doc-table { margin: 2px 0; }
+        
+        .daily-table th { height: 22px; font-size: 11px; padding: 2px; }
+        .daily-table td { font-size: 10px; padding: 2px 3px; line-height: 1.15; } 
+        .daily-table td.align-left { text-align: justify; text-justify: inter-ideograph; padding: 2px 4px; } 
+        
+        /* 修复图片行高逻辑：无图紧凑，有图撑开 */
+        .img-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 22px; padding: 2px; box-sizing: border-box; }
+        .img-wrapper img { max-width: 100%; max-height: 55px; object-fit: contain; display: block; }
+        
+        .status-fail { color: #000 !important; font-weight: bold !important; font-family: 'SimHei', sans-serif;} 
+        .status-pass { color: #000 !important; font-weight: normal !important; }
+
+        .compact-daily .doc-footer-area { margin-top: 10px; padding-top: 5px; }
+        .compact-daily .signature-row { margin-bottom: 5px; font-size: 11px; }
+        .compact-daily .page-number { margin-top: 5px; font-size: 10px; }
+
+        /* 周排查表格及样式 */
+        .weekly-table th { height: 28px; }
+        .weekly-table td { padding: 6px 4px; font-size: 11px; }
         .weekly-table td.align-left { text-align: left; }
-        .doc-header-right { text-align: right; font-size: 12px; margin-bottom: 5px; font-family: 'SimHei'; }
-        .doc-record-no { margin-bottom: 10px; font-family: "SimSun"; font-size: 12px; }
-        .monthly-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
-        .monthly-table td { border: 1px solid #000; padding: 8px 10px; vertical-align: middle; }
-        .doc-label-cell { font-family: 'SimHei'; font-weight: bold; width: 100px; text-align: center; background-color: #fcfcfc; }
-        .doc-section-title { font-family: 'SimHei'; font-weight: bold; font-size: 15px; margin-top: 15px; margin-bottom: 5px; }
-        .doc-text { text-align: justify; margin-bottom: 6px; text-indent: 2em; line-height: 1.5; font-size: 14px; }
-        .doc-text-bold { font-weight: bold; font-family: 'SimHei'; }
-        .u-line { border-bottom: 1px solid #000; padding: 0 4px; font-family: "SimSun"; display: inline-block; min-width: 30px; text-align: center; }
-        .doc-footer { margin-top: 40px; display: flex; justify-content: space-between; page-break-inside: avoid; font-family: 'SimSun'; font-size: 14px; }
+        .red-header-wrap { border-bottom: 2px solid #d32f2f; padding-bottom: 8px; margin-bottom: 12px; text-align: center; }
+        .red-header { color: #d32f2f !important; font-family: 'SimHei', sans-serif; font-size: 24px; font-weight: bold; letter-spacing: 4px; line-height: 1.2; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .doc-meta-grid { display: grid; grid-template-columns: 1fr 1fr; row-gap: 6px; margin-bottom: 10px; font-size: 12px; font-family: 'SimSun'; }
+        .doc-meta-grid .text-right { text-align: right; justify-content: flex-end; }
+
+        /* 月调度表格及样式 */
+        .doc-header-right { text-align: right; font-size: 13px; font-family: 'SimHei', sans-serif; margin-bottom: 8px; }
+        .doc-record-no { margin-bottom: 8px; font-family: "SimSun"; font-size: 11px; text-align: right; }
+        .monthly-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12px; border: 1.5px solid #000;}
+        .monthly-table td { border: 1px solid #000; padding: 6px 10px; vertical-align: middle; line-height: 1.4;}
+        .doc-label-cell { font-family: 'SimHei', sans-serif; font-weight: bold; width: 90px; text-align: center; background-color: #f2f2f2; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+
+        /* 通用正文及排版 */
+        .doc-section-title { font-family: 'SimHei', 'STHeiti', sans-serif; font-weight: bold; font-size: 14px; margin-top: 10px; margin-bottom: 6px; page-break-after: avoid; }
+        .doc-text { text-align: justify; margin-bottom: 6px; text-indent: 2em; line-height: 1.6; font-size: 12px; }
+        .doc-text-bold { font-weight: bold; font-family: 'SimHei', sans-serif; }
+        .u-line { border-bottom: 1px solid #000; padding: 0 6px; font-family: "Arial", sans-serif; display: inline-block; min-width: 30px; text-align: center; font-weight: bold;}
         .keep-together { page-break-inside: avoid; break-inside: avoid; }
-        .red-header { color: #b91c1c; font-family: 'SimHei'; text-align: center; font-size: 26px; font-weight: bold; margin-bottom: 15px; letter-spacing: 3px; }
-        .doc-info-row { margin-bottom: 6px; font-size: 14px; display: flex; align-items: baseline; font-family: 'SimSun'; }
-        .doc-label { font-family: 'SimHei'; font-weight: bold; min-width: 90px; }
-        .check-box { display: inline-block; width: 14px; height: 14px; border: 1px solid #000; margin-right: 4px; vertical-align: middle; position: relative; }
-        .check-box.checked::after { content: '✓'; position: absolute; top: -4px; left: 1px; font-weight: bold; font-size: 16px; }
+
+        /* 勾选框优化 */
+        .check-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 6px; vertical-align: middle; position: relative; }
+        .check-box.checked::after { content: '✔'; position: absolute; top: -3px; left: 1px; font-weight: bold; font-size: 14px; font-family: Arial, sans-serif;}
+
+        /* 页脚与签字区 */
+        .doc-footer-area { margin-top: 15px; padding-top: 15px; page-break-inside: avoid; } /* 移除强制 auto 压底，改为随内容流动，杜绝多页空白 */
+        .signature-row { display: flex; justify-content: flex-end; font-family: 'SimSun'; font-size: 13px; margin-bottom: 15px; align-items: center; }
+        .monthly-signature { display: flex; justify-content: space-between; font-family: 'SimSun'; font-size: 13px; padding-top: 20px; border-top: 1px solid #000; margin-top: 20px; page-break-inside: avoid; }
+        .page-number { text-align: center; font-size: 11px; font-family: Arial, sans-serif; color: #333; margin-top: 10px; }
 
         @media print {
             .app-main { display: none !important; }
-            .print-container { position: static; background: white; padding: 0; display: block; }
-            .a4-paper { box-shadow: none; margin: 0; width: 100%; padding: 15mm 20mm; } 
+            .print-container { display: block !important; position: static; background: white; padding: 0; }
+            .a4-paper { box-shadow: none; margin: 0; width: 100%; padding: 0; min-height: auto; } 
             .no-print { display: none !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
@@ -290,6 +346,7 @@
                             </div>
                         </div>
 
+                        <!-- 缩小预览区域 -->
                         <div class="w-full xl:w-[480px] shrink-0 bg-slate-200/80 rounded-2xl overflow-y-auto overflow-x-hidden shadow-inner border border-slate-200 relative flex flex-col items-center pt-6 pb-8">
                             <div v-if="calendarPreviewType === 'none'" class="m-auto text-slate-400 font-medium flex flex-col items-center justify-center h-full pb-10">
                                  <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 shadow-inner"><i class="fa-solid fa-file-invoice text-3xl opacity-40"></i></div>
@@ -297,58 +354,126 @@
                             </div>
                             
                             <div v-else class="w-full flex justify-center origin-top" style="zoom: 0.55; -moz-transform: scale(0.55); -moz-transform-origin: top center;">
-                                <div class="a4-paper shadow-2xl ring-1 ring-slate-900/5 rounded-sm" style="margin: 0;">
+                                <div class="a4-paper shadow-2xl ring-1 ring-slate-900/5 rounded-sm" style="margin: 0;" :class="{'compact-daily': calendarPreviewType === 'daily'}">
+                                    
                                     <!-- 【日管控预览】 -->
-                                    <div v-if="calendarPreviewType === 'daily'">
+                                    <div v-if="calendarPreviewType === 'daily'" class="flex flex-col h-full">
                                         <div class="doc-header">
                                             <div class="doc-title">每日食品安全检查记录（日管控）</div>
-                                            <div class="doc-subtitle">单位：{{ db.settings.branchName || '__________________' }}</div>
-                                            <div class="doc-meta">
-                                                <div>检查日期：{{ selectedDate }}</div>
-                                                <div>检查人：{{ db.settings.managerName || '____________' }}</div>
+                                            <div class="doc-meta" style="margin-top: 15px;">
+                                                <div style="font-family: 'SimHei', sans-serif; font-size: 13px;">单位：<span class="doc-value" style="text-align: left; min-width: 150px;">{{ db.settings.branchName || '' }}</span></div>
+                                                <div>检查日期：<span class="doc-value">{{ selectedDate }}</span></div>
                                             </div>
                                         </div>
+                                        
                                         <table class="doc-table daily-table">
-                                            <colgroup><col style="width: 6%"><col style="width: 35%"><col style="width: 8%"><col style="width: 15%"><col style="width: 36%"></colgroup>
-                                            <thead><tr><th>序号</th><th>检查项目</th><th>结果</th><th>检查图片</th><th>检查发现与整改建议</th></tr></thead>
+                                            <colgroup>
+                                                <col style="width: 6%">
+                                                <col style="width: 32%">
+                                                <col style="width: 8%">
+                                                <col style="width: 20%">
+                                                <col style="width: 34%">
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th>序号</th>
+                                                    <th>检查项目</th>
+                                                    <th>结果</th>
+                                                    <th>检查图片</th>
+                                                    <th>检查发现与整改建议</th>
+                                                </tr>
+                                            </thead>
                                             <tbody>
                                                 <tr v-for="(item, index) in dailyFlattened" :key="item.id">
-                                                    <td>{{ index + 1 }}</td><td class="align-left">{{ item.content }}</td>
-                                                    <td :class="getDailyStatus(item.id) === 'fail' ? 'status-fail' : 'status-pass'">{{ getDailyStatus(item.id) === 'fail' ? '不符合' : '符合' }}</td>
-                                                    <td><img v-if="getRecordImage(item.id)" :src="getRecordImage(item.id)" style="max-width: 100%; max-height: 60px; object-fit: contain;"></td>
+                                                    <td>{{ index + 1 }}</td>
+                                                    <td class="align-left">{{ item.content }}</td>
+                                                    <td :class="getDailyStatus(item.id) === 'fail' ? 'status-fail' : 'status-pass'">
+                                                        {{ getDailyStatus(item.id) === 'fail' ? '不符合' : '符合' }}
+                                                    </td>
+                                                    <td>
+                                                        <div class="img-wrapper">
+                                                            <img v-if="getRecordImage(item.id)" :src="getRecordImage(item.id)">
+                                                        </div>
+                                                    </td>
                                                     <td class="align-left">{{ getRecordRemark(item.id) }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <div style="margin-top: 20px; font-family: 'SimSun'; font-size: 14px; display: flex; justify-content: flex-end;"><div>食品安全员签字：__________________</div></div>
+                                        
+                                        <div class="doc-footer-area">
+                                            <div class="signature-row">
+                                                <span style="font-family: 'SimHei', sans-serif; font-weight: bold; margin-right: 10px;">食品安全员签字：</span>
+                                                <span class="doc-value" style="width: 120px; border-bottom: 1px solid #000; display: inline-block;">{{ db.settings.managerName || '' }}</span>
+                                            </div>
+                                            <div class="page-number">第 1 页 / 共 1 页</div>
+                                        </div>
                                     </div>
 
                                     <!-- 【周排查预览】 -->
-                                    <div v-else-if="calendarPreviewType === 'weekly'">
-                                       <div class="doc-header"><div class="red-header">{{ db.settings.branchName || '分店名称' }}</div><div class="doc-title">每周食品安全排查治理报告</div></div>
-                                        <div class="doc-info-row"><span class="doc-label">接收人：</span> {{ weeklyData && weeklyData.receiver }}</div>
-                                        <div class="doc-info-row"><span class="doc-label">抄送人：</span> {{ weeklyData && weeklyData.cc }}</div>
-                                         <div class="doc-info-row" style="margin-bottom: 20px;"><span class="doc-label">排查周期：</span> {{ currentWeekRangeStart }} 至 {{ currentWeekRangeEnd }}</div>
-                                         <div class="doc-info-row" style="position: absolute; top: 25mm; right: 25mm;"><span class="doc-label" style="min-width: auto;">记录编号：</span> {{ (weeklyData && weeklyData.recordNo) || currentWeekKey.replace('-W', '') }}</div>
+                                    <div v-else-if="calendarPreviewType === 'weekly'" class="flex flex-col h-full">
+                                        <div class="red-header-wrap">
+                                            <div class="red-header">{{ db.settings.branchName || '分店名称' }}</div>
+                                            <div class="doc-title" style="margin-bottom: 0; font-size: 24px;">每周食品安全排查治理报告</div>
+                                        </div>
+                                        
+                                        <div class="doc-meta-grid">
+                                            <div class="doc-info-row"><span class="doc-label">接收人：</span> <span class="doc-value" style="text-align: left;">{{ weeklyData && weeklyData.receiver }}</span></div>
+                                            <div class="doc-info-row text-right"><span class="doc-label">记录编号：</span> <span class="doc-value" style="border: none;">{{ (weeklyData && weeklyData.recordNo) || currentWeekKey.replace('-W', '') }}</span></div>
+                                            <div class="doc-info-row"><span class="doc-label">抄送人：</span> <span class="doc-value" style="text-align: left;">{{ weeklyData && weeklyData.cc }}</span></div>
+                                            <div class="doc-info-row text-right"><span class="doc-label">排查周期：</span> <span class="doc-value" style="border: none;">{{ currentWeekRangeStart }} 至 {{ currentWeekRangeEnd }}</span></div>
+                                        </div>
 
                                         <div class="doc-section-title">一、本周排查发现问题情况</div>
                                         <div v-if="!weeklyData || !weeklyData.issues || weeklyData.issues.length === 0" class="doc-text">本周排查未发现异常情况。</div>
-                                        <div v-else><div v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx" class="doc-text">{{ idx + 1 }}. {{ issue.problem }}</div></div>
+                                        <div v-else>
+                                            <div v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx" class="doc-text">{{ idx + 1 }}. {{ issue.problem }}</div>
+                                        </div>
                                         
                                         <div class="doc-section-title">二、周排查问题整改情况和措施</div>
                                         <div v-if="!weeklyData || !weeklyData.issues || weeklyData.issues.length === 0" class="doc-text">无需要整改的问题。</div>
                                         <table v-else class="doc-table weekly-table">
-                                            <thead><tr><th style="width:8%">序号</th><th style="width:25%">问题</th><th style="width:25%">整改措施</th><th style="width:15%">责任人</th><th style="width:15%">期限</th><th style="width:12%">状态</th></tr></thead>
-                                            <tbody><tr v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx"><td>{{ idx + 1 }}</td><td class="align-left">{{ issue.problem }}</td><td class="align-left">{{ issue.measure }}</td><td>{{ issue.person }}</td><td>{{ issue.deadline }}</td><td>{{ issue.status }}</td></tr></tbody>
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:7%">序号</th>
+                                                    <th style="width:26%">问题描述</th>
+                                                    <th style="width:28%">整改措施</th>
+                                                    <th style="width:12%">责任人</th>
+                                                    <th style="width:15%">整改期限</th>
+                                                    <th style="width:12%">当前状态</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx">
+                                                    <td>{{ idx + 1 }}</td>
+                                                    <td class="align-left">{{ issue.problem }}</td>
+                                                    <td class="align-left">{{ issue.measure }}</td>
+                                                    <td>{{ issue.person }}</td>
+                                                    <td>{{ issue.deadline ? formatSlashString(issue.deadline) : '' }}</td>
+                                                    <td>{{ issue.status }}</td>
+                                                </tr>
+                                            </tbody>
                                         </table>
-                                        <div class="doc-section-title">三、本周食品安全管理情况评价</div>
-                                        <div class="doc-text">
-                                            <span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '好')}"></span> 1. 食品安全风险可控，无较大食品安全风险隐患。<br>
-                                            <span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '中')}"></span> 2. 存在食品安全风险隐患，需尽快采取防范措施。<br>
-                                            <span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '差')}"></span> 3. 存在严重食品安全风险隐患，需尽快采取防范措施。
+                                        
+                                        <div class="doc-section-title keep-together">三、本周食品安全管理情况评价</div>
+                                        <div class="doc-text keep-together" style="text-indent: 0; margin-left: 2em; line-height: 2;">
+                                            <div style="margin-bottom: 6px;"><span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '好')}"></span> 1. 食品安全风险可控，无较大食品安全风险隐患。</div>
+                                            <div style="margin-bottom: 6px;"><span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '中')}"></span> 2. 存在食品安全风险隐患，需尽快采取防范措施。</div>
+                                            <div><span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '差')}"></span> 3. 存在严重食品安全风险隐患，需尽快采取防范措施。</div>
+                                        </div>
+                                        
+                                        <div class="doc-footer-area">
+                                            <div class="signature-row">
+                                                <span style="font-family: 'SimHei', sans-serif; font-weight: bold; margin-right: 10px;">食品安全总监/管员签字：</span>
+                                                <span class="doc-value" style="width: 120px; border-bottom: 1px solid #000; display: inline-block;"></span>
+                                            </div>
+                                            <div class="signature-row">
+                                                <span style="font-family: 'SimHei', sans-serif; font-weight: bold; margin-right: 10px;">日期：</span>
+                                                <span class="doc-value" style="width: 120px; border-bottom: 1px solid #000; display: inline-block; text-align: center;">年 &nbsp;&nbsp;月 &nbsp;&nbsp;日</span>
+                                            </div>
+                                            <div class="page-number">第 1 页 / 共 1 页</div>
                                         </div>
                                     </div>
-                                    <div style="position: absolute; bottom: 10mm; width: 100%; text-align: center; font-size: 12px; left: 0; color: #666;">第 1 页 / 共 1 页</div>
+
                                 </div>
                             </div>
                         </div>
@@ -760,7 +885,7 @@
         <div class="fixed top-0 left-0 right-0 bg-slate-900 text-white h-16 flex justify-between items-center px-6 shadow-xl z-50 no-print" v-if="!isBackgroundExport">
             <div class="flex items-center">
                 <span class="font-bold text-lg mr-4 text-slate-100">公文打印预览</span>
-                <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">A4 标准格式</span>
+                <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">A4 标准排版格式</span>
             </div>
             <div class="flex gap-4">
                 <button type="button" @click="isPreviewMode = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-semibold transition-colors">返回编辑</button>
@@ -771,109 +896,211 @@
             </div>
         </div>
         
-        <div id="report-content" class="a4-paper mt-24 mb-10 mx-auto">
-            <!-- 打印内部原样保留以确保 pdf 效果一致，完全未动原代码的这部分结构 -->
-            <div v-if="previewType === 'daily'">
+        <div id="report-content" class="a4-paper" :class="{'compact-daily': previewType === 'daily'}">
+            
+            <!-- 【独立打印：日管控预览】 -->
+            <div v-if="previewType === 'daily'" class="flex flex-col h-full">
                 <div class="doc-header">
                     <div class="doc-title">每日食品安全检查记录（日管控）</div>
-                    <div class="doc-subtitle">单位：{{ db.settings.branchName || '__________________' }}</div>
-                    <div class="doc-meta">
-                        <div>检查日期：{{ selectedDate }}</div>
-                        <div>检查人：{{ db.settings.managerName || '____________' }}</div>
+                    <div class="doc-meta" style="margin-top: 15px;">
+                        <div style="font-family: 'SimHei', sans-serif; font-size: 13px;">单位：<span class="doc-value" style="text-align: left; min-width: 150px;">{{ db.settings.branchName || '' }}</span></div>
+                        <div>检查日期：<span class="doc-value">{{ selectedDate }}</span></div>
                     </div>
                 </div>
+                
                 <table class="doc-table daily-table">
-                    <colgroup><col style="width: 6%"><col style="width: 35%"><col style="width: 8%"><col style="width: 15%"><col style="width: 36%"></colgroup>
-                    <thead><tr><th>序号</th><th>检查项目</th><th>结果</th><th>检查图片</th><th>检查发现与整改建议</th></tr></thead>
+                    <colgroup>
+                        <col style="width: 6%">
+                        <col style="width: 32%">
+                        <col style="width: 8%">
+                        <col style="width: 20%">
+                        <col style="width: 34%">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>检查项目</th>
+                            <th>结果</th>
+                            <th>检查图片</th>
+                            <th>检查发现与整改建议</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <tr v-for="(item, index) in dailyFlattened" :key="item.id">
-                            <td>{{ index + 1 }}</td><td class="align-left">{{ item.content }}</td>
-                            <td :class="getDailyStatus(item.id) === 'fail' ? 'status-fail' : 'status-pass'">{{ getDailyStatus(item.id) === 'fail' ? '不符合' : '符合' }}</td>
-                            <td><img v-if="getRecordImage(item.id)" :src="getRecordImage(item.id)" style="max-width: 100%; max-height: 60px; object-fit: contain;"></td>
+                            <td>{{ index + 1 }}</td>
+                            <td class="align-left">{{ item.content }}</td>
+                            <td :class="getDailyStatus(item.id) === 'fail' ? 'status-fail' : 'status-pass'">
+                                {{ getDailyStatus(item.id) === 'fail' ? '不符合' : '符合' }}
+                            </td>
+                            <td>
+                                <div class="img-wrapper">
+                                    <img v-if="getRecordImage(item.id)" :src="getRecordImage(item.id)">
+                                </div>
+                            </td>
                             <td class="align-left">{{ getRecordRemark(item.id) }}</td>
                         </tr>
                     </tbody>
                 </table>
-                <div style="margin-top: 20px; font-family: 'SimSun'; font-size: 14px; display: flex; justify-content: flex-end;"><div>食品安全员签字：__________________</div></div>
+                
+                <div class="doc-footer-area">
+                    <div class="signature-row">
+                        <span style="font-family: 'SimHei', sans-serif; font-weight: bold; margin-right: 10px;">食品安全员签字：</span>
+                        <span class="doc-value" style="width: 120px; border-bottom: 1px solid #000; display: inline-block;">{{ db.settings.managerName || '' }}</span>
+                    </div>
+                    <div class="page-number">第 1 页 / 共 1 页</div>
+                </div>
             </div>
 
-            <div v-else-if="previewType === 'weekly'">
-               <div class="doc-header"><div class="red-header">{{ db.settings.branchName || '分店名称' }}</div><div class="doc-title">每周食品安全排查治理报告</div></div>
-                <div class="doc-info-row"><span class="doc-label">接收人：</span> {{ weeklyData && weeklyData.receiver }}</div>
-                <div class="doc-info-row"><span class="doc-label">抄送人：</span> {{ weeklyData && weeklyData.cc }}</div>
-                 <div class="doc-info-row" style="margin-bottom: 20px;"><span class="doc-label">排查周期：</span> {{ currentWeekRangeStart }} 至 {{ currentWeekRangeEnd }}</div>
-                 <div class="doc-info-row" style="position: absolute; top: 25mm; right: 25mm;"><span class="doc-label" style="min-width: auto;">记录编号：</span> {{ (weeklyData && weeklyData.recordNo) || currentWeekKey.replace('-W', '') }}</div>
+            <!-- 【独立打印：周排查预览】 -->
+            <div v-else-if="previewType === 'weekly'" class="flex flex-col h-full">
+                <div class="red-header-wrap">
+                    <div class="red-header">{{ db.settings.branchName || '分店名称' }}</div>
+                    <div class="doc-title" style="margin-bottom: 0; font-size: 24px;">每周食品安全排查治理报告</div>
+                </div>
+                
+                <div class="doc-meta-grid">
+                    <div class="doc-info-row"><span class="doc-label">接收人：</span> <span class="doc-value" style="text-align: left;">{{ weeklyData && weeklyData.receiver }}</span></div>
+                    <div class="doc-info-row text-right"><span class="doc-label">记录编号：</span> <span class="doc-value" style="border: none;">{{ (weeklyData && weeklyData.recordNo) || currentWeekKey.replace('-W', '') }}</span></div>
+                    <div class="doc-info-row"><span class="doc-label">抄送人：</span> <span class="doc-value" style="text-align: left;">{{ weeklyData && weeklyData.cc }}</span></div>
+                    <div class="doc-info-row text-right"><span class="doc-label">排查周期：</span> <span class="doc-value" style="border: none;">{{ currentWeekRangeStart }} 至 {{ currentWeekRangeEnd }}</span></div>
+                </div>
 
                 <div class="doc-section-title">一、本周排查发现问题情况</div>
                 <div v-if="!weeklyData || !weeklyData.issues || weeklyData.issues.length === 0" class="doc-text">本周排查未发现异常情况。</div>
-                <div v-else><div v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx" class="doc-text">{{ idx + 1 }}. {{ issue.problem }}</div></div>
+                <div v-else>
+                    <div v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx" class="doc-text">{{ idx + 1 }}. {{ issue.problem }}</div>
+                </div>
                 
                 <div class="doc-section-title">二、周排查问题整改情况和措施</div>
                 <div v-if="!weeklyData || !weeklyData.issues || weeklyData.issues.length === 0" class="doc-text">无需要整改的问题。</div>
                 <table v-else class="doc-table weekly-table">
-                    <thead><tr><th style="width:8%">序号</th><th style="width:25%">问题</th><th style="width:25%">整改措施</th><th style="width:15%">责任人</th><th style="width:15%">期限</th><th style="width:12%">状态</th></tr></thead>
-                    <tbody><tr v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx"><td>{{ idx + 1 }}</td><td class="align-left">{{ issue.problem }}</td><td class="align-left">{{ issue.measure }}</td><td>{{ issue.person }}</td><td>{{ issue.deadline }}</td><td>{{ issue.status }}</td></tr></tbody>
+                    <thead>
+                        <tr>
+                            <th style="width:7%">序号</th>
+                            <th style="width:26%">问题描述</th>
+                            <th style="width:28%">整改措施</th>
+                            <th style="width:12%">责任人</th>
+                            <th style="width:15%">整改期限</th>
+                            <th style="width:12%">当前状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(issue, idx) in (weeklyData && weeklyData.issues || [])" :key="idx">
+                            <td>{{ idx + 1 }}</td>
+                            <td class="align-left">{{ issue.problem }}</td>
+                            <td class="align-left">{{ issue.measure }}</td>
+                            <td>{{ issue.person }}</td>
+                            <td>{{ issue.deadline ? formatSlashString(issue.deadline) : '' }}</td>
+                            <td>{{ issue.status }}</td>
+                        </tr>
+                    </tbody>
                 </table>
-                <div class="doc-section-title">三、本周食品安全管理情况评价</div>
-                <div class="doc-text">
-                    <span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '好')}"></span> 1. 食品安全风险可控，无较大食品安全风险隐患。<br>
-                    <span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '中')}"></span> 2. 存在食品安全风险隐患，需尽快采取防范措施。<br>
-                    <span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '差')}"></span> 3. 存在严重食品安全风险隐患，需尽快采取防范措施。
+                
+                <div class="doc-section-title keep-together">三、本周食品安全管理情况评价</div>
+                <div class="doc-text keep-together" style="text-indent: 0; margin-left: 2em; line-height: 2;">
+                    <div style="margin-bottom: 6px;"><span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '好')}"></span> 1. 食品安全风险可控，无较大食品安全风险隐患。</div>
+                    <div style="margin-bottom: 6px;"><span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '中')}"></span> 2. 存在食品安全风险隐患，需尽快采取防范措施。</div>
+                    <div><span class="check-box" :class="{checked: (weeklyData && weeklyData.evaluation === '差')}"></span> 3. 存在严重食品安全风险隐患，需尽快采取防范措施。</div>
+                </div>
+                
+                <div class="doc-footer-area">
+                    <div class="signature-row">
+                        <span style="font-family: 'SimHei', sans-serif; font-weight: bold; margin-right: 10px;">食品安全总监/管员签字：</span>
+                        <span class="doc-value" style="width: 120px; border-bottom: 1px solid #000; display: inline-block;"></span>
+                    </div>
+                    <div class="signature-row">
+                        <span style="font-family: 'SimHei', sans-serif; font-weight: bold; margin-right: 10px;">日期：</span>
+                        <span class="doc-value" style="width: 120px; border-bottom: 1px solid #000; display: inline-block; text-align: center;">年 &nbsp;&nbsp;月 &nbsp;&nbsp;日</span>
+                    </div>
+                    <div class="page-number">第 1 页 / 共 1 页</div>
                 </div>
             </div>
 
-            <div v-else-if="previewType === 'monthly'">
-                 <div>
-                    <div class="doc-header-right">附件4</div>
-                    <div class="doc-title">每月食品安全调度会议纪要</div>
-                    <div class="doc-record-no">记录编号：（{{ (monthlyData && monthlyData.basic && monthlyData.basic.recordNo) || '________' }}）</div>
-                    
-                    <table class="doc-table monthly-table">
-                        <tr><td class="doc-label-cell">会议名称</td><td>{{ monthlyData && monthlyData.basic && monthlyData.basic.year }}年{{ monthlyData && monthlyData.basic && monthlyData.basic.month }}月食品安全调度会议纪要</td></tr>
-                        <tr><td class="doc-label-cell">主 持 人</td><td>{{ monthlyData && monthlyData.basic && monthlyData.basic.host }}</td></tr>
-                        <tr><td class="doc-label-cell">会议日期</td><td>{{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }} &nbsp;&nbsp;&nbsp;&nbsp; {{ monthlyData && monthlyData.basic && monthlyData.basic.start }} — {{ monthlyData && monthlyData.basic && monthlyData.basic.end }}</td></tr>
-                        <tr><td class="doc-label-cell">会议地点</td><td>{{ monthlyData && monthlyData.basic && monthlyData.basic.loc }}</td></tr>
-                        <tr><td class="doc-label-cell">出席人员</td><td>{{ monthlyData && monthlyData.basic && monthlyData.basic.attendees }}</td></tr>
-                    </table>
+            <!-- 【独立打印：月调度预览】 -->
+            <div v-else-if="previewType === 'monthly'" class="flex flex-col h-full">
+                <div class="doc-header-right">附件4</div>
+                <div class="doc-title" style="font-size: 24px;">每月食品安全调度会议纪要</div>
+                <div class="doc-record-no">记录编号：（<span class="u-line" style="border-bottom: none;">{{ (monthlyData && monthlyData.basic && monthlyData.basic.recordNo) || '________' }}</span>）</div>
+                
+                <table class="doc-table monthly-table">
+                    <tr>
+                        <td class="doc-label-cell">会议名称</td>
+                        <td colspan="3" style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.year }}年{{ monthlyData && monthlyData.basic && monthlyData.basic.month }}月食品安全调度会议纪要</td>
+                    </tr>
+                    <tr>
+                        <td class="doc-label-cell">主 持 人</td>
+                        <td style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.host }}</td>
+                        <td class="doc-label-cell">会议日期</td>
+                        <td style="text-align: left; padding-left: 15px;">
+                            {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }} 
+                            &nbsp; {{ monthlyData && monthlyData.basic && monthlyData.basic.start }} — {{ monthlyData && monthlyData.basic && monthlyData.basic.end }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="doc-label-cell">会议地点</td>
+                        <td colspan="3" style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.loc }}</td>
+                    </tr>
+                    <tr>
+                        <td class="doc-label-cell">出席人员</td>
+                        <td colspan="3" style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.attendees }}</td>
+                    </tr>
+                </table>
 
-                    <div style="font-weight:bold; margin: 20px 0 10px 0; font-family: 'SimHei'; font-size:16px;">会议内容记录：</div>
-                    <div class="doc-section-title">一、食品安全管理工作情况汇报（汇报人：{{ monthlyData && monthlyData.report && monthlyData.report.reporter }}）</div>
-                    <div class="doc-text"><span class="doc-text-bold">1. 食品原料验收情况：</span>本月到货总批数 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.total }}</span> 批次，合格 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.qual }}</span> 批次，不合格 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.unqual }}</span> 批次，到货合格率 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.rate }}</span>。</div>
-                    <div class="doc-text">不合格原料为：{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.badName) || '无' }}，不合格原因：{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.badReason) || '无' }}，对不合格原料采取的处理措施：{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.measure) || '无' }}。</div>
-                    <div class="doc-text"><span class="doc-text-bold">2. 投诉处理情况：</span>本月质量投诉起数为 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.total }}</span> 起，有效投诉 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.eff }}</span> 起，无效投诉 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.inv }}</span> 起。</div>
-                    <div class="doc-text">投诉产品主要为：{{ (monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.prod) || '无' }}；投诉主要原因为：{{ (monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.reason) || '无' }}；采取的主要改进措施为：{{ (monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.measure) || '无' }}。</div>
-                    <div class="doc-text"><span class="doc-text-bold">3. 供应商管理：</span>本月对供应商审核情况：{{ (monthlyData && monthlyData.report && monthlyData.report.sup && monthlyData.report.sup.status) || '无' }}</div>
-                    <div class="doc-text"><span class="doc-text-bold">4. 从业人员培训情况：</span>本月开展培训 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.times }}</span> 次，合计 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.hours }}</span> 学时，参加人员 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.people }}</span> 人。</div>
-                    <div class="doc-text"><span class="doc-text-bold">5. 日管控问题落实：</span>（1）本月日常检查问题 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.total }}</span> 项，已整改 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.fixed }}</span> 项，待整改 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.pending }}</span> 项，计划整改时间为 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check ? formatSlashString(monthlyData.report.check.deadline) : '' }}</span>；（2）责任部门配合情况：{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.coop }}。</div>
+                <div style="font-weight:bold; margin: 20px 0 10px 0; font-family: 'SimHei', sans-serif; font-size:16px;">会议内容记录：</div>
+                
+                <div class="doc-section-title">一、食品安全管理工作情况汇报（汇报人：<span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.reporter }}</span>）</div>
+                <div class="doc-text"><span class="doc-text-bold">1. 食品原料验收情况：</span>本月到货总批数 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.total }}</span> 批次，合格 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.qual }}</span> 批次，不合格 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.unqual }}</span> 批次，到货合格率 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.rate }}</span>。</div>
+                <div class="doc-text">不合格原料为：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.badName) || '无' }}</span>，不合格原因：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.badReason) || '无' }}</span>，对不合格原料采取的处理措施：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.measure) || '无' }}</span>。</div>
+                
+                <div class="doc-text"><span class="doc-text-bold">2. 投诉处理情况：</span>本月质量投诉起数为 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.total }}</span> 起，有效投诉 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.eff }}</span> 起，无效投诉 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.inv }}</span> 起。</div>
+                <div class="doc-text">投诉产品主要为：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.prod) || '无' }}</span>；采取的主要改进措施为：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.measure) || '无' }}</span>。</div>
+                
+                <div class="doc-text"><span class="doc-text-bold">3. 供应商管理：</span>本月对供应商审核情况：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.sup && monthlyData.report.sup.status) || '无' }}</span></div>
+                
+                <div class="doc-text"><span class="doc-text-bold">4. 从业人员培训情况：</span>本月开展培训 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.times }}</span> 次，合计 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.hours }}</span> 学时，参加人员 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.people }}</span> 人。</div>
+                
+                <div class="doc-text keep-together"><span class="doc-text-bold">5. 日管控问题落实：</span>（1）本月日常检查问题 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.total }}</span> 项，已整改 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.fixed }}</span> 项，待整改 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.pending }}</span> 项，计划整改时间为 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check ? formatSlashString(monthlyData.report.check.deadline) : '' }}</span>；（2）责任部门配合情况：<span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.coop }}</span>。</div>
 
-                    <div class="doc-section-title keep-together">二、较大风险隐患排查情况</div>
-                    <div class="doc-text">存在的主要风险隐患问题如下：</div>
-                    <div style="margin-left: 1em;">
-                        <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.risks || [])" :key="i" class="doc-text">（{{i+1}}）{{ item }}；</div>
-                        <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.risks || monthlyData.lists.risks.length === 0" class="doc-text">无。</div>
+                <div class="doc-section-title keep-together">二、较大风险隐患排查情况</div>
+                <div class="doc-text keep-together">存在的主要风险隐患问题如下：</div>
+                <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                    <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.risks || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                    <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.risks || monthlyData.lists.risks.length === 0">无。</div>
+                </div>
+                
+                <div class="doc-section-title keep-together">三、食品安全相关部门发言及达成的共识</div>
+                <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                    <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.consensus || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                    <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.consensus || monthlyData.lists.consensus.length === 0">无。</div>
+                </div>
+                
+                <div class="doc-section-title keep-together">四、企业主要负责人工作要求（负责人：<span class="u-line">{{ monthlyData && monthlyData.leader }}</span>）</div>
+                <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                    <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.reqs || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                    <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.reqs || monthlyData.lists.reqs.length === 0">无。</div>
+                </div>
+                
+                <div class="doc-section-title keep-together">五、下个月食品安全管理重点工作计划</div>
+                <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                    <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.plans || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                    <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.plans || monthlyData.lists.plans.length === 0">无。</div>
+                </div>
+                
+                <div class="doc-footer-area">
+                    <div class="monthly-signature">
+                        <div style="flex:1;">
+                            <span style="font-family:'SimHei', sans-serif; font-weight:bold;">汇报人/日期：</span>
+                            <span class="doc-value" style="border:none;">{{ monthlyData && monthlyData.report && monthlyData.report.reporter }} / {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }}</span>
+                        </div>
+                        <div style="flex:1; text-align:right;">
+                            <span style="font-family:'SimHei', sans-serif; font-weight:bold;">企业主要负责人/日期：</span>
+                            <span class="doc-value" style="border:none;">{{ monthlyData && monthlyData.leader }} / {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }}</span>
+                        </div>
                     </div>
-                    <div class="doc-section-title keep-together">三、食品安全相关部门发言及达成的共识</div>
-                    <div style="margin-left: 1em;">
-                        <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.consensus || [])" :key="i" class="doc-text">（{{i+1}}）{{ item }}；</div>
-                        <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.consensus || monthlyData.lists.consensus.length === 0" class="doc-text">无。</div>
-                    </div>
-                    <div class="doc-section-title keep-together">四、企业主要负责人工作要求（负责人：{{ monthlyData && monthlyData.leader }}）</div>
-                    <div style="margin-left: 1em;">
-                        <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.reqs || [])" :key="i" class="doc-text">（{{i+1}}）{{ item }}；</div>
-                        <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.reqs || monthlyData.lists.reqs.length === 0" class="doc-text">无。</div>
-                    </div>
-                    <div class="doc-section-title keep-together">五、下个月食品安全管理重点工作计划</div>
-                    <div style="margin-left: 1em;">
-                        <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.plans || [])" :key="i" class="doc-text">（{{i+1}}）{{ item }}；</div>
-                        <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.plans || monthlyData.lists.plans.length === 0" class="doc-text">无。</div>
-                    </div>
-                    <div class="doc-footer">
-                        <div style="flex:1;">汇报人/日期：{{ monthlyData && monthlyData.report && monthlyData.report.reporter }} / {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }}</div>
-                        <div style="flex:1; text-align:right;">企业负责人/日期：{{ monthlyData && monthlyData.leader }} / {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }}</div>
-                    </div>
+                    <div class="page-number">第 1 页 / 共 1 页</div>
                 </div>
             </div>
-            <div style="position: absolute; bottom: 10mm; width: 100%; text-align: center; font-size: 12px; left: 0; color: #666;">第 1 页 / 共 1 页</div>
+            
         </div>
     </div>
 
@@ -1505,7 +1732,7 @@
                             "【条款名称】：" + itemDef.name + "\n" +
                             "【条款具体要求】：" + itemDef.content + "\n\n" +
                             "检查备注原文：\n" +
-                            (userRemark || "未严格落实条款要求") + "\n\n" +
+                            "（" + (userRemark || "未严格落实条款要求") + "）\n\n" +
                             "请根据条款要求，对备注进行规范化表达，形成：\n" +
                             "{\n  \"综合描述\": \"\"\n}\n\n" +
                             "要求：\n" +
@@ -1716,8 +1943,22 @@
             const exportPDF = async () => {
                 isExporting.value = true;
                 const element = document.getElementById('report-content');
-                let filename = previewType.value + "_report_" + selectedDate.value + ".pdf";
-                if (previewType.value === 'monthly') filename = (monthlyData.value.basic.year) + "年" + (monthlyData.value.basic.month) + "月安全会议纪要.pdf";
+                
+                let filename = "导出报告.pdf";
+                const d = new Date(selectedDate.value);
+                const dateStr = d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate();
+
+                if (previewType.value === 'daily') {
+                    filename =  dateStr + "日管控.pdf";
+                } else if (previewType.value === 'weekly') {
+                    const sd = new Date(currentWeekRangeStart.value);
+                    const ed = new Date(currentWeekRangeEnd.value);
+                    const startStr = sd.getFullYear() + '.' + (sd.getMonth() + 1) + '.' + sd.getDate();
+                    const endStr = ed.getFullYear() + '.' + (ed.getMonth() + 1) + '.' + ed.getDate();
+                    filename = startStr + "到" + endStr + "周排查.pdf";
+                } else if (previewType.value === 'monthly') {
+                    filename = (monthlyData.value.basic.year) + "年" + (monthlyData.value.basic.month) + "月安全会议纪要.pdf";
+                }
 
                 const opt = {
                     margin: 0, filename: filename,
