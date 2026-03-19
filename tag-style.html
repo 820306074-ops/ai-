@@ -207,8 +207,18 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
         
+        /* 底部信息区样式 */
+        .footer-info {
+            text-align: center; margin-top: 30px; padding-bottom: 20px;
+        }
         .version {
-            text-align: center; color: #B0BEC5; font-size: 12px; margin-top: 30px;
+            color: #B0BEC5; font-size: 12px; margin-bottom: 8px;
+        }
+        .author {
+            color: var(--primary); font-size: 13px; font-weight: 500; margin-bottom: 6px; opacity: 0.85;
+        }
+        .disclaimer {
+            color: #90A4AE; font-size: 11px; line-height: 1.6; max-width: 90%; margin: 0 auto;
         }
     </style>
 </head>
@@ -234,16 +244,21 @@
 
         <div class="tags">
             <span class="tag" onclick="fill('金银花')">金银花</span>
-            <span class="tag" onclick="fill('肉苁蓉')">肉苁蓉</span>
-            <span class="tag" onclick="fill('一枝黄花')">一枝黄花</span>
+            <span class="tag" onclick="fill('生熟地')">生熟地</span>
+            <span class="tag" onclick="fill('生地')">生地</span>
             <span class="tag" onclick="fill('双花')">双花</span>
-            <span class="tag" onclick="fill('透明质酸钠')">玻尿酸</span>
+            <span class="tag" onclick="fill('玻尿酸')">玻尿酸</span>
         </div>
     </div>
 
     <div id="resultView" class="card"></div>
     
-    <div class="version">System V23.0 · Powered by Kimi-k2.5 & 国家级法规智库</div>
+    <!-- 底部版权、作者与免责声明 -->
+    <div class="footer-info">
+        <div class="version">System V23.1 · 别名强校验版 · Powered by Kimi-k2.5</div>
+        <div class="author">👨‍💻 作者：李川 | 💬 有疑问请企业微信联系</div>
+        <div class="disclaimer">⚠️ 免责声明：本系统核查结果由本地规则与 AI 综合生成，仅供辅助参考，不作为最终法定合规依据，请结合实际法规标准使用。</div>
+    </div>
 </div>
 
 <script>
@@ -339,31 +354,43 @@
             .replace(/\n/g, '<br>');
     }
 
-    // 解析 AI 文本中的“最终结论”或“是否可用于普通食品生产”以决定卡片颜色
+    // ==========================================
+    // 🎯 优化：精准解析AI结论文本，决定卡片颜色
+    // 逻辑：严格剥离【合规结论】这句话进行判定，防止正文中出现“不可”导致绿色被误判为红色
+    // ==========================================
     function determineColorFromAIText(text) {
-        const lowerText = text.toLowerCase();
+        // 先去除 HTML 标签，方便纯文本正则匹配
+        const plainText = text.replace(/<[^>]+>/g, '');
         
-        // 优先看最终结论
-        const matchConclusion = text.match(/五、最终结论.*?<br>(.*?)(<br>|$)/i) || text.match(/最终结论[：:](.*?)(<br>|$)/i);
+        // 优先提取 AI 最终输出的【合规结论】句子
+        const matchConclusion = plainText.match(/【合规结论】[：:](.*?)(\n|$)/i) || plainText.match(/最终结论[：:](.*?)(\n|$)/i);
+        
         if (matchConclusion && matchConclusion[1]) {
-            const conclusion = matchConclusion[1];
-            if (conclusion.includes('不建议') || conclusion.includes('不可') || conclusion.includes('禁止') || conclusion.includes('不合法') || conclusion.includes('仅限药')) {
+            const conclusion = matchConclusion[1].trim();
+            
+            // 1. 优先判定黄色（有条件/限量）
+            if (conclusion.includes('条件') || conclusion.includes('限量') || conclusion.includes('不确定')) {
+                return 'yellow'; 
+            }
+            // 2. 判定红色（不可用/禁用）
+            if (conclusion.includes('不合法') || conclusion.includes('禁用') || conclusion.includes('禁止') || conclusion.includes('不建议') || conclusion.includes('不可') || conclusion.includes('仅限药')) {
                 return 'red';
             }
-            if (conclusion.includes('条件') || conclusion.includes('限量') || conclusion.includes('存在监管不确定性')) {
-                return 'yellow';
-            }
-            if (conclusion.includes('合法') || conclusion.includes('可以') || conclusion.includes('允许')) {
+            // 3. 判定绿色（合规可用/餐饮可以使用）
+            if (conclusion.includes('合法') || conclusion.includes('可以') || conclusion.includes('允许') || conclusion.includes('合规')) {
                 return 'green';
             }
         }
         
-        // 备用判断：通过“是否可用于普通食品生产：否”来判断
-        if (lowerText.includes('是否可用于普通食品生产：否') || lowerText.includes('未检索到该原料的合法食品使用依据')) {
+        // 如果没有成功提取到结论句，启动备用安全判断规则
+        if (plainText.includes('是否可用于普通食品生产：否') || plainText.includes('未检索到该原料的合法食品使用依据')) {
              return 'red';
         }
-        if (lowerText.includes('存在监管不确定性')) {
+        if (plainText.includes('限量要求：是') || plainText.includes('条件性合法') || plainText.includes('存在监管不确定性')) {
              return 'yellow';
+        }
+        if (plainText.includes('是否可用于普通食品生产：是') || plainText.includes('普通食品：是') || plainText.includes('药食同源：是')) {
+             return 'green';
         }
 
         return 'purple'; // 默认深度核查色
@@ -450,7 +477,7 @@
         view.style.display = 'block';
 
         try {
-            // 1. 启动合规查询引擎（包含本地先查、无果转标准名再查、无果AI深查）
+            // 1. 启动合规查询引擎
             const res = await getComplianceResult(input);
             view.innerHTML = renderResult(res.color, res.title, res.desc, res.displayKw);
         } catch (e) {
@@ -459,24 +486,48 @@
         }
     }
 
-    // 获取综合合规结果：严格执行 先查本地 -> 本地没查到转标准名再查本地 -> 还是查不到调用AI深度查 的原则
+    // ==========================================
+    // 🎯 优化：获取综合合规结果（新增本地前置别名转换）
+    // ==========================================
     async function getComplianceResult(input) {
-        // 第一步：用原词直接秒查本地大数据库
-        const localResDirect = checkIngredient(input);
+        // --- 新增核心：0. 本地强别名映射，优先确定品名 ---
+        const localAliasMap = {
+            "生地": "地黄",
+            "熟地": "地黄",
+            "生熟地": "地黄",
+            "生熟地黄": "地黄",
+            "玻尿酸": "透明质酸钠",
+            "双花": "金银花"
+            // 未来可以在这里随时补充任何强制映射的别名
+        };
         
-        // 如果本地数据库判定结果不是“未知”，说明找到了，直接返回本地结果（无需任何网络请求）
+        // 如果输入命中了别名库，立刻转换；否则保持原样
+        let normalizedInput = localAliasMap[input] || input;
+
+        // 第一步：用转换后的正名(或原词)直接秒查本地大数据库
+        const localResDirect = checkIngredient(normalizedInput);
+        
+        // 如果本地数据库判定结果不是“未知”，说明找到了，直接返回
         if (!localResDirect.isUnknown) {
             return { 
                 color: localResDirect.color, 
                 title: localResDirect.title, 
                 desc: localResDirect.desc,
-                displayKw: input // 原样展示
+                // 如果发生了强制映射，就在界面明确展示出来
+                displayKw: (normalizedInput !== input) ? `${input} ➡️ ${normalizedInput}` : input 
             };
         }
         
-        // 第二步：本地查不到（大概率是别名或生僻物料），触发 AI 标准名称核验
-        const stdName = await getStandardNameFromAI(input);
-        const displayKw = (stdName !== input && !stdName.includes(input)) ? `${input} ➡️ ${stdName}` : input;
+        // 第二步：本地依然查不到，触发 AI 标准名称核验
+        const stdName = await getStandardNameFromAI(normalizedInput);
+        
+        // 整理展示关键词
+        let displayKw = input;
+        if (normalizedInput !== input) {
+            displayKw = `${input} ➡️ ${normalizedInput}`;
+        } else if (stdName !== input && !stdName.includes(input)) {
+            displayKw = `${input} ➡️ ${stdName}`;
+        }
 
         // 第三步：用 AI 转换后的正统标准名字，【再次】查本地大数据库
         const localResStd = checkIngredient(stdName);
@@ -485,11 +536,11 @@
                 color: localResStd.color, 
                 title: localResStd.title, 
                 desc: localResStd.desc,
-                displayKw: displayKw // 展示别名到正名的映射
+                displayKw: displayKw 
             };
         }
 
-        // 第四步：连标准名字在本地大数据库里都没有，触发终极 AI 深度合规审查
+        // 第四步：本地大数据库彻底没有，触发终极 AI 深度合规审查
         try {
             const aiTextRaw = await callAIAudit(stdName);
             const aiHtmlFormatted = formatMarkdown(aiTextRaw);
@@ -703,7 +754,7 @@
         HEALTH_BANNED: new Set(("八角莲 八角枫 兰花参 千金子 土青木香 山莨菪 川乌 广防己 马钱子 六角莲 天仙子 巴豆 水银 长春花 甘遂 仙茅 白屈菜 夹竹桃 朱砂 米壳 罂粟壳 红升丹 红豆杉 红茴香 红大戟 羊角拗 羊踯躅 丽江山慈菇 京大戟 昆明山海棠 河豚 闹羊花 狗舌草 金不换 金线甲素 铃兰 钩吻 祖师麻 洋地黄 班哈卡 鬼臼 曼陀罗 狼毒 黄花夹竹桃 雪上一枝蒿 硫黄 雄黄 雌黄 商陆 斑蝥 蟾酥").split(' ')),
         INFANT_PROBIOTICS: new Set(("嗜酸乳杆菌 动物双歧杆菌 乳双歧杆菌 短双歧杆菌 发酵乳杆菌 瑞士乳杆菌 鼠李糖乳杆菌 副干酪乳杆菌 罗伊氏乳杆菌 嗜热链球菌").split(' ')),
         PROBIOTICS: new Set(("地衣芽孢杆菌 凝结芽孢杆菌 青春双歧杆菌 动物双歧杆菌 两歧双歧杆菌 短双歧杆菌 婴儿双歧杆菌 长双歧杆菌 嗜酸乳杆菌 嗜淀粉乳杆菌 产阿米尔乳杆菌 短乳杆菌 干酪乳杆菌 棒状乳杆菌 德氏乳杆菌 发酵乳杆菌 加氏乳杆菌 瑞士乳杆菌 约氏乳杆菌 乳酸乳杆菌 副干酪乳杆菌 植物乳杆菌 罗伊氏乳杆菌 鼠李糖乳杆菌 唾液乳杆菌 清酒乳杆菌 乳酸乳球菌 肠膜明串珠菌 嗜热链球菌 酿酒酵母 乳克鲁维酵母").split(' ')),
-        ORDINARY: new Set(("水 饮用水 纯净水 白砂糖 糖 食盐 盐 大米 小麦 面粉 玉米 高粱 黄豆 大豆 绿豆 红豆 黑豆 燕麦 荞麦 白菜 萝卜 黄瓜 西红柿 辣椒 茄子 芹菜 菠菜 无花果 韭菜 芫荽 香菜 苹果 梨 香蕉 葡萄 西瓜 橘子 橙子 柠檬 柚子 草莓 蓝莓 猪肉 牛肉 羊肉 鸡肉 鸭肉 鸡蛋 鸭蛋 牛奶 羊奶 核桃 榛子 松子 开心果 腰果 葵花籽 南瓜子 西瓜子 花生 芝麻 莲子 百合 银耳 木耳 香菇 金针菇 辣椒粉 孜然 胡椒 咖喱粉 芥末 普洱茶 绿茶 红茶 乌龙茶 茉莉花茶 玫瑰花 桂花 茉莉花 洛神花 菊花 金银花 魔芋 琼脂 五指毛桃 牛蒡根 大麦苗 针叶樱桃 酵母抽提物 麦芽糊精 淀粉 果葡糖浆").split(' ')),
+        ORDINARY: new Set(("水 饮用水 纯净水 白砂糖 糖 食盐 盐 大米 小麦 面粉 玉米 高粱 黄豆 大豆 绿豆 红豆 黑豆 燕麦 荞麦 白菜 萝卜 黄瓜 西红柿 辣椒 茄子 芹菜 菠菜 无花果 韭菜 芫荽 香菜 苹果 梨 香蕉 葡萄 西瓜 橘子 橙子 柠檬 柚子 草莓 蓝莓 猪肉 牛肉 羊肉 鸡肉 鸭肉 鸡蛋 鸭蛋 牛奶 羊奶 核桃 榛子 松子 开心果 腰果 葵花籽 南瓜子 西瓜子 花生 芝麻 莲子 百合 银耳 木耳 香菇 金针菇 辣椒粉 孜然 胡椒 咖喱粉 芥末 普洱茶 绿茶 红茶 乌龙茶 茉莉花茶 玫瑰花 桂花 茉莉花 洛神花 菊花 金银花 魔芋 琼脂 五指毛桃 牛蒡根 大麦苗 针叶樱桃 酵母抽提物 麦芽糊精 淀粉 果葡糖浆 土豆 马铃薯 红薯 番薯 地瓜 芋头 莲藕 藕 生菜 油麦菜 卷心菜 圆白菜 高丽菜 小白菜 娃娃菜 空心菜 茼蒿 苋菜 苦瓜 丝瓜 冬瓜 南瓜 西葫芦 豆角 豇豆 毛豆 豌豆 蚕豆 豆芽 芦笋 竹笋 春笋 冬笋 茭白 荸荠 马蹄 蒜薹 蒜苗 韭黄 胡萝卜 甜椒 菜椒 彩椒 番茄 圣女果 海带 紫菜 裙带菜 平菇 杏鲍菇 草菇 茶树菇 猴头菇 黑木耳 腐竹 豆腐 豆皮 烤麸 面筋 桃子 水蜜桃 黄桃 蟠桃 李子 杏子 樱桃 车厘子 猕猴桃 奇异果 柿子 石榴 枇杷 芒果 菠萝 凤梨 榴莲 菠萝蜜 芭乐 番石榴 莲雾 释迦果 杨桃 蔓越莓 黑莓 树莓 牛油果 鳄梨 椰子 椰青 百香果 葡萄柚 芦柑 砂糖橘 蜜橘 脐橙 血橙 青柠 金桔 哈密瓜 甜瓜 香瓜 杨梅 荔枝 雪梨 鸭梨 芭蕉").split(' ')),
         ORDINARY_APPROVED: {
             "五指毛桃": "卫健委复函同意作为普通食品。", "牛蒡根": "卫健委复函同意作为普通食品。",
             "普洱茶": "终止审查，按普通食品管理。", "玫瑰花": "重瓣红玫瑰，普通食品。",
