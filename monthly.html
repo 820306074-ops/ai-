@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>食品安全数智化管理系统 - 多图专业版</title>
+    <title>食品安全数智化管理系统 </title>
     <!-- 核心库引入 -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -530,7 +530,9 @@
                                                 
                                                 <!-- 多图上传区 -->
                                                 <div class="w-full lg:w-72 h-[5.5rem] lg:h-full shrink-0 bg-white border-2 border-dashed border-red-200 rounded-xl p-2 flex gap-2 overflow-x-auto items-center relative custom-scrollbar"
+                                                     @dragenter.prevent
                                                      @dragover.prevent
+                                                     @dragleave.prevent
                                                      @drop.prevent="handleImageDrop($event, item)">
                                                     <input type="file" class="hidden" multiple accept="image/*" @change="handleImageUpload($event, item)" :id="'upload-'+item.id">
                                                     
@@ -1811,6 +1813,7 @@
             };
             
             const handleImageDrop = async (e, item) => {
+                if (!e.dataTransfer || !e.dataTransfer.files) return;
                 const files = Array.from(e.dataTransfer.files);
                 if (!files.length) return;
                 await processFiles(files, item);
