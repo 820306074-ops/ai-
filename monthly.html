@@ -9,6 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- 引入 ECharts 支持驾驶舱数据可视化 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 
     <!-- Tailwind 基础配置 -->
     <script>
@@ -34,13 +37,16 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* 内部滚动条隐藏优化 */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 
         /* 动画类 */
         .fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(8px); }
         .sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 全局消息提示 */
         .toast-msg {
@@ -172,7 +178,7 @@
         
         <!-- 侧边栏 -->
         <aside class="bg-[#0f172a] text-white flex flex-col shadow-2xl z-20 sidebar-transition overflow-hidden border-r border-slate-800" :class="sidebarCollapsed ? 'w-20' : 'w-64'">
-            <div class="h-16 flex items-center justify-center bg-[#0f172a] border-b border-slate-800 shrink-0">
+            <div class="h-14 flex items-center justify-center bg-[#0f172a] border-b border-slate-800 shrink-0">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-600 text-white shadow-lg shadow-primary-500/30" :class="!sidebarCollapsed ? 'mr-3' : ''">
                     <i class="fa-solid fa-shield-halved text-sm"></i>
                 </div>
@@ -182,20 +188,20 @@
                 </span>
             </div>
             
-            <nav class="flex-1 py-6 space-y-1 overflow-y-auto">
+            <nav class="flex-1 py-4 space-y-1 overflow-y-auto">
                 <template v-for="(item, key) in navItems" :key="key">
                     <a href="#" @click.prevent="currentView = key" 
                        :class="currentView === key ? 'bg-primary-600/10 text-primary-600 font-semibold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 font-medium'"
                        class="flex items-center px-4 py-3 mx-3 my-1 rounded-xl transition-all duration-200 group relative">
-                        <i :class="item.icon" class="w-6 text-center text-lg"></i>
-                        <span class="ml-3 whitespace-nowrap overflow-hidden transition-all duration-300" :class="sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'">{{ item.label }}</span>
+                        <i :class="item.icon" class="w-5 text-center text-base"></i>
+                        <span class="ml-3 text-sm whitespace-nowrap overflow-hidden transition-all duration-300" :class="sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'">{{ item.label }}</span>
                         <!-- 指示条 -->
                         <div v-if="currentView === key && !sidebarCollapsed" class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-500 rounded-r-full"></div>
                     </a>
                 </template>
             </nav>
             
-            <div class="p-4 border-t border-slate-800 shrink-0">
+            <div class="p-3 border-t border-slate-800 shrink-0">
                 <button type="button" @click="sidebarCollapsed = !sidebarCollapsed" class="w-full flex items-center justify-center py-2.5 bg-slate-800/50 hover:bg-slate-800 rounded-xl text-slate-400 transition-colors">
                     <i :class="sidebarCollapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left'"></i>
                 </button>
@@ -204,9 +210,9 @@
 
         <!-- 内容区 -->
         <main class="flex-1 flex flex-col bg-slate-50 overflow-hidden relative w-full">
-            <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-30 shrink-0">
-                <h2 class="text-xl font-bold text-slate-800 flex items-center tracking-wide">
-                    <div class="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center mr-3">
+            <header class="h-14 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-30 shrink-0">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center tracking-wide">
+                    <div class="w-7 h-7 rounded-md bg-primary-50 text-primary-600 flex items-center justify-center mr-2.5">
                         <i :class="navItems[currentView].icon" class="text-sm"></i>
                     </div>
                     {{ navItems[currentView].title }}
@@ -216,89 +222,207 @@
                         <span class="text-sm font-bold text-slate-700">{{ currentDateFormatted }}</span>
                         <span class="text-xs text-slate-500 font-medium">{{ db.settings.branchName || '分店名称未设置' }}</span>
                     </div>
-                    <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
-                    <button type="button" @click="showSettings = true" class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-all">
-                        <i class="fa-solid fa-gear text-lg"></i>
+                    <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+                    <button type="button" @click="showSettings = true" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-all">
+                        <i class="fa-solid fa-gear text-base"></i>
                     </button>
                 </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto p-4 sm:p-8 scroll-smooth" id="main-scroll">
+            <!-- 主内容区域切换 -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth" id="main-scroll" :class="currentView === 'dashboard' ? '!p-3 !overflow-hidden bg-slate-100' : ''">
                 <transition name="fade" mode="out-in">
                     
-                    <!-- 1. 工作看板 -->
-                    <div v-if="currentView === 'dashboard'" key="dashboard" class="space-y-6 max-w-7xl mx-auto">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-slate-200 p-6 border-t-4 border-t-primary-500">
+                    <!-- 1. 智能数据驾驶舱 (一屏满布无滚动重构版) -->
+                    <div v-if="currentView === 'dashboard'" key="dashboard" class="h-full flex flex-col gap-3 animate-fade-in w-full max-w-none">
+                        
+                        <!-- 第一排：核心 KPI (固定高度) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 h-24">
+                            <!-- KPI 1 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer" @click="currentView='daily'">
                                 <div class="flex justify-between items-start">
-                                    <h3 class="text-slate-500 text-sm font-bold tracking-wider">今日管控状态</h3>
-                                    <div class="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600"><i class="fa-solid fa-clipboard-list"></i></div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-500 mb-0.5">今日管控状态</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ todayStats.statusText }}</h3>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-base group-hover:scale-110 transition-transform"><i class="fa-solid fa-clipboard-check"></i></div>
                                 </div>
-                                <div class="mt-4 flex items-baseline"><span class="text-3xl font-extrabold text-slate-800">{{ todayStats.statusText }}</span></div>
+                                <div class="text-[10px] text-slate-400 font-medium flex items-center mt-1">
+                                    <span class="mr-1.5 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">自动同步</span> 当前实时状态
+                                </div>
+                                <div class="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-500" :class="todayStats.isDone ? 'w-full' : 'w-1/3'"></div>
                             </div>
                             
-                            <div class="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-slate-200 p-6 border-t-4 border-t-orange-500">
+                            <!-- KPI 2 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer" @click="currentView='weekly'">
                                 <div class="flex justify-between items-start">
-                                    <h3 class="text-slate-500 text-sm font-bold tracking-wider">每周排查待办</h3>
-                                    <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-500 mb-0.5">待跟进隐患总数</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ dashboardData.funnel.pending }} <span class="text-[10px] text-slate-400 font-medium">项</span></h3>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-base group-hover:scale-110 transition-transform" :class="dashboardData.funnel.pending > 0 ? 'bg-orange-50 text-orange-500' : 'bg-slate-50 text-slate-400'"><i class="fa-solid fa-triangle-exclamation"></i></div>
                                 </div>
-                                <div class="mt-4 flex items-baseline"><span class="text-3xl font-extrabold text-slate-800">{{ currentWeekStats.pendingCount }}</span><span class="ml-2 text-sm font-medium text-slate-500">项待整改</span></div>
+                                <div class="text-[10px] font-medium flex items-center mt-1" :class="dashboardData.funnel.pending > 0 ? 'text-orange-500' : 'text-slate-400'">
+                                    <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> 周排查及联动待办
+                                </div>
+                                <div class="absolute bottom-0 left-0 w-full h-1" :class="dashboardData.funnel.pending > 0 ? 'bg-orange-100' : 'bg-slate-100'"></div>
+                                <div class="absolute bottom-0 left-0 h-1" :class="dashboardData.funnel.pending > 0 ? 'bg-orange-500 w-1/2' : 'bg-slate-300 w-full'"></div>
                             </div>
-                            
-                            <div class="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-slate-200 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-t-4 border-t-purple-500">
+
+                            <!-- KPI 3 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
                                 <div class="flex justify-between items-start">
-                                    <h3 class="text-purple-700 text-sm font-bold tracking-wider flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>AI 专家引擎</h3>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-500 mb-0.5">问题闭环率 (历史)</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ dashboardData.closeRate }}<span class="text-xs text-slate-500">%</span></h3>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-base group-hover:scale-110 transition-transform"><i class="fa-solid fa-circle-check"></i></div>
                                 </div>
-                                <div class="mt-4 text-sm font-medium text-purple-800 leading-relaxed">支持多现场图证上传，AI 自动抽检首张图进行合规校验与整改建议生成。</div>
+                                <div class="text-[10px] text-slate-400 font-medium flex justify-between items-center mt-1">
+                                    <span>累计发现: <strong class="text-slate-600">{{ dashboardData.totalIssues }}</strong></span>
+                                    <span>已整改: <strong class="text-emerald-600">{{ dashboardData.resolvedIssues }}</strong></span>
+                                </div>
+                                <div class="absolute bottom-0 left-0 w-full h-1 bg-slate-100"></div>
+                                <div class="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-1000" :style="`width: ${dashboardData.closeRate}%`"></div>
+                            </div>
+
+                            <!-- KPI 4 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-500 mb-0.5 flex items-center">综合健康分 <i class="fa-solid fa-wand-magic-sparkles text-purple-500 ml-1"></i></p>
+                                        <h3 class="text-xl font-extrabold" :class="dashboardData.riskColor">{{ dashboardData.riskScore }}<span class="text-[10px] text-slate-400 font-medium ml-1">分</span></h3>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold group-hover:scale-110 transition-transform" :class="dashboardData.riskBg + ' ' + dashboardData.riskColor">
+                                        {{ dashboardData.riskLevel.substring(0, 1) }}
+                                    </div>
+                                </div>
+                                <div class="text-[10px] font-medium flex items-center mt-1" :class="dashboardData.riskColor">
+                                    当前判定为：{{ dashboardData.riskLevel }}
+                                </div>
+                                <div class="absolute bottom-0 left-0 w-full h-1" :class="dashboardData.riskBg"></div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div class="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-slate-200 p-6">
-                                <div class="flex justify-between items-center mb-5">
-                                    <h3 class="font-bold text-lg text-slate-800 flex items-center"><i class="fa-solid fa-list-check w-6 text-primary-500"></i> 核心待办</h3>
+                        <!-- 第二排：AI 洞察 + 趋势折线 + 闭环漏斗 (弹性高度分配) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 flex-[1.2] min-h-[160px]">
+                            
+                            <!-- 1. AI 风险洞察中心 -->
+                            <div class="col-span-1 bg-gradient-to-br from-indigo-900 to-purple-900 rounded-xl shadow-sm p-3 text-white relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute -right-4 -top-4 opacity-10 pointer-events-none text-7xl"><i class="fa-solid fa-microchip"></i></div>
+                                <h3 class="font-bold text-xs mb-2 flex items-center relative z-10"><i class="fa-solid fa-sparkles text-purple-300 mr-1.5"></i> AI 洞察中心</h3>
+                                
+                                <div class="bg-white/10 backdrop-blur-md rounded-md p-2 mb-2 border border-white/10 relative z-10 shrink-0">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-purple-200 text-[10px]">检测结论</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white/20 text-white shadow-sm">{{ dashboardData.riskLevel }}</span>
+                                    </div>
+                                    <p class="text-[11px] leading-snug text-indigo-100 line-clamp-2">
+                                        所选周期捕获 <span class="font-bold text-white">{{ dashboardData.recent30FailCount }}</span> 项异常。
+                                        <template v-if="dashboardData.insight.worstCat">集中在 <span class="font-bold text-white">{{ dashboardData.insight.worstCat }}</span> 环节({{ dashboardData.insight.worstCatCount }}次)。</template>
+                                        <template v-else>各项指标平稳。</template>
+                                    </p>
                                 </div>
-                                <div class="space-y-4">
-                                    <div v-if="!todayStats.isDone" class="group flex items-center justify-between p-4 bg-white border border-red-100 rounded-xl hover:border-red-300 hover:shadow-md cursor-pointer transition-all" @click="currentView='daily'">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500 shrink-0 group-hover:scale-110 transition-transform"><i class="fa-solid fa-calendar-day text-xl"></i></div>
-                                            <div><p class="font-bold text-slate-800 text-base">今日检查尚未完成</p><p class="text-sm text-red-500 mt-0.5">需要执行每日食品安全自查</p></div>
+                                
+                                <div class="flex-1 relative z-10 flex flex-col justify-end min-h-0 overflow-y-auto custom-scrollbar pr-1">
+                                    <p class="text-[9px] text-purple-300 font-semibold mb-1 uppercase">行动建议</p>
+                                    <div class="space-y-1">
+                                        <div v-for="(advice, idx) in dashboardData.insight.advices" :key="'adv-'+idx" class="flex items-start bg-indigo-800/40 p-1.5 rounded-md border border-indigo-700/50">
+                                            <span class="w-3.5 h-3.5 rounded-full bg-purple-500/30 text-purple-200 flex items-center justify-center text-[7px] font-bold shrink-0 mr-1.5 mt-0.5">{{ idx + 1 }}</span>
+                                            <span class="text-[10px] text-indigo-50 font-medium leading-tight">{{ advice }}</span>
                                         </div>
-                                        <i class="fa-solid fa-arrow-right text-slate-300 group-hover:text-red-500 transition-colors group-hover:translate-x-1"></i>
-                                    </div>
-                                    
-                                    <div v-if="currentWeekStats.pendingCount > 0" class="group flex items-center justify-between p-4 bg-white border border-orange-100 rounded-xl hover:border-orange-300 hover:shadow-md cursor-pointer transition-all" @click="currentView='weekly'">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 shrink-0 group-hover:scale-110 transition-transform"><i class="fa-solid fa-screwdriver-wrench text-xl"></i></div>
-                                            <div><p class="font-bold text-slate-800 text-base">{{ currentWeekStats.pendingCount }} 项隐患待跟进</p><p class="text-sm text-orange-500 mt-0.5">前往周排查报告处理整改</p></div>
-                                        </div>
-                                        <i class="fa-solid fa-arrow-right text-slate-300 group-hover:text-orange-500 transition-colors group-hover:translate-x-1"></i>
-                                    </div>
-                                    
-                                    <div v-if="todayStats.isDone && currentWeekStats.pendingCount === 0" class="flex flex-col items-center justify-center py-10 text-slate-400">
-                                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-mug-hot text-2xl text-slate-300"></i></div>
-                                        <p class="font-medium text-slate-500">暂无紧急待办，工作完美！</p>
                                     </div>
                                 </div>
                             </div>
-                            
-                             <div class="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-slate-200 p-6 bg-gradient-to-br from-primary-600 to-indigo-700 text-white relative flex flex-col justify-between">
-                                <div class="absolute -right-6 -bottom-6 opacity-10 pointer-events-none"><i class="fa-solid fa-file-shield text-[10rem]"></i></div>
-                                <div class="relative z-10">
-                                    <h3 class="font-bold text-2xl mb-2">报表中心</h3>
-                                    <p class="text-primary-100 text-sm font-medium">一键生成符合市监局要求的标准化公文，并支持导出PDF存档。</p>
+
+                            <!-- 2. 隐患发生趋势统计 -->
+                            <div class="col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
+                                <div class="flex justify-between items-center shrink-0 z-10">
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-chart-area mr-1.5 text-blue-500"></i> 隐患发生趋势统计</h3>
+                                    <div class="flex items-center gap-2">
+                                        <select v-model="dashboardFilter.year" class="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 outline-none focus:border-primary-400 cursor-pointer">
+                                            <option v-for="y in [2024, 2025, 2026, 2027]" :key="y" :value="y">{{y}}年</option>
+                                        </select>
+                                        <select v-model="dashboardFilter.month" class="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 outline-none focus:border-primary-400 cursor-pointer">
+                                            <option v-for="m in 12" :key="m" :value="m">{{m}}月</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="mt-8 flex flex-col sm:flex-row gap-3 relative z-10">
-                                    <button type="button" @click="currentView='daily'" class="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-3.5 rounded-xl text-sm font-bold backdrop-blur-sm transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-calendar-day"></i> 日管控</button>
-                                    <button type="button" @click="currentView='weekly'" class="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-3.5 rounded-xl text-sm font-bold backdrop-blur-sm transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-calendar-week"></i> 周排查</button>
-                                    <button type="button" @click="currentView='monthly'" class="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-3.5 rounded-xl text-sm font-bold backdrop-blur-sm transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-calendar-days"></i> 月调度</button>
+                                <!-- 图表弹性占满 -->
+                                <div class="flex-1 w-full min-h-0 mt-1 relative" id="trend-chart"></div>
+                            </div>
+
+                            <!-- 3. 整改漏斗图 -->
+                            <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
+                                 <div class="flex justify-between items-center shrink-0 z-10">
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-filter mr-1.5 text-emerald-500"></i> 隐患整改漏斗</h3>
+                                    <button @click="currentView='weekly'" class="text-[9px] text-slate-400 hover:text-primary-600 transition-colors">去处理 <i class="fa-solid fa-chevron-right ml-0.5"></i></button>
                                 </div>
+                                <div class="flex-1 w-full min-h-0 mt-1 relative" id="funnel-chart"></div>
                             </div>
                         </div>
+
+                        <!-- 第三排：待办中心 + 雷达图 + TOP5图表 (弹性高度分配) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-[160px]">
+                            
+                            <!-- 1. 风险待办中心 -->
+                            <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full">
+                                <div class="flex justify-between items-center mb-2 shrink-0">
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-list-check mr-1.5 text-blue-500"></i> 风险待办中心</h3>
+                                    <span v-if="dashboardData.urgentIssues.length > 0" class="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold border border-red-100">{{ dashboardData.urgentIssues.length }} 紧急</span>
+                                </div>
+                                
+                                <div class="flex-1 overflow-y-auto pr-1 space-y-1.5 custom-scrollbar min-h-0">
+                                    <div v-if="!todayStats.isDone" class="group flex items-center justify-between p-2 bg-white border border-red-100 rounded-md hover:border-red-300 hover:shadow-sm cursor-pointer transition-all" @click="currentView='daily'">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded bg-red-50 flex items-center justify-center text-red-500 shrink-0 text-[10px]"><i class="fa-solid fa-calendar-day"></i></div>
+                                            <div><p class="font-bold text-slate-800 text-[11px]">今日检查尚未完成</p><p class="text-[9px] text-red-500 mt-0.5">请立即执行</p></div>
+                                        </div>
+                                        <i class="fa-solid fa-arrow-right text-slate-300 group-hover:text-red-500 text-[10px]"></i>
+                                    </div>
+
+                                    <div v-for="(issue, idx) in dashboardData.urgentIssues" :key="'u-'+idx" class="group flex items-center justify-between p-2 bg-white border border-orange-100 rounded-md hover:border-orange-300 hover:shadow-sm cursor-pointer transition-all" @click="currentView='weekly'">
+                                        <div class="flex items-center gap-2 w-full">
+                                            <div class="w-6 h-6 rounded bg-orange-50 flex items-center justify-center text-orange-500 shrink-0 text-[10px]"><i class="fa-solid fa-fire"></i></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-bold text-slate-800 text-[11px] truncate" :title="issue.problem">{{ issue.problem }}</p>
+                                                <p class="text-[9px] mt-0.5 flex justify-between" :class="issue.isOverdue ? 'text-red-500 font-bold' : 'text-orange-500'">
+                                                    <span>{{ issue.isOverdue ? '⚠️ 已超期' : '⏳ ' + issue.status }}</span>
+                                                    <span class="text-slate-400 font-normal truncate max-w-[50%] text-right ml-1">{{ issue.deadline || '未定' }}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div v-if="todayStats.isDone && dashboardData.urgentIssues.length === 0" class="flex flex-col items-center justify-center h-full text-slate-400 min-h-[80px]">
+                                        <div class="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center mb-1"><i class="fa-solid fa-mug-hot text-sm text-slate-300"></i></div>
+                                        <p class="font-medium text-[10px] text-slate-500">当前无高危待办</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. 高风险区域雷达 -->
+                            <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
+                                <div class="flex justify-between items-center shrink-0 z-10">
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-crosshairs mr-1.5 text-purple-500"></i> 异常领域分布雷达</h3>
+                                </div>
+                                <div class="flex-1 w-full min-h-0 mt-1 relative" id="radar-chart"></div>
+                            </div>
+                            
+                            <!-- 3. TOP5 隐患排行图 -->
+                            <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
+                                <div class="flex justify-between items-center shrink-0 z-10">
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-ranking-star mr-1.5 text-red-500"></i> 高发隐患排行 TOP5</h3>
+                                </div>
+                                <div class="flex-1 w-full min-h-0 mt-1 relative" id="top-bar-chart"></div>
+                            </div>
+
+                        </div>
+
                     </div>
 
                     <!-- 2. 日历归档 -->
-                    <div v-else-if="currentView === 'calendar'" key="calendar" class="h-[calc(100vh-8rem)] flex flex-col xl:flex-row gap-6 max-w-[1600px] mx-auto animate-fade-in pb-10">
+                    <div v-else-if="currentView === 'calendar'" key="calendar" class="h-[calc(100vh-6rem)] flex flex-col xl:flex-row gap-6 max-w-[1600px] mx-auto animate-fade-in pb-10">
                         <div class="flex-1 bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden p-6 flex flex-col h-full overflow-y-auto">
                             <div class="flex justify-between items-center mb-8">
                                 <div class="flex items-center gap-5">
@@ -466,6 +590,91 @@
                                         </div>
                                     </div>
 
+                                    <!-- 【月调度预览】 -->
+                                    <div v-else-if="calendarPreviewType === 'monthly'" class="flex flex-col h-full">
+                                        <div class="doc-header-right">附件4</div>
+                                        <div class="doc-title" style="font-size: 24px;">每月食品安全调度会议纪要</div>
+                                        <div class="doc-record-no">记录编号：（<span class="u-line" style="border-bottom: none;">{{ (monthlyData && monthlyData.basic && monthlyData.basic.recordNo) || '________' }}</span>）</div>
+                                        
+                                        <table class="doc-table monthly-table">
+                                            <tr>
+                                                <td class="doc-label-cell">会议名称</td>
+                                                <td colspan="3" style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.year }}年{{ monthlyData && monthlyData.basic && monthlyData.basic.month }}月食品安全调度会议纪要</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="doc-label-cell">主 持 人</td>
+                                                <td style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.host }}</td>
+                                                <td class="doc-label-cell">会议日期</td>
+                                                <td style="text-align: left; padding-left: 15px;">
+                                                    {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }} 
+                                                    &nbsp; {{ monthlyData && monthlyData.basic && monthlyData.basic.start }} — {{ monthlyData && monthlyData.basic && monthlyData.basic.end }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="doc-label-cell">会议地点</td>
+                                                <td colspan="3" style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.loc }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="doc-label-cell">出席人员</td>
+                                                <td colspan="3" style="text-align: left; padding-left: 15px;">{{ monthlyData && monthlyData.basic && monthlyData.basic.attendees }}</td>
+                                            </tr>
+                                        </table>
+
+                                        <div style="font-weight:bold; margin: 20px 0 10px 0; font-family: 'SimHei', sans-serif; font-size:16px;">会议内容记录：</div>
+                                        
+                                        <div class="doc-section-title">一、食品安全管理工作情况汇报（汇报人：<span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.reporter }}</span>）</div>
+                                        <div class="doc-text"><span class="doc-text-bold">1. 食品原料验收情况：</span>本月到货总批数 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.total }}</span> 批次，合格 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.qual }}</span> 批次，不合格 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.unqual }}</span> 批次，到货合格率 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.rate }}</span>。</div>
+                                        <div class="doc-text">不合格原料为：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.badName) || '无' }}</span>，不合格原因：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.badReason) || '无' }}</span>，对不合格原料采取的处理措施：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.rm && monthlyData.report.rm.measure) || '无' }}</span>。</div>
+                                        
+                                        <div class="doc-text"><span class="doc-text-bold">2. 投诉处理情况：</span>本月质量投诉起数为 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.total }}</span> 起，有效投诉 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.eff }}</span> 起，无效投诉 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.inv }}</span> 起。</div>
+                                        <div class="doc-text">投诉产品主要为：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.prod) || '无' }}</span>；采取的主要改进措施为：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.comp && monthlyData.report.comp.measure) || '无' }}</span>。</div>
+                                        
+                                        <div class="doc-text"><span class="doc-text-bold">3. 供应商管理：</span>本月对供应商审核情况：<span class="u-line">{{ (monthlyData && monthlyData.report && monthlyData.report.sup && monthlyData.report.sup.status) || '无' }}</span></div>
+                                        
+                                        <div class="doc-text"><span class="doc-text-bold">4. 从业人员培训情况：</span>本月开展培训 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.times }}</span> 次，合计 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.hours }}</span> 学时，参加人员 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.train && monthlyData.report.train.people }}</span> 人。</div>
+                                        
+                                        <div class="doc-text keep-together"><span class="doc-text-bold">5. 日管控问题落实：</span>（1）本月日常检查问题 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.total }}</span> 项，已整改 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.fixed }}</span> 项，待整改 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.pending }}</span> 项，计划整改时间为 <span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check ? formatSlashString(monthlyData.report.check.deadline) : '' }}</span>；（2）责任部门配合情况：<span class="u-line">{{ monthlyData && monthlyData.report && monthlyData.report.check && monthlyData.report.check.coop }}</span>。</div>
+
+                                        <div class="doc-section-title keep-together">二、较大风险隐患排查情况</div>
+                                        <div class="doc-text keep-together">存在的主要风险隐患问题如下：</div>
+                                        <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                                            <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.risks || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                                            <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.risks || monthlyData.lists.risks.length === 0">无。</div>
+                                        </div>
+                                        
+                                        <div class="doc-section-title keep-together">三、食品安全相关部门发言及达成的共识</div>
+                                        <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                                            <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.consensus || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                                            <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.consensus || monthlyData.lists.consensus.length === 0">无。</div>
+                                        </div>
+                                        
+                                        <div class="doc-section-title keep-together">四、企业主要负责人工作要求（负责人：<span class="u-line">{{ monthlyData && monthlyData.leader }}</span>）</div>
+                                        <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                                            <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.reqs || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                                            <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.reqs || monthlyData.lists.reqs.length === 0">无。</div>
+                                        </div>
+                                        
+                                        <div class="doc-section-title keep-together">五、下个月食品安全管理重点工作计划</div>
+                                        <div style="margin-left: 2em; line-height: 1.8; font-size: 13px;" class="keep-together">
+                                            <div v-for="(item, i) in (monthlyData && monthlyData.lists && monthlyData.lists.plans || [])" :key="i">（{{i+1}}）{{ item }}；</div>
+                                            <div v-if="!monthlyData || !monthlyData.lists || !monthlyData.lists.plans || monthlyData.lists.plans.length === 0">无。</div>
+                                        </div>
+                                        
+                                        <div class="doc-footer-area">
+                                            <div class="monthly-signature">
+                                                <div style="flex:1;">
+                                                    <span style="font-family:'SimHei', sans-serif; font-weight:bold;">汇报人/日期：</span>
+                                                    <span class="doc-value" style="border:none;">{{ monthlyData && monthlyData.report && monthlyData.report.reporter }} / {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }}</span>
+                                                </div>
+                                                <div style="flex:1; text-align:right;">
+                                                    <span style="font-family:'SimHei', sans-serif; font-weight:bold;">企业主要负责人/日期：</span>
+                                                    <span class="doc-value" style="border:none;">{{ monthlyData && monthlyData.leader }} / {{ monthlyData && monthlyData.basic ? formatSlashString(monthlyData.basic.date) : '' }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="page-number">第 1 页 / 共 1 页</div>
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
@@ -681,7 +890,7 @@
                         </div>
                     </div>
 
-                    <!-- 5. 月调度 -->
+                    <!-- 5. 月调度 (编辑页) -->
                     <div v-else-if="currentView === 'monthly'" key="monthly" class="max-w-5xl mx-auto pb-24">
                          <div class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-slate-100 p-4 rounded-2xl mb-6 shadow-sm flex flex-wrap justify-between items-center gap-4">
                             <div class="flex items-center bg-slate-100/80 rounded-xl p-1.5 border border-slate-200 font-bold text-slate-700">
@@ -1322,7 +1531,12 @@
             const folderNameInput = ref('');
             const currentStoragePath = ref('');
             const loadingStates = reactive({}); 
-            const dragActive = ref(null); // 添加拖拽状态追踪
+            const dragActive = ref(null);
+            
+            let trendChartInstance = null;
+            let radarChartInstance = null;
+            let funnelChartInstance = null;
+            let topBarChartInstance = null;
             
             const today = new Date().toISOString().split('T')[0];
             const selectedDate = ref(today);
@@ -1339,7 +1553,7 @@
             };
 
             const navItems = {
-                dashboard: { title: '工作概览看板', icon: 'fa-solid fa-chart-line', label: '工作看板' },
+                dashboard: { title: '食安智能驾驶舱', icon: 'fa-solid fa-chart-line', label: '工作看板' },
                 calendar: { title: '全景日历归档', icon: 'fa-solid fa-calendar-alt', label: '日历归档' },
                 daily: { title: '每日自查(日管控)', icon: 'fa-solid fa-calendar-day', label: '每日管控' },
                 weekly: { title: '隐患排查(周排查)', icon: 'fa-solid fa-calendar-week', label: '每周排查' },
@@ -1349,6 +1563,12 @@
             const db = reactive({
                 settings: { branchName: '', managerName: '', lastWeeklyInfo: null },
                 daily: {}, weekly: {}, monthly: {}
+            });
+
+            // 新增：仪表盘年、月过滤状态
+            const dashboardFilter = reactive({
+                year: new Date().getFullYear(),
+                month: new Date().getMonth() + 1
             });
 
             const STORAGE_BASE_PREFIX = "FS_MGMT_";
@@ -1461,6 +1681,136 @@
                 showToast("已切换档案空间：" + (newPath || "默认"), 'success');
             };
 
+            const initDashboardCharts = () => {
+                if (typeof echarts === 'undefined') return;
+                
+                // 1. 趋势折线图
+                const trendEl = document.getElementById('trend-chart');
+                if (trendEl && dashboardData.value) {
+                    if(trendChartInstance) trendChartInstance.dispose();
+                    trendChartInstance = echarts.init(trendEl);
+                    trendChartInstance.setOption({
+                        tooltip: { trigger: 'axis', backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 12 } },
+                        grid: { left: '3%', right: '4%', bottom: '2%', top: '8%', containLabel: true },
+                        xAxis: { type: 'category', boundaryGap: false, data: dashboardData.value.last30Days, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
+                        yAxis: { type: 'value', minInterval: 1, axisLine: { show: false }, splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
+                        series: [{
+                            name: '发现异常数', type: 'line', smooth: true,
+                            lineStyle: { width: 3, color: '#3b82f6' },
+                            itemStyle: { color: '#3b82f6', borderWidth: 2 },
+                            areaStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: 'rgba(59, 130, 246, 0.4)' },
+                                    { offset: 1, color: 'rgba(59, 130, 246, 0.0)' }
+                                ])
+                            },
+                            data: dashboardData.value.trendData
+                        }]
+                    });
+                }
+
+                // 2. 雷达图
+                const radarEl = document.getElementById('radar-chart');
+                if (radarEl && dashboardData.value) {
+                    if(radarChartInstance) radarChartInstance.dispose();
+                    radarChartInstance = echarts.init(radarEl);
+                    const indicator = dashboardData.value.radarIndicator.length ? dashboardData.value.radarIndicator : [{name:'无记录', max:10}];
+                    // 若无数据，避免雷达图缩成一点
+                    const dataVal = dashboardData.value.radarData.reduce((a,b)=>a+b, 0) === 0 ? indicator.map(()=>0.1) : dashboardData.value.radarData;
+                    
+                    radarChartInstance.setOption({
+                        tooltip: { trigger: 'item', textStyle: { fontSize: 12 } },
+                        radar: {
+                            indicator: indicator,
+                            center: ['50%', '55%'],
+                            radius: '70%',
+                            splitNumber: 4,
+                            axisName: { color: '#475569', fontSize: 10, fontWeight: 'bold' },
+                            splitArea: { areaStyle: { color: ['rgba(250,250,250,0.3)','rgba(241,245,249,0.5)'] } },
+                            axisLine: { lineStyle: { color: '#cbd5e1' } },
+                            splitLine: { lineStyle: { color: '#cbd5e1' } }
+                        },
+                        series: [{
+                            type: 'radar',
+                            data: [{
+                                value: dataVal,
+                                name: '异常频次分布',
+                                itemStyle: { color: '#a855f7' },
+                                areaStyle: { color: 'rgba(168, 85, 247, 0.4)' },
+                                lineStyle: { color: '#a855f7', width: 2 }
+                            }]
+                        }]
+                    });
+                }
+
+                // 3. 漏斗图
+                const funnelEl = document.getElementById('funnel-chart');
+                if (funnelEl && dashboardData.value) {
+                    if(funnelChartInstance) funnelChartInstance.dispose();
+                    funnelChartInstance = echarts.init(funnelEl);
+                    const fData = dashboardData.value.funnel;
+                    // 为了图表好看，稍微处理一下数据占比逻辑
+                    const chartData = [
+                        { value: fData.total === 0 ? 100 : fData.total, name: '发现问题 (' + fData.total + ')' },
+                        { value: fData.total === 0 ? 80 : (fData.pending > 0 ? Math.max(fData.pending, fData.total * 0.4) : 0), name: '待整改 (' + fData.pending + ')' },
+                        { value: fData.total === 0 ? 60 : fData.done, name: '已闭环 (' + fData.done + ')' }
+                    ];
+                    
+                    funnelChartInstance.setOption({
+                        tooltip: { trigger: 'item', formatter: "{b}", textStyle: { fontSize: 12 } },
+                        color: ['#94a3b8', '#f97316', '#10b981'],
+                        series: [
+                            {
+                                name: '整改漏斗', type: 'funnel', left: '10%', right: '10%', top: '5%', bottom: '5%',
+                                minSize: '20%', maxSize: '100%', sort: 'descending', gap: 2,
+                                label: { show: true, position: 'inside', formatter: '{b}', fontSize: 11, color: '#fff', fontWeight: 'bold' },
+                                labelLine: { length: 10, lineStyle: { width: 1, type: 'solid' } },
+                                itemStyle: { borderColor: '#fff', borderWidth: 1 },
+                                data: chartData
+                            }
+                        ]
+                    });
+                }
+
+                // 4. TOP5 横向柱状图
+                const topBarEl = document.getElementById('top-bar-chart');
+                if (topBarEl && dashboardData.value) {
+                    if(topBarChartInstance) topBarChartInstance.dispose();
+                    topBarChartInstance = echarts.init(topBarEl);
+                    const sourceData = dashboardData.value.topItems;
+                    // ECharts bar 从下往上画，需要反转数组
+                    const reverseData = [...sourceData].reverse();
+                    
+                    const yData = reverseData.length > 0 ? reverseData.map(item => item.name.length > 6 ? item.name.substring(0,6)+'...' : item.name) : ['暂无数据'];
+                    const xData = reverseData.length > 0 ? reverseData.map(item => item.count) : [0];
+
+                    topBarChartInstance.setOption({
+                        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 12 } },
+                        grid: { left: '3%', right: '8%', bottom: '2%', top: '5%', containLabel: true },
+                        xAxis: { type: 'value', show: false }, // 隐藏 X 轴
+                        yAxis: { 
+                            type: 'category', data: yData, 
+                            axisLine: { show: false }, axisTick: { show: false }, 
+                            axisLabel: { color: '#475569', fontSize: 11, fontWeight: 'bold', width: 90, overflow: 'truncate' } 
+                        },
+                        series: [
+                            {
+                                name: '触发次数', type: 'bar', barWidth: '40%',
+                                itemStyle: { 
+                                    color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                                        { offset: 0, color: '#ef4444' }, // red-500
+                                        { offset: 1, color: '#fca5a5' }  // red-300
+                                    ]),
+                                    borderRadius: [0, 4, 4, 0]
+                                },
+                                label: { show: true, position: 'right', color: '#64748b', fontSize: 10, formatter: '{c} 次' },
+                                data: xData
+                            }
+                        ]
+                    });
+                }
+            };
+
             onMounted(() => {
                 const savedPath = localStorage.getItem('FS_ACTIVE_STORAGE_PATH');
                 if (savedPath) {
@@ -1469,9 +1819,21 @@
                 }
                 loadAllData();
 
-                // 阻止浏览器默认打开拖拽文件的行为（全局保护，防止“脱靶”导致页面跳转）
                 window.addEventListener("dragover", (e) => e.preventDefault(), false);
                 window.addEventListener("drop", (e) => e.preventDefault(), false);
+                
+                window.addEventListener('resize', () => {
+                    if(trendChartInstance) trendChartInstance.resize();
+                    if(radarChartInstance) radarChartInstance.resize();
+                    if(funnelChartInstance) funnelChartInstance.resize();
+                    if(topBarChartInstance) topBarChartInstance.resize();
+                });
+
+                if(currentView.value === 'dashboard') setTimeout(initDashboardCharts, 100);
+            });
+
+            watch(currentView, (newVal) => {
+                if (newVal === 'dashboard') setTimeout(initDashboardCharts, 100);
             });
 
             const isDayCompleted = computed(() => {
@@ -1555,6 +1917,161 @@
                     }
                 }
                 return issues;
+            });
+
+            // ===== 仪表盘核心数据计算逻辑 =====
+            const dashboardData = computed(() => {
+                let totalIssues = 0;
+                let resolvedIssues = 0;
+                let overDueIssues = 0;
+                const urgentIssues = [];
+                
+                // 1. 遍历 weekly 计算漏斗和超期
+                Object.values(db.weekly).forEach(week => {
+                    if (week && week.issues) {
+                        week.issues.forEach(issue => {
+                            totalIssues++;
+                            if (issue.status === '已完成') {
+                                resolvedIssues++;
+                            } else {
+                                const isOverdue = issue.deadline && new Date(issue.deadline) < new Date(today);
+                                if (isOverdue) overDueIssues++;
+                                urgentIssues.push({
+                                    problem: issue.problem,
+                                    deadline: issue.deadline,
+                                    isOverdue: isOverdue,
+                                    status: issue.status
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                // 紧急任务排序 (超期的放前面)
+                urgentIssues.sort((a, b) => {
+                    if (a.isOverdue && !b.isOverdue) return -1;
+                    if (!a.isOverdue && b.isOverdue) return 1;
+                    return 0;
+                });
+
+                const closeRate = totalIssues === 0 ? 100 : Math.round((resolvedIssues / totalIssues) * 100);
+                
+                // 2. 根据下拉框选择的年月动态生成趋势数据
+                const last30Days = [];
+                const trendData = [];
+                let recent30FailCount = 0;
+
+                // 计算所选月份的实际天数 (28/29/30/31)
+                const daysInMonth = new Date(dashboardFilter.year, dashboardFilter.month, 0).getDate();
+
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const mStr = String(dashboardFilter.month).padStart(2, '0');
+                    const dStr = String(i).padStart(2, '0');
+                    const dateStr = `${dashboardFilter.year}-${mStr}-${dStr}`;
+                    
+                    last30Days.push(`${mStr}-${dStr}`); // X轴显示 MM-DD
+                    let failCount = 0;
+                    if (db.daily[dateStr]) {
+                        Object.keys(db.daily[dateStr]).forEach(id => {
+                            if (id !== 'meta' && db.daily[dateStr][id].status === 'fail') {
+                                failCount++;
+                            }
+                        });
+                    }
+                    trendData.push(failCount);
+                    recent30FailCount += failCount;
+                }
+
+                // 3. 统计各个分类和单项的高发问题
+                const categoryCount = {};
+                const itemFailCount = {};
+                AUDIT_ITEMS.forEach(it => {
+                    categoryCount[it.cat] = 0;
+                    itemFailCount[it.id] = { name: it.name, count: 0, cat: it.cat };
+                });
+
+                Object.values(db.daily).forEach(dayRecord => {
+                    Object.keys(dayRecord).forEach(id => {
+                        if (id !== 'meta' && dayRecord[id].status === 'fail') {
+                            if (itemFailCount[id]) {
+                                itemFailCount[id].count++;
+                                categoryCount[itemFailCount[id].cat]++;
+                            }
+                        }
+                    });
+                });
+
+                const topItems = Object.values(itemFailCount)
+                    .filter(it => it.count > 0)
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5);
+
+                const radarIndicator = Object.keys(categoryCount).map(cat => ({ 
+                    name: cat.replace(/^[一二三四五六七]、/, ''), 
+                    max: Math.max(10, ...Object.values(categoryCount)) + 2 
+                }));
+                const radarData = Object.values(categoryCount);
+
+                // 4. 漏斗数据
+                const funnel = {
+                    total: totalIssues,
+                    pending: totalIssues - resolvedIssues,
+                    done: resolvedIssues
+                };
+
+                // 5. 风险等级和分数
+                let riskScore = 100 - (overDueIssues * 5) - (funnel.pending * 2) - (recent30FailCount * 0.5);
+                riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
+                
+                let riskLevel = '低风险';
+                let riskColor = 'text-emerald-500';
+                let riskBg = 'bg-emerald-50';
+                if (riskScore < 60) {
+                    riskLevel = '高风险';
+                    riskColor = 'text-red-500';
+                    riskBg = 'bg-red-50';
+                } else if (riskScore < 85) {
+                    riskLevel = '中度风险';
+                    riskColor = 'text-orange-500';
+                    riskBg = 'bg-orange-50';
+                } else {
+                    riskLevel = '健康平稳';
+                }
+
+                // 6. AI 洞察建议生成
+                const insight = { worstCat: '', worstCatCount: 0, advices: [] };
+                let maxCat = '';
+                let maxVal = -1;
+                Object.entries(categoryCount).forEach(([cat, val]) => {
+                    if (val > maxVal) { maxVal = val; maxCat = cat; }
+                });
+                
+                if (maxVal > 0) {
+                    insight.worstCat = maxCat.replace(/^[一二三四五六七]、/, '');
+                    insight.worstCatCount = maxVal;
+                }
+
+                if (overDueIssues > 0) {
+                    insight.advices.push(`风险阻断：优先督促处理并闭环系统内的 ${overDueIssues} 项超期隐患问题。`);
+                }
+                if (insight.worstCat) {
+                    insight.advices.push(`预防管控：本月需重点加强对【${insight.worstCat}】环节的现场监督检查频次。`);
+                }
+                if (closeRate < 80 && totalIssues > 0) {
+                    insight.advices.push(`效能提升：当前问题综合闭环转化率偏低 (${closeRate}%)，需强化责任落实制度。`);
+                } else if (insight.advices.length < 3) {
+                    insight.advices.push(`常态维持：继续保持目前良好的食品安全隐患自查与整改闭环习惯。`);
+                }
+                insight.advices = insight.advices.slice(0, 3); // 保证最多3条
+
+                return {
+                    totalIssues, resolvedIssues, overDueIssues, closeRate, urgentIssues,
+                    last30Days, trendData, recent30FailCount,
+                    topItems, categoryCount, radarIndicator, radarData,
+                    funnel,
+                    riskScore, riskLevel, riskColor, riskBg,
+                    insight
+                };
             });
 
             const monthlyData = computed(() => {
@@ -1706,7 +2223,7 @@
                     const images = getRecordImages(itemDef.id);
                     
                     if (images && images.length > 0) {
-                        imageUrl = images[0]; // **核心逻辑：只取第一张图给 AI 分析**
+                        imageUrl = images[0]; 
                         sysPrompt = "你是一名具有执法资质的食品安全监管人员，长期从事现场监督检查。\n" +
                             "本次分析为“基于现场照片”的合规判断。\n" +
                             "你必须严格遵守以下规则：\n" +
@@ -1811,7 +2328,6 @@
             };
             
             const handleImageDrop = async (e, item) => {
-                // 在线环境（特别是HTTP或iframe嵌套环境）下，优先直接同步读取 files 集合
                 let files = [];
                 
                 if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -1830,7 +2346,6 @@
                     return;
                 }
 
-                // 过滤出真正的图片文件
                 const validFiles = files.filter(f => f.type && f.type.startsWith('image/'));
                 
                 if (!validFiles.length) {
@@ -2050,8 +2565,32 @@
                 return { pendingCount: pendingIssues + (weeklyAutoIssues.value ? weeklyAutoIssues.value.length : 0) };
             });
 
+            // ===== 核心修复：图表生命周期与自动重绘管理 =====
+            watch(currentView, (newVal, oldVal) => {
+                if (oldVal === 'dashboard') {
+                    // 切出前销毁旧实例，防止内存泄漏和DOM绑定的冲突报错
+                    if (trendChartInstance) { trendChartInstance.dispose(); trendChartInstance = null; }
+                    if (radarChartInstance) { radarChartInstance.dispose(); radarChartInstance = null; }
+                    if (funnelChartInstance) { funnelChartInstance.dispose(); funnelChartInstance = null; }
+                    if (topBarChartInstance) { topBarChartInstance.dispose(); topBarChartInstance = null; }
+                }
+                if (newVal === 'dashboard') {
+                    // 延长至350ms，确保Vue的渐入过渡动画 (300ms) 完全结束后再计算容器宽高
+                    setTimeout(initDashboardCharts, 350); 
+                }
+            });
+
+            // 监听数据变化，实现 Dashboard 在大屏时不刷新也能动态响应
+            watch(dashboardData, () => {
+                if (currentView.value === 'dashboard') {
+                    nextTick(() => {
+                        initDashboardCharts();
+                    });
+                }
+            }, { deep: true });
+
             return {
-                sidebarCollapsed, currentView, showSettings, isPreviewMode, previewType, isExporting, isBackgroundExport, showDownloadCompleteModal,
+                dashboardFilter, sidebarCollapsed, currentView, showSettings, isPreviewMode, previewType, isExporting, isBackgroundExport, showDownloadCompleteModal,
                 toast, isStorageConfigOpen, folderNameInput, currentStoragePath, saveStoragePath, loadingStates, dragActive,
                 selectedDate, currentDateFormatted, navItems, isDayCompleted, isMonthCompleted, isWeeklyCompleted,
                 currentWeekRangeStart, currentWeekRangeEnd,
@@ -2061,7 +2600,7 @@
                 getDailyStatus, getRecordImages, getRecordRemark, setDailyStatus, getDailyRecord, changeDate,
                 weeklyData, addWeeklyIssue, removeWeeklyIssue, weeklyAutoIssues, importWeeklyIssues,
                 monthlyData, addMonthlyItem, removeMonthlyItem, formatSlashString,
-                todayStats, currentWeekStats,
+                todayStats, currentWeekStats, dashboardData,
                 calendarYear, calendarMonth, calendarDays, calendarPadding, changeMonth,
                 jumpToDailyReport, jumpToWeeklyReport, jumpToMonthlyReport, showInlinePreview, calendarPreviewType,
                 saveData, saveAndExportDaily, saveAndExportWeekly, saveAndExportMonthly, exportPDF, 
