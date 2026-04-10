@@ -230,12 +230,29 @@
             </header>
 
             <!-- 主内容区域切换 -->
-            <div class="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth" id="main-scroll" :class="currentView === 'dashboard' ? '!p-3 !overflow-hidden bg-slate-100' : ''">
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth" id="main-scroll" :class="currentView === 'dashboard' ? '!p-3 !pb-10 !overflow-hidden bg-slate-100' : ''">
                 <transition name="fade" mode="out-in">
                     
                     <!-- 1. 智能数据驾驶舱 (一屏满布无滚动重构版) -->
                     <div v-if="currentView === 'dashboard'" key="dashboard" class="h-full flex flex-col gap-3 animate-fade-in w-full max-w-none">
                         
+                        <!-- 驾驶舱头部：时间维度控制器 -->
+                        <div class="flex flex-wrap justify-between items-center shrink-0 mb-1 px-1">
+                            <h2 class="text-sm font-bold text-slate-800 flex items-center">
+                                <i class="fa-solid fa-chart-pie text-primary-500 mr-2"></i> 数据中心
+                                <span class="text-xs font-normal text-slate-500 ml-3 hidden sm:inline">根据您选择的时间维度动态聚合分析</span>
+                            </h2>
+                            <div class="flex bg-white rounded-lg p-0.5 shadow-sm border border-slate-200 text-xs">
+                                <button @click="dashTimeMode='last30'" :class="dashTimeMode==='last30'?'bg-primary-50 text-primary-600 font-bold shadow-sm':'text-slate-500 hover:bg-slate-50'" class="px-3 py-1.5 rounded transition-all">近30天</button>
+                                <button @click="dashTimeMode='month'" :class="dashTimeMode==='month'?'bg-primary-50 text-primary-600 font-bold shadow-sm':'text-slate-500 hover:bg-slate-50'" class="px-3 py-1.5 rounded transition-all">本月</button>
+                                <button @click="dashTimeMode='year'" :class="dashTimeMode==='year'?'bg-primary-50 text-primary-600 font-bold shadow-sm':'text-slate-500 hover:bg-slate-50'" class="px-3 py-1.5 rounded transition-all">年度</button>
+                                <div class="flex items-center ml-1 pl-1.5 border-l border-slate-200 relative group cursor-pointer" title="选择任意月份">
+                                    <i class="fa-regular fa-calendar text-slate-400 mr-1.5 group-hover:text-primary-500 transition-colors"></i>
+                                    <input type="month" v-model="dashCustomMonth" @change="dashTimeMode='custom'" class="text-xs font-medium border-none outline-none bg-transparent cursor-pointer w-24 p-0" :class="dashTimeMode==='custom'?'text-primary-600 font-bold':'text-slate-600 group-hover:text-primary-600'">
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 第一排：核心 KPI (固定高度) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 h-24">
                             <!-- KPI 1 -->
@@ -257,30 +274,30 @@
                             <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer" @click="currentView='weekly'">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <p class="text-xs font-bold text-slate-500 mb-0.5">待跟进隐患总数</p>
-                                        <h3 class="text-xl font-extrabold text-slate-800">{{ dashboardData.funnel.pending }} <span class="text-[10px] text-slate-400 font-medium">项</span></h3>
+                                        <p class="text-xs font-bold text-slate-500 mb-0.5">全局待跟进总数</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ dashboardData.globalPendingIssues }} <span class="text-[10px] text-slate-400 font-medium">项</span></h3>
                                     </div>
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-base group-hover:scale-110 transition-transform" :class="dashboardData.funnel.pending > 0 ? 'bg-orange-50 text-orange-500' : 'bg-slate-50 text-slate-400'"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-base group-hover:scale-110 transition-transform" :class="dashboardData.globalPendingIssues > 0 ? 'bg-orange-50 text-orange-500' : 'bg-slate-50 text-slate-400'"><i class="fa-solid fa-triangle-exclamation"></i></div>
                                 </div>
-                                <div class="text-[10px] font-medium flex items-center mt-1" :class="dashboardData.funnel.pending > 0 ? 'text-orange-500' : 'text-slate-400'">
-                                    <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> 周排查及联动待办
+                                <div class="text-[10px] font-medium flex items-center mt-1" :class="dashboardData.globalPendingIssues > 0 ? 'text-orange-500' : 'text-slate-400'">
+                                    <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> 周排查及联动(含历史)
                                 </div>
-                                <div class="absolute bottom-0 left-0 w-full h-1" :class="dashboardData.funnel.pending > 0 ? 'bg-orange-100' : 'bg-slate-100'"></div>
-                                <div class="absolute bottom-0 left-0 h-1" :class="dashboardData.funnel.pending > 0 ? 'bg-orange-500 w-1/2' : 'bg-slate-300 w-full'"></div>
+                                <div class="absolute bottom-0 left-0 w-full h-1" :class="dashboardData.globalPendingIssues > 0 ? 'bg-orange-100' : 'bg-slate-100'"></div>
+                                <div class="absolute bottom-0 left-0 h-1" :class="dashboardData.globalPendingIssues > 0 ? 'bg-orange-500 w-1/2' : 'bg-slate-300 w-full'"></div>
                             </div>
 
                             <!-- KPI 3 -->
                             <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <p class="text-xs font-bold text-slate-500 mb-0.5">问题闭环率 (历史)</p>
+                                        <p class="text-[11px] font-bold text-slate-500 mb-0.5">闭环率 ({{ dashTimeMode === 'last30' ? '近30天' : (dashTimeMode === 'year' ? '本年' : '当月') }})</p>
                                         <h3 class="text-xl font-extrabold text-slate-800">{{ dashboardData.closeRate }}<span class="text-xs text-slate-500">%</span></h3>
                                     </div>
                                     <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-base group-hover:scale-110 transition-transform"><i class="fa-solid fa-circle-check"></i></div>
                                 </div>
                                 <div class="text-[10px] text-slate-400 font-medium flex justify-between items-center mt-1">
-                                    <span>累计发现: <strong class="text-slate-600">{{ dashboardData.totalIssues }}</strong></span>
-                                    <span>已整改: <strong class="text-emerald-600">{{ dashboardData.resolvedIssues }}</strong></span>
+                                    <span>期间发现: <strong class="text-slate-600">{{ dashboardData.periodTotalIssues }}</strong></span>
+                                    <span>已整改: <strong class="text-emerald-600">{{ dashboardData.periodResolvedIssues }}</strong></span>
                                 </div>
                                 <div class="absolute bottom-0 left-0 w-full h-1 bg-slate-100"></div>
                                 <div class="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-1000" :style="`width: ${dashboardData.closeRate}%`"></div>
@@ -290,7 +307,7 @@
                             <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <p class="text-xs font-bold text-slate-500 mb-0.5 flex items-center">综合健康分 <i class="fa-solid fa-wand-magic-sparkles text-purple-500 ml-1"></i></p>
+                                        <p class="text-[11px] font-bold text-slate-500 mb-0.5 flex items-center">综合健康分 <i class="fa-solid fa-wand-magic-sparkles text-purple-500 ml-1"></i></p>
                                         <h3 class="text-xl font-extrabold" :class="dashboardData.riskColor">{{ dashboardData.riskScore }}<span class="text-[10px] text-slate-400 font-medium ml-1">分</span></h3>
                                     </div>
                                     <div class="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold group-hover:scale-110 transition-transform" :class="dashboardData.riskBg + ' ' + dashboardData.riskColor">
@@ -298,14 +315,14 @@
                                     </div>
                                 </div>
                                 <div class="text-[10px] font-medium flex items-center mt-1" :class="dashboardData.riskColor">
-                                    当前判定为：{{ dashboardData.riskLevel }}
+                                    基于所选周期数据判定为：{{ dashboardData.riskLevel }}
                                 </div>
                                 <div class="absolute bottom-0 left-0 w-full h-1" :class="dashboardData.riskBg"></div>
                             </div>
                         </div>
 
                         <!-- 第二排：AI 洞察 + 趋势折线 + 闭环漏斗 (弹性高度分配) -->
-                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 flex-[1.2] min-h-[160px]">
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 flex-[1.2] min-h-[140px]">
                             
                             <!-- 1. AI 风险洞察中心 -->
                             <div class="col-span-1 bg-gradient-to-br from-indigo-900 to-purple-900 rounded-xl shadow-sm p-3 text-white relative overflow-hidden flex flex-col h-full">
@@ -314,17 +331,17 @@
                                 
                                 <div class="bg-white/10 backdrop-blur-md rounded-md p-2 mb-2 border border-white/10 relative z-10 shrink-0">
                                     <div class="flex justify-between items-center mb-1">
-                                        <span class="text-purple-200 text-[10px]">检测结论</span>
+                                        <span class="text-purple-200 text-[10px]">综合结论</span>
                                         <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white/20 text-white shadow-sm">{{ dashboardData.riskLevel }}</span>
                                     </div>
                                     <p class="text-[11px] leading-snug text-indigo-100 line-clamp-2">
-                                        所选周期捕获 <span class="font-bold text-white">{{ dashboardData.recent30FailCount }}</span> 项异常。
+                                        {{ dashTimeMode === 'last30' ? '近30天' : '选定周期内' }}捕获 <span class="font-bold text-white">{{ dashboardData.recentFailCount }}</span> 项异常。
                                         <template v-if="dashboardData.insight.worstCat">集中在 <span class="font-bold text-white">{{ dashboardData.insight.worstCat }}</span> 环节({{ dashboardData.insight.worstCatCount }}次)。</template>
                                         <template v-else>各项指标平稳。</template>
                                     </p>
                                 </div>
                                 
-                                <div class="flex-1 relative z-10 flex flex-col justify-end min-h-0 overflow-y-auto custom-scrollbar pr-1">
+                                <div class="flex-1 relative z-10 flex flex-col justify-end min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-2">
                                     <p class="text-[9px] text-purple-300 font-semibold mb-1 uppercase">行动建议</p>
                                     <div class="space-y-1">
                                         <div v-for="(advice, idx) in dashboardData.insight.advices" :key="'adv-'+idx" class="flex items-start bg-indigo-800/40 p-1.5 rounded-md border border-indigo-700/50">
@@ -335,18 +352,11 @@
                                 </div>
                             </div>
 
-                            <!-- 2. 隐患发生趋势统计 -->
+                            <!-- 2. 趋势图 -->
                             <div class="col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
                                 <div class="flex justify-between items-center shrink-0 z-10">
-                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-chart-area mr-1.5 text-blue-500"></i> 隐患发生趋势统计</h3>
-                                    <div class="flex items-center gap-2">
-                                        <select v-model="dashboardFilter.year" class="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 outline-none focus:border-primary-400 cursor-pointer">
-                                            <option v-for="y in [2024, 2025, 2026, 2027]" :key="y" :value="y">{{y}}年</option>
-                                        </select>
-                                        <select v-model="dashboardFilter.month" class="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 outline-none focus:border-primary-400 cursor-pointer">
-                                            <option v-for="m in 12" :key="m" :value="m">{{m}}月</option>
-                                        </select>
-                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-chart-area mr-1.5 text-blue-500"></i> 隐患发生趋势 <span v-if="dashTimeMode==='year'" class="text-[10px] ml-2 text-slate-400 font-normal">(按月聚合)</span></h3>
+                                    <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">日管控源</span>
                                 </div>
                                 <!-- 图表弹性占满 -->
                                 <div class="flex-1 w-full min-h-0 mt-1 relative" id="trend-chart"></div>
@@ -355,7 +365,7 @@
                             <!-- 3. 整改漏斗图 -->
                             <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
                                  <div class="flex justify-between items-center shrink-0 z-10">
-                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-filter mr-1.5 text-emerald-500"></i> 隐患整改漏斗</h3>
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-filter mr-1.5 text-emerald-500"></i> 期间整改漏斗</h3>
                                     <button @click="currentView='weekly'" class="text-[9px] text-slate-400 hover:text-primary-600 transition-colors">去处理 <i class="fa-solid fa-chevron-right ml-0.5"></i></button>
                                 </div>
                                 <div class="flex-1 w-full min-h-0 mt-1 relative" id="funnel-chart"></div>
@@ -363,16 +373,16 @@
                         </div>
 
                         <!-- 第三排：待办中心 + 雷达图 + TOP5图表 (弹性高度分配) -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-[160px]">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-[140px]">
                             
                             <!-- 1. 风险待办中心 -->
                             <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full">
                                 <div class="flex justify-between items-center mb-2 shrink-0">
-                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-list-check mr-1.5 text-blue-500"></i> 风险待办中心</h3>
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-list-check mr-1.5 text-blue-500"></i> 全局高危待办中心</h3>
                                     <span v-if="dashboardData.urgentIssues.length > 0" class="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold border border-red-100">{{ dashboardData.urgentIssues.length }} 紧急</span>
                                 </div>
                                 
-                                <div class="flex-1 overflow-y-auto pr-1 space-y-1.5 custom-scrollbar min-h-0">
+                                <div class="flex-1 overflow-y-auto pr-1 pb-2 space-y-1.5 custom-scrollbar min-h-0">
                                     <div v-if="!todayStats.isDone" class="group flex items-center justify-between p-2 bg-white border border-red-100 rounded-md hover:border-red-300 hover:shadow-sm cursor-pointer transition-all" @click="currentView='daily'">
                                         <div class="flex items-center gap-2">
                                             <div class="w-6 h-6 rounded bg-red-50 flex items-center justify-center text-red-500 shrink-0 text-[10px]"><i class="fa-solid fa-calendar-day"></i></div>
@@ -404,7 +414,7 @@
                             <!-- 2. 高风险区域雷达 -->
                             <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
                                 <div class="flex justify-between items-center shrink-0 z-10">
-                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-crosshairs mr-1.5 text-purple-500"></i> 异常领域分布雷达</h3>
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-crosshairs mr-1.5 text-purple-500"></i> 期间异常领域雷达分布</h3>
                                 </div>
                                 <div class="flex-1 w-full min-h-0 mt-1 relative" id="radar-chart"></div>
                             </div>
@@ -412,7 +422,7 @@
                             <!-- 3. TOP5 隐患排行图 -->
                             <div class="col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 p-3 flex flex-col h-full relative">
                                 <div class="flex justify-between items-center shrink-0 z-10">
-                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-ranking-star mr-1.5 text-red-500"></i> 高发隐患排行 TOP5</h3>
+                                    <h3 class="font-bold text-xs text-slate-800 flex items-center"><i class="fa-solid fa-ranking-star mr-1.5 text-red-500"></i> 期间高发排行 TOP5</h3>
                                 </div>
                                 <div class="flex-1 w-full min-h-0 mt-1 relative" id="top-bar-chart"></div>
                             </div>
@@ -590,8 +600,8 @@
                                         </div>
                                     </div>
 
-                                    <!-- 【月调度预览】 -->
-                                    <div v-else-if="calendarPreviewType === 'monthly'" class="flex flex-col h-full">
+                                    <!-- 【独立打印：月调度预览】 -->
+                                    <div v-else-if="previewType === 'monthly'" class="flex flex-col h-full">
                                         <div class="doc-header-right">附件4</div>
                                         <div class="doc-title" style="font-size: 24px;">每月食品安全调度会议纪要</div>
                                         <div class="doc-record-no">记录编号：（<span class="u-line" style="border-bottom: none;">{{ (monthlyData && monthlyData.basic && monthlyData.basic.recordNo) || '________' }}</span>）</div>
@@ -1519,6 +1529,7 @@
 
     createApp({
         setup() {
+            // 1. Primitive Refs
             const sidebarCollapsed = ref(false);
             const currentView = ref('dashboard');
             const showSettings = ref(false);
@@ -1530,50 +1541,47 @@
             const isStorageConfigOpen = ref(false);
             const folderNameInput = ref('');
             const currentStoragePath = ref('');
-            const loadingStates = reactive({}); 
             const dragActive = ref(null);
+            const dashTimeMode = ref('last30'); // 'last30', 'year', 'month', 'custom'
             
-            let trendChartInstance = null;
-            let radarChartInstance = null;
-            let funnelChartInstance = null;
-            let topBarChartInstance = null;
-            
-            const today = new Date().toISOString().split('T')[0];
-            const selectedDate = ref(today);
-            const monthlyViewMonth = ref(today.slice(0, 7));
-
-            const calendarYear = ref(new Date().getFullYear());
-            const calendarMonth = ref(new Date().getMonth());
-            const calendarPreviewType = ref('none');
-
+            // 2. State Objects
+            const loadingStates = reactive({}); 
             const toast = reactive({ show: false, message: '', type: 'success' });
-            const showToast = (msg, type) => {
-                toast.message = msg; toast.type = type || 'success'; toast.show = true;
-                setTimeout(() => { toast.show = false; }, 3000);
-            };
-
+            const db = reactive({
+                settings: { branchName: '', managerName: '', lastWeeklyInfo: null },
+                daily: {}, weekly: {}, monthly: {}
+            });
             const navItems = {
-                dashboard: { title: '食安智能驾驶舱', icon: 'fa-solid fa-chart-line', label: '工作看板' },
+                dashboard: { title: '工作概览看板', icon: 'fa-solid fa-chart-line', label: '工作看板' },
                 calendar: { title: '全景日历归档', icon: 'fa-solid fa-calendar-alt', label: '日历归档' },
                 daily: { title: '每日自查(日管控)', icon: 'fa-solid fa-calendar-day', label: '每日管控' },
                 weekly: { title: '隐患排查(周排查)', icon: 'fa-solid fa-calendar-week', label: '每周排查' },
                 monthly: { title: '会议纪要(月调度)', icon: 'fa-solid fa-calendar-days', label: '每月调度' }
             };
 
-            const db = reactive({
-                settings: { branchName: '', managerName: '', lastWeeklyInfo: null },
-                daily: {}, weekly: {}, monthly: {}
-            });
+            // 3. Date Refs
+            const today = new Date().toISOString().split('T')[0];
+            const selectedDate = ref(today);
+            const monthlyViewMonth = ref(today.slice(0, 7));
+            const dashCustomMonth = ref(today.slice(0, 7));
+            const calendarYear = ref(new Date().getFullYear());
+            const calendarMonth = ref(new Date().getMonth());
+            const calendarPreviewType = ref('none');
 
-            // 新增：仪表盘年、月过滤状态
-            const dashboardFilter = reactive({
-                year: new Date().getFullYear(),
-                month: new Date().getMonth() + 1
-            });
+            // 4. Echarts Instances
+            let trendChartInstance = null;
+            let radarChartInstance = null;
+            let funnelChartInstance = null;
+            let topBarChartInstance = null;
+            
+            // 5. Utility Functions
+            const showToast = (msg, type) => {
+                toast.message = msg; toast.type = type || 'success'; toast.show = true;
+                setTimeout(() => { toast.show = false; }, 3000);
+            };
+            const getFullKey = (key) => "FS_MGMT_" + (currentStoragePath.value || 'default') + "_" + key;
 
-            const STORAGE_BASE_PREFIX = "FS_MGMT_";
-            const getFullKey = (key) => STORAGE_BASE_PREFIX + (currentStoragePath.value || 'default') + "_" + key;
-
+            // 6. Data Loaders
             const initDailyRecords = (dateKey) => {
                 if (!db.daily[dateKey]) db.daily[dateKey] = { meta: { completed: false } };
                 AUDIT_ITEMS.forEach(item => {
@@ -1582,22 +1590,105 @@
                     }
                 });
             };
+            const saveData = () => {
+                try {
+                    localStorage.setItem(getFullKey('dailyData'), JSON.stringify(db.daily || {}));
+                    localStorage.setItem(getFullKey('weeklyData'), JSON.stringify(db.weekly || {}));
+                    localStorage.setItem(getFullKey('monthlyData'), JSON.stringify(db.monthly || {}));
+                    localStorage.setItem(getFullKey('settings'), JSON.stringify(db.settings || {}));
+                    showToast('数据已安全暂存', 'success');
+                } catch (e) {
+                    showToast('本地存储空间不足(可能是图片太多)', 'error');
+                }
+            };
+            const loadAllData = () => {
+                const dailyStr = localStorage.getItem(getFullKey('dailyData'));
+                const weeklyStr = localStorage.getItem(getFullKey('weeklyData'));
+                const monthlyStr = localStorage.getItem(getFullKey('monthlyData'));
+                const settingsStr = localStorage.getItem(getFullKey('settings'));
 
-            watch(selectedDate, (newDate) => {
-                if (newDate) initDailyRecords(newDate);
-            }, { immediate: true });
+                try {
+                    if (dailyStr) Object.assign(db.daily, JSON.parse(dailyStr));
+                    if (weeklyStr) Object.assign(db.weekly, JSON.parse(weeklyStr));
+                    if (monthlyStr) Object.assign(db.monthly, JSON.parse(monthlyStr));
+                    if (settingsStr) Object.assign(db.settings, JSON.parse(settingsStr));
+                    
+                    Object.keys(db.weekly).forEach(k => {
+                        if (db.weekly[k] && db.weekly[k].issues) db.weekly[k].issues = db.weekly[k].issues.filter(i => i !== null && i !== undefined);
+                    });
+                    
+                    initDailyRecords(selectedDate.value);
+                } catch (e) { console.error("加载错误:", e); }
+            };
+            const saveStoragePath = () => {
+                const newPath = folderNameInput.value.trim();
+                localStorage.setItem('FS_ACTIVE_STORAGE_PATH', newPath);
+                currentStoragePath.value = newPath;
+                loadAllData();
+                isStorageConfigOpen.value = false;
+                showSettings.value = false;
+                showToast("已切换档案空间：" + (newPath || "默认"), 'success');
+            };
+            const handleSettingsSave = () => { saveData(); showSettings.value = false; };
 
+            // 7. Date Computed Properties
+            const currentDateFormatted = computed(() => selectedDate.value);
+            const currentMonthCN = computed(() => {
+                const parts = monthlyViewMonth.value.split('-');
+                return parts[0] + "年" + parseInt(parts[1]) + "月";
+            });
+            const currentWeekKey = computed(() => {
+                const d = new Date(selectedDate.value);
+                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+                const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+                const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+                return d.getFullYear() + "-W" + weekNo;
+            });
+            const currentMonthKey = computed(() => monthlyViewMonth.value);
+            const currentWeekRangeStart = computed(() => {
+                const d = new Date(selectedDate.value);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(d.setDate(diff)).toISOString().split('T')[0];
+            });
+            const currentWeekRangeEnd = computed(() => {
+                const d = new Date(selectedDate.value);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(d.setDate(diff));
+                monday.setDate(monday.getDate() + 6);
+                return monday.toISOString().split('T')[0];
+            });
+            const calendarDays = computed(() => {
+                const year = calendarYear.value, month = calendarMonth.value;
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const days = [];
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const mStr = String(month + 1).length < 2 ? '0' + (month + 1) : String(month + 1);
+                    const dStr = String(i).length < 2 ? '0' + i : String(i);
+                    const dateStr = year + "-" + mStr + "-" + dStr;
+                    days.push({ dayNum: i, dateStr: dateStr, isSunday: new Date(year, month, i).getDay() === 0 });
+                }
+                return days;
+            });
+            const calendarPadding = computed(() => new Date(calendarYear.value, calendarMonth.value, 1).getDay());
+
+            // 8. DB Derived Computed Properties
+            const dailyFlattened = computed(() => AUDIT_ITEMS);
+            const dailyGroups = computed(() => {
+                const g = {};
+                AUDIT_ITEMS.forEach(it => { if(!g[it.cat]) g[it.cat] = []; g[it.cat].push(it); });
+                return g;
+            });
             const getDailyRecord = (id, dateKey) => {
                 const k = dateKey || selectedDate.value;
                 if (!db.daily[k]) initDailyRecords(k); 
-                return db.daily[k][id];
+                return db.daily[k][id] || { status: 'pass', remark: '', images: [] }; // Fallback protection
             };
-            
             const getDailyStatus = (id) => {
                 const r = getDailyRecord(id);
                 return r ? r.status : 'pass';
             };
-
             const getRecordImages = (id) => {
                 const r = getDailyRecord(id);
                 if (!r) return [];
@@ -1605,12 +1696,11 @@
                 if (r.image) return [r.image];
                 return [];
             };
-
             const getRecordRemark = (id) => {
                 const r = getDailyRecord(id);
                 return r ? r.remark : '';
             };
-
+            
             const setDailyStatus = (id, status) => {
                 const rec = getDailyRecord(id);
                 if (rec) {
@@ -1636,250 +1726,6 @@
                     }
                 }
             };
-
-            const saveData = () => {
-                try {
-                    localStorage.setItem(getFullKey('dailyData'), JSON.stringify(db.daily || {}));
-                    localStorage.setItem(getFullKey('weeklyData'), JSON.stringify(db.weekly || {}));
-                    localStorage.setItem(getFullKey('monthlyData'), JSON.stringify(db.monthly || {}));
-                    localStorage.setItem(getFullKey('settings'), JSON.stringify(db.settings || {}));
-                    showToast('数据已安全暂存', 'success');
-                } catch (e) {
-                    showToast('本地存储空间不足(可能是图片太多)', 'error');
-                }
-            };
-
-            const loadAllData = () => {
-                const dailyStr = localStorage.getItem(getFullKey('dailyData'));
-                const weeklyStr = localStorage.getItem(getFullKey('weeklyData'));
-                const monthlyStr = localStorage.getItem(getFullKey('monthlyData'));
-                const settingsStr = localStorage.getItem(getFullKey('settings'));
-
-                try {
-                    if (dailyStr) Object.assign(db.daily, JSON.parse(dailyStr));
-                    if (weeklyStr) Object.assign(db.weekly, JSON.parse(weeklyStr));
-                    if (monthlyStr) Object.assign(db.monthly, JSON.parse(monthlyStr));
-                    if (settingsStr) Object.assign(db.settings, JSON.parse(settingsStr));
-                    
-                    Object.keys(db.weekly).forEach(k => {
-                        if (db.weekly[k] && db.weekly[k].issues) db.weekly[k].issues = db.weekly[k].issues.filter(i => i !== null && i !== undefined);
-                    });
-                    
-                    initDailyRecords(selectedDate.value);
-                } catch (e) { console.error("加载错误:", e); }
-            };
-
-            const handleSettingsSave = () => { saveData(); showSettings.value = false; };
-
-            const saveStoragePath = () => {
-                const newPath = folderNameInput.value.trim();
-                localStorage.setItem('FS_ACTIVE_STORAGE_PATH', newPath);
-                currentStoragePath.value = newPath;
-                loadAllData();
-                isStorageConfigOpen.value = false;
-                showSettings.value = false;
-                showToast("已切换档案空间：" + (newPath || "默认"), 'success');
-            };
-
-            const initDashboardCharts = () => {
-                if (typeof echarts === 'undefined') return;
-                
-                // 1. 趋势折线图
-                const trendEl = document.getElementById('trend-chart');
-                if (trendEl && dashboardData.value) {
-                    if(trendChartInstance) trendChartInstance.dispose();
-                    trendChartInstance = echarts.init(trendEl);
-                    trendChartInstance.setOption({
-                        tooltip: { trigger: 'axis', backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 12 } },
-                        grid: { left: '3%', right: '4%', bottom: '2%', top: '8%', containLabel: true },
-                        xAxis: { type: 'category', boundaryGap: false, data: dashboardData.value.last30Days, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
-                        yAxis: { type: 'value', minInterval: 1, axisLine: { show: false }, splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
-                        series: [{
-                            name: '发现异常数', type: 'line', smooth: true,
-                            lineStyle: { width: 3, color: '#3b82f6' },
-                            itemStyle: { color: '#3b82f6', borderWidth: 2 },
-                            areaStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                    { offset: 0, color: 'rgba(59, 130, 246, 0.4)' },
-                                    { offset: 1, color: 'rgba(59, 130, 246, 0.0)' }
-                                ])
-                            },
-                            data: dashboardData.value.trendData
-                        }]
-                    });
-                }
-
-                // 2. 雷达图
-                const radarEl = document.getElementById('radar-chart');
-                if (radarEl && dashboardData.value) {
-                    if(radarChartInstance) radarChartInstance.dispose();
-                    radarChartInstance = echarts.init(radarEl);
-                    const indicator = dashboardData.value.radarIndicator.length ? dashboardData.value.radarIndicator : [{name:'无记录', max:10}];
-                    // 若无数据，避免雷达图缩成一点
-                    const dataVal = dashboardData.value.radarData.reduce((a,b)=>a+b, 0) === 0 ? indicator.map(()=>0.1) : dashboardData.value.radarData;
-                    
-                    radarChartInstance.setOption({
-                        tooltip: { trigger: 'item', textStyle: { fontSize: 12 } },
-                        radar: {
-                            indicator: indicator,
-                            center: ['50%', '55%'],
-                            radius: '70%',
-                            splitNumber: 4,
-                            axisName: { color: '#475569', fontSize: 10, fontWeight: 'bold' },
-                            splitArea: { areaStyle: { color: ['rgba(250,250,250,0.3)','rgba(241,245,249,0.5)'] } },
-                            axisLine: { lineStyle: { color: '#cbd5e1' } },
-                            splitLine: { lineStyle: { color: '#cbd5e1' } }
-                        },
-                        series: [{
-                            type: 'radar',
-                            data: [{
-                                value: dataVal,
-                                name: '异常频次分布',
-                                itemStyle: { color: '#a855f7' },
-                                areaStyle: { color: 'rgba(168, 85, 247, 0.4)' },
-                                lineStyle: { color: '#a855f7', width: 2 }
-                            }]
-                        }]
-                    });
-                }
-
-                // 3. 漏斗图
-                const funnelEl = document.getElementById('funnel-chart');
-                if (funnelEl && dashboardData.value) {
-                    if(funnelChartInstance) funnelChartInstance.dispose();
-                    funnelChartInstance = echarts.init(funnelEl);
-                    const fData = dashboardData.value.funnel;
-                    // 为了图表好看，稍微处理一下数据占比逻辑
-                    const chartData = [
-                        { value: fData.total === 0 ? 100 : fData.total, name: '发现问题 (' + fData.total + ')' },
-                        { value: fData.total === 0 ? 80 : (fData.pending > 0 ? Math.max(fData.pending, fData.total * 0.4) : 0), name: '待整改 (' + fData.pending + ')' },
-                        { value: fData.total === 0 ? 60 : fData.done, name: '已闭环 (' + fData.done + ')' }
-                    ];
-                    
-                    funnelChartInstance.setOption({
-                        tooltip: { trigger: 'item', formatter: "{b}", textStyle: { fontSize: 12 } },
-                        color: ['#94a3b8', '#f97316', '#10b981'],
-                        series: [
-                            {
-                                name: '整改漏斗', type: 'funnel', left: '10%', right: '10%', top: '5%', bottom: '5%',
-                                minSize: '20%', maxSize: '100%', sort: 'descending', gap: 2,
-                                label: { show: true, position: 'inside', formatter: '{b}', fontSize: 11, color: '#fff', fontWeight: 'bold' },
-                                labelLine: { length: 10, lineStyle: { width: 1, type: 'solid' } },
-                                itemStyle: { borderColor: '#fff', borderWidth: 1 },
-                                data: chartData
-                            }
-                        ]
-                    });
-                }
-
-                // 4. TOP5 横向柱状图
-                const topBarEl = document.getElementById('top-bar-chart');
-                if (topBarEl && dashboardData.value) {
-                    if(topBarChartInstance) topBarChartInstance.dispose();
-                    topBarChartInstance = echarts.init(topBarEl);
-                    const sourceData = dashboardData.value.topItems;
-                    // ECharts bar 从下往上画，需要反转数组
-                    const reverseData = [...sourceData].reverse();
-                    
-                    const yData = reverseData.length > 0 ? reverseData.map(item => item.name.length > 6 ? item.name.substring(0,6)+'...' : item.name) : ['暂无数据'];
-                    const xData = reverseData.length > 0 ? reverseData.map(item => item.count) : [0];
-
-                    topBarChartInstance.setOption({
-                        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 12 } },
-                        grid: { left: '3%', right: '8%', bottom: '2%', top: '5%', containLabel: true },
-                        xAxis: { type: 'value', show: false }, // 隐藏 X 轴
-                        yAxis: { 
-                            type: 'category', data: yData, 
-                            axisLine: { show: false }, axisTick: { show: false }, 
-                            axisLabel: { color: '#475569', fontSize: 11, fontWeight: 'bold', width: 90, overflow: 'truncate' } 
-                        },
-                        series: [
-                            {
-                                name: '触发次数', type: 'bar', barWidth: '40%',
-                                itemStyle: { 
-                                    color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-                                        { offset: 0, color: '#ef4444' }, // red-500
-                                        { offset: 1, color: '#fca5a5' }  // red-300
-                                    ]),
-                                    borderRadius: [0, 4, 4, 0]
-                                },
-                                label: { show: true, position: 'right', color: '#64748b', fontSize: 10, formatter: '{c} 次' },
-                                data: xData
-                            }
-                        ]
-                    });
-                }
-            };
-
-            onMounted(() => {
-                const savedPath = localStorage.getItem('FS_ACTIVE_STORAGE_PATH');
-                if (savedPath) {
-                    currentStoragePath.value = savedPath;
-                    folderNameInput.value = savedPath;
-                }
-                loadAllData();
-
-                window.addEventListener("dragover", (e) => e.preventDefault(), false);
-                window.addEventListener("drop", (e) => e.preventDefault(), false);
-                
-                window.addEventListener('resize', () => {
-                    if(trendChartInstance) trendChartInstance.resize();
-                    if(radarChartInstance) radarChartInstance.resize();
-                    if(funnelChartInstance) funnelChartInstance.resize();
-                    if(topBarChartInstance) topBarChartInstance.resize();
-                });
-
-                if(currentView.value === 'dashboard') setTimeout(initDashboardCharts, 100);
-            });
-
-            watch(currentView, (newVal) => {
-                if (newVal === 'dashboard') setTimeout(initDashboardCharts, 100);
-            });
-
-            const isDayCompleted = computed(() => {
-                return db.daily && db.daily[selectedDate.value] && db.daily[selectedDate.value].meta ? db.daily[selectedDate.value].meta.completed : false;
-            });
-            
-            const currentWeekKey = computed(() => {
-                const d = new Date(selectedDate.value);
-                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
-                const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-                const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
-                return d.getFullYear() + "-W" + weekNo;
-            });
-            
-            const isWeeklyCompleted = computed(() => {
-                return db.weekly && db.weekly[currentWeekKey.value] && db.weekly[currentWeekKey.value].meta ? db.weekly[currentWeekKey.value].meta.completed : false;
-            });
-
-            const currentMonthKey = computed(() => monthlyViewMonth.value);
-            
-            const isMonthCompleted = computed(() => {
-                return db.monthly && db.monthly[currentMonthKey.value] && db.monthly[currentMonthKey.value].meta ? db.monthly[currentMonthKey.value].meta.completed : false;
-            });
-
-            const currentDateFormatted = computed(() => selectedDate.value);
-            
-            const currentMonthCN = computed(() => {
-                const parts = monthlyViewMonth.value.split('-');
-                return parts[0] + "年" + parseInt(parts[1]) + "月";
-            });
-
-            const currentWeekRangeStart = computed(() => {
-                const d = new Date(selectedDate.value);
-                const day = d.getDay();
-                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-                return new Date(d.setDate(diff)).toISOString().split('T')[0];
-            });
-
-            const currentWeekRangeEnd = computed(() => {
-                const d = new Date(selectedDate.value);
-                const day = d.getDay();
-                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-                const monday = new Date(d.setDate(diff));
-                monday.setDate(monday.getDate() + 6);
-                return monday.toISOString().split('T')[0];
-            });
 
             const weeklyData = computed(() => {
                 const key = currentWeekKey.value;
@@ -1919,161 +1765,6 @@
                 return issues;
             });
 
-            // ===== 仪表盘核心数据计算逻辑 =====
-            const dashboardData = computed(() => {
-                let totalIssues = 0;
-                let resolvedIssues = 0;
-                let overDueIssues = 0;
-                const urgentIssues = [];
-                
-                // 1. 遍历 weekly 计算漏斗和超期
-                Object.values(db.weekly).forEach(week => {
-                    if (week && week.issues) {
-                        week.issues.forEach(issue => {
-                            totalIssues++;
-                            if (issue.status === '已完成') {
-                                resolvedIssues++;
-                            } else {
-                                const isOverdue = issue.deadline && new Date(issue.deadline) < new Date(today);
-                                if (isOverdue) overDueIssues++;
-                                urgentIssues.push({
-                                    problem: issue.problem,
-                                    deadline: issue.deadline,
-                                    isOverdue: isOverdue,
-                                    status: issue.status
-                                });
-                            }
-                        });
-                    }
-                });
-                
-                // 紧急任务排序 (超期的放前面)
-                urgentIssues.sort((a, b) => {
-                    if (a.isOverdue && !b.isOverdue) return -1;
-                    if (!a.isOverdue && b.isOverdue) return 1;
-                    return 0;
-                });
-
-                const closeRate = totalIssues === 0 ? 100 : Math.round((resolvedIssues / totalIssues) * 100);
-                
-                // 2. 根据下拉框选择的年月动态生成趋势数据
-                const last30Days = [];
-                const trendData = [];
-                let recent30FailCount = 0;
-
-                // 计算所选月份的实际天数 (28/29/30/31)
-                const daysInMonth = new Date(dashboardFilter.year, dashboardFilter.month, 0).getDate();
-
-                for (let i = 1; i <= daysInMonth; i++) {
-                    const mStr = String(dashboardFilter.month).padStart(2, '0');
-                    const dStr = String(i).padStart(2, '0');
-                    const dateStr = `${dashboardFilter.year}-${mStr}-${dStr}`;
-                    
-                    last30Days.push(`${mStr}-${dStr}`); // X轴显示 MM-DD
-                    let failCount = 0;
-                    if (db.daily[dateStr]) {
-                        Object.keys(db.daily[dateStr]).forEach(id => {
-                            if (id !== 'meta' && db.daily[dateStr][id].status === 'fail') {
-                                failCount++;
-                            }
-                        });
-                    }
-                    trendData.push(failCount);
-                    recent30FailCount += failCount;
-                }
-
-                // 3. 统计各个分类和单项的高发问题
-                const categoryCount = {};
-                const itemFailCount = {};
-                AUDIT_ITEMS.forEach(it => {
-                    categoryCount[it.cat] = 0;
-                    itemFailCount[it.id] = { name: it.name, count: 0, cat: it.cat };
-                });
-
-                Object.values(db.daily).forEach(dayRecord => {
-                    Object.keys(dayRecord).forEach(id => {
-                        if (id !== 'meta' && dayRecord[id].status === 'fail') {
-                            if (itemFailCount[id]) {
-                                itemFailCount[id].count++;
-                                categoryCount[itemFailCount[id].cat]++;
-                            }
-                        }
-                    });
-                });
-
-                const topItems = Object.values(itemFailCount)
-                    .filter(it => it.count > 0)
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 5);
-
-                const radarIndicator = Object.keys(categoryCount).map(cat => ({ 
-                    name: cat.replace(/^[一二三四五六七]、/, ''), 
-                    max: Math.max(10, ...Object.values(categoryCount)) + 2 
-                }));
-                const radarData = Object.values(categoryCount);
-
-                // 4. 漏斗数据
-                const funnel = {
-                    total: totalIssues,
-                    pending: totalIssues - resolvedIssues,
-                    done: resolvedIssues
-                };
-
-                // 5. 风险等级和分数
-                let riskScore = 100 - (overDueIssues * 5) - (funnel.pending * 2) - (recent30FailCount * 0.5);
-                riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
-                
-                let riskLevel = '低风险';
-                let riskColor = 'text-emerald-500';
-                let riskBg = 'bg-emerald-50';
-                if (riskScore < 60) {
-                    riskLevel = '高风险';
-                    riskColor = 'text-red-500';
-                    riskBg = 'bg-red-50';
-                } else if (riskScore < 85) {
-                    riskLevel = '中度风险';
-                    riskColor = 'text-orange-500';
-                    riskBg = 'bg-orange-50';
-                } else {
-                    riskLevel = '健康平稳';
-                }
-
-                // 6. AI 洞察建议生成
-                const insight = { worstCat: '', worstCatCount: 0, advices: [] };
-                let maxCat = '';
-                let maxVal = -1;
-                Object.entries(categoryCount).forEach(([cat, val]) => {
-                    if (val > maxVal) { maxVal = val; maxCat = cat; }
-                });
-                
-                if (maxVal > 0) {
-                    insight.worstCat = maxCat.replace(/^[一二三四五六七]、/, '');
-                    insight.worstCatCount = maxVal;
-                }
-
-                if (overDueIssues > 0) {
-                    insight.advices.push(`风险阻断：优先督促处理并闭环系统内的 ${overDueIssues} 项超期隐患问题。`);
-                }
-                if (insight.worstCat) {
-                    insight.advices.push(`预防管控：本月需重点加强对【${insight.worstCat}】环节的现场监督检查频次。`);
-                }
-                if (closeRate < 80 && totalIssues > 0) {
-                    insight.advices.push(`效能提升：当前问题综合闭环转化率偏低 (${closeRate}%)，需强化责任落实制度。`);
-                } else if (insight.advices.length < 3) {
-                    insight.advices.push(`常态维持：继续保持目前良好的食品安全隐患自查与整改闭环习惯。`);
-                }
-                insight.advices = insight.advices.slice(0, 3); // 保证最多3条
-
-                return {
-                    totalIssues, resolvedIssues, overDueIssues, closeRate, urgentIssues,
-                    last30Days, trendData, recent30FailCount,
-                    topItems, categoryCount, radarIndicator, radarData,
-                    funnel,
-                    riskScore, riskLevel, riskColor, riskBg,
-                    insight
-                };
-            });
-
             const monthlyData = computed(() => {
                 const key = currentMonthKey.value;
                 const parts = monthlyViewMonth.value.split('-');
@@ -2100,88 +1791,275 @@
                 return data;
             });
 
-            watch(() => {
-                const rm = monthlyData.value && monthlyData.value.report ? monthlyData.value.report.rm : null;
-                return [rm ? rm.total : 0, rm ? rm.qual : 0];
-            }, ([total, qual]) => {
-                const r = monthlyData.value && monthlyData.value.report ? monthlyData.value.report.rm : null;
-                if (!r) return;
-                const t = parseInt(total) || 0, q = parseInt(qual) || 0;
-                r.unqual = Math.max(0, t - q);
-                r.rate = t > 0 ? ((q / t) * 100).toFixed(1) + '%' : '0%';
+            const isDayCompleted = computed(() => {
+                return db.daily && db.daily[selectedDate.value] && db.daily[selectedDate.value].meta ? db.daily[selectedDate.value].meta.completed : false;
             });
-            
-            watch(() => {
-                const comp = monthlyData.value && monthlyData.value.report ? monthlyData.value.report.comp : null;
-                return [comp ? comp.total : 0, comp ? comp.eff : 0];
-            }, ([total, eff]) => {
-                const r = monthlyData.value && monthlyData.value.report ? monthlyData.value.report.comp : null;
-                if (!r) return;
-                r.inv = Math.max(0, (parseInt(total) || 0) - (parseInt(eff) || 0));
+            const isWeeklyCompleted = computed(() => {
+                return db.weekly && db.weekly[currentWeekKey.value] && db.weekly[currentWeekKey.value].meta ? db.weekly[currentWeekKey.value].meta.completed : false;
+            });
+            const isMonthCompleted = computed(() => {
+                return db.monthly && db.monthly[currentMonthKey.value] && db.monthly[currentMonthKey.value].meta ? db.monthly[currentMonthKey.value].meta.completed : false;
+            });
+            const todayStats = computed(() => {
+                const rec = db.daily ? db.daily[today] : null;
+                if (!rec || !rec.meta) return { isDone: false, statusText: '未执行' };
+                const checked = Object.keys(rec).filter(k => k !== 'meta').length;
+                if (checked < AUDIT_ITEMS.length) return { isDone: false, statusText: '进行中' };
+                return { isDone: rec.meta.completed, statusText: rec.meta.completed ? '已完成' : '已填未交' };
             });
 
-            watch(() => {
-                const check = monthlyData.value && monthlyData.value.report ? monthlyData.value.report.check : null;
-                return [check ? check.total : 0, check ? check.fixed : 0];
-            }, ([total, fixed]) => {
-                const r = monthlyData.value && monthlyData.value.report ? monthlyData.value.report.check : null;
-                if (!r) return;
-                r.pending = Math.max(0, (parseInt(total) || 0) - (parseInt(fixed) || 0));
-            });
+            // 9. DASHBOARD COMPUTED (Requires strict dependency ordering)
+            const dashboardData = computed(() => {
+                let periodTotalIssues = 0;
+                let periodResolvedIssues = 0;
+                let globalPendingIssues = 0;
+                const urgentIssues = [];
 
-            const calendarDays = computed(() => {
-                const year = calendarYear.value, month = calendarMonth.value;
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const days = [];
-                for (let i = 1; i <= daysInMonth; i++) {
-                    const mStr = String(month + 1).length < 2 ? '0' + (month + 1) : String(month + 1);
-                    const dStr = String(i).length < 2 ? '0' + i : String(i);
-                    const dateStr = year + "-" + mStr + "-" + dStr;
-                    days.push({ dayNum: i, dateStr: dateStr, isSunday: new Date(year, month, i).getDay() === 0 });
+                let pStart, pEnd;
+                if (dashTimeMode.value === 'last30') {
+                    pEnd = new Date(today);
+                    pStart = new Date(today);
+                    pStart.setDate(pStart.getDate() - 29);
+                } else if (dashTimeMode.value === 'month') {
+                    pStart = new Date(today.substring(0, 4), parseInt(today.substring(5, 7)) - 1, 1);
+                    pEnd = new Date(today.substring(0, 4), parseInt(today.substring(5, 7)), 0);
+                } else if (dashTimeMode.value === 'custom') {
+                    const [y, m] = (dashCustomMonth.value || today.slice(0, 7)).split('-');
+                    pStart = new Date(y, parseInt(m) - 1, 1);
+                    pEnd = new Date(y, parseInt(m), 0);
+                } else if (dashTimeMode.value === 'year') {
+                    const y = today.substring(0, 4);
+                    pStart = new Date(y, 0, 1);
+                    pEnd = new Date(y, 11, 31);
                 }
-                return days;
-            });
-            
-            const calendarPadding = computed(() => new Date(calendarYear.value, calendarMonth.value, 1).getDay());
 
+                Object.entries(db.weekly).forEach(([weekKey, week]) => {
+                    if (!weekKey.includes('-W')) return;
+                    const [yStr, wStr] = weekKey.split('-W');
+                    const y = parseInt(yStr), w = parseInt(wStr);
+                    const d = new Date(Date.UTC(y, 0, 1));
+                    const dayNum = d.getUTCDay() || 7;
+                    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+                    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                    const mondayUTC = new Date(yearStart.getTime() + ((w - 1) * 604800000));
+                    const localMonday = new Date(mondayUTC.getTime() + mondayUTC.getTimezoneOffset() * 60000);
+                    
+                    const isInPeriod = localMonday >= pStart && localMonday <= pEnd;
+
+                    if (week && week.issues) {
+                        week.issues.forEach(issue => {
+                            if (isInPeriod) {
+                                periodTotalIssues++;
+                                if (issue.status === '已完成') {
+                                    periodResolvedIssues++;
+                                }
+                            }
+                            if (issue.status !== '已完成') {
+                                globalPendingIssues++;
+                                const isOverdue = issue.deadline && new Date(issue.deadline) < new Date(today);
+                                urgentIssues.push({
+                                    problem: issue.problem,
+                                    deadline: issue.deadline,
+                                    isOverdue: isOverdue,
+                                    status: issue.status
+                                });
+                            }
+                        });
+                    }
+                });
+
+                urgentIssues.sort((a, b) => {
+                    if (a.isOverdue && !b.isOverdue) return -1;
+                    if (!a.isOverdue && b.isOverdue) return 1;
+                    return 0;
+                });
+
+                const closeRate = periodTotalIssues === 0 ? 100 : Math.round((periodResolvedIssues / periodTotalIssues) * 100);
+
+                let dateKeys = [];
+                let trendLabels = [];
+                let trendValues = [];
+                let isYearMode = dashTimeMode.value === 'year';
+                let recentFailCount = 0;
+
+                const categoryCount = {};
+                const itemFailCount = {};
+                AUDIT_ITEMS.forEach(it => {
+                    categoryCount[it.cat] = 0;
+                    itemFailCount[it.id] = { name: it.name, count: 0, cat: it.cat };
+                });
+
+                if (dashTimeMode.value === 'last30') {
+                    const tempD = new Date(today);
+                    tempD.setDate(tempD.getDate() - 29);
+                    for (let i = 0; i < 30; i++) {
+                        const ds = tempD.toISOString().split('T')[0];
+                        dateKeys.push(ds);
+                        trendLabels.push(ds.substring(5)); 
+                        tempD.setDate(tempD.getDate() + 1);
+                    }
+                } else if (dashTimeMode.value === 'month' || dashTimeMode.value === 'custom') {
+                    const targetMonth = dashTimeMode.value === 'month' ? today.substring(0, 7) : (dashCustomMonth.value || today.slice(0, 7));
+                    const [ymY, ymM] = targetMonth.split('-');
+                    const daysInMonth = new Date(ymY, ymM, 0).getDate();
+                    for (let i = 1; i <= daysInMonth; i++) {
+                        const dStr = i.toString().padStart(2, '0');
+                        const ds = `${ymY}-${ymM}-${dStr}`;
+                        dateKeys.push(ds);
+                        trendLabels.push(`${ymM}-${dStr}`);
+                    }
+                } else if (dashTimeMode.value === 'year') {
+                    const yYear = today.substring(0, 4);
+                    for (let i = 1; i <= 12; i++) {
+                        const mStr = i.toString().padStart(2, '0');
+                        dateKeys.push(`${yYear}-${mStr}`);
+                        trendLabels.push(`${i}月`);
+                    }
+                }
+
+                if (isYearMode) {
+                    trendValues = dateKeys.map(monthPrefix => {
+                        let monthFails = 0;
+                        Object.keys(db.daily).forEach(ds => {
+                            if (ds.startsWith(monthPrefix)) {
+                                Object.keys(db.daily[ds]).forEach(id => {
+                                    if (id !== 'meta' && db.daily[ds][id] && db.daily[ds][id].status === 'fail') {
+                                        if(itemFailCount[id]){
+                                            monthFails++;
+                                            itemFailCount[id].count++;
+                                            categoryCount[itemFailCount[id].cat]++;
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        recentFailCount += monthFails;
+                        return monthFails;
+                    });
+                } else {
+                    trendValues = dateKeys.map(ds => {
+                        let dayFails = 0;
+                        if (db.daily[ds]) {
+                            Object.keys(db.daily[ds]).forEach(id => {
+                                if (id !== 'meta' && db.daily[ds][id] && db.daily[ds][id].status === 'fail') {
+                                    if(itemFailCount[id]){
+                                        dayFails++;
+                                        itemFailCount[id].count++;
+                                        categoryCount[itemFailCount[id].cat]++;
+                                    }
+                                }
+                            });
+                        }
+                        recentFailCount += dayFails;
+                        return dayFails;
+                    });
+                }
+
+                const topItems = Object.values(itemFailCount)
+                    .filter(it => it.count > 0)
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5);
+
+                const radarIndicator = Object.keys(categoryCount).map(cat => ({ 
+                    name: cat.replace(/^[一二三四五六七]、/, ''), 
+                    max: Math.max(10, ...Object.values(categoryCount)) + 2 
+                }));
+                const radarData = Object.values(categoryCount);
+
+                const funnel = {
+                    total: periodTotalIssues,
+                    pending: periodTotalIssues - periodResolvedIssues,
+                    done: periodResolvedIssues
+                };
+
+                let overDueCount = urgentIssues.filter(i => i.isOverdue).length;
+                let riskScore = 100 - (overDueCount * 5) - (globalPendingIssues * 2) - (recentFailCount * (isYearMode ? 0.05 : 0.5));
+                riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
+                
+                let riskLevel = '低风险';
+                let riskColor = 'text-emerald-500';
+                let riskBg = 'bg-emerald-50';
+                if (riskScore < 60) {
+                    riskLevel = '高风险';
+                    riskColor = 'text-red-500';
+                    riskBg = 'bg-red-50';
+                } else if (riskScore < 85) {
+                    riskLevel = '中度风险';
+                    riskColor = 'text-orange-500';
+                    riskBg = 'bg-orange-50';
+                } else {
+                    riskLevel = '健康平稳';
+                }
+
+                const insight = { worstCat: '', worstCatCount: 0, advices: [] };
+                let maxCat = '';
+                let maxVal = -1;
+                Object.entries(categoryCount).forEach(([cat, val]) => {
+                    if (val > maxVal) { maxVal = val; maxCat = cat; }
+                });
+                
+                if (maxVal > 0) {
+                    insight.worstCat = maxCat.replace(/^[一二三四五六七]、/, '');
+                    insight.worstCatCount = maxVal;
+                }
+
+                if (overDueCount > 0) {
+                    insight.advices.push(`风险阻断：优先处理系统内 ${overDueCount} 项历史超期隐患。`);
+                }
+                if (insight.worstCat) {
+                    insight.advices.push(`预防管控：所选周期内需重点加强【${insight.worstCat}】现场监督频次。`);
+                }
+                if (closeRate < 80 && periodTotalIssues > 0) {
+                    insight.advices.push(`效能提升：问题闭环转化率偏低(${closeRate}%)，需强化责任落实制度。`);
+                } else if (insight.advices.length < 3) {
+                    insight.advices.push(`常态维持：继续保持良好的食品安全隐患自查与整改闭环习惯。`);
+                }
+                insight.advices = insight.advices.slice(0, 3);
+
+                return {
+                    periodTotalIssues, periodResolvedIssues, closeRate, urgentIssues, globalPendingIssues,
+                    trendLabels, trendValues, recentFailCount,
+                    topItems, categoryCount, radarIndicator, radarData,
+                    funnel,
+                    riskScore, riskLevel, riskColor, riskBg,
+                    insight
+                };
+            });
+
+            // 10. View Operations
             const changeDate = (n) => {
                 const d = new Date(selectedDate.value);
                 d.setDate(d.getDate() + n);
                 selectedDate.value = d.toISOString().split('T')[0];
             };
-            
             const changeMonth = (n) => {
                 calendarMonth.value += n;
                 if (calendarMonth.value > 11) { calendarMonth.value = 0; calendarYear.value++; }
                 if (calendarMonth.value < 0) { calendarMonth.value = 11; calendarYear.value--; }
             };
-            
             const jumpToDailyReport = (d) => { selectedDate.value = d; currentView.value = 'daily'; };
             const jumpToWeeklyReport = (d) => { selectedDate.value = d; currentView.value = 'weekly'; };
-            
             const showInlinePreview = (type, dateStr) => {
                 selectedDate.value = dateStr;
                 calendarPreviewType.value = type;
             };
-
             const changeMonthlyViewMonth = (n) => {
                 const d = new Date(monthlyViewMonth.value + "-01");
                 d.setMonth(d.getMonth() + n);
                 monthlyViewMonth.value = d.toISOString().slice(0, 7);
             };
-
             const jumpToMonthlyReport = () => { 
                 const mStr = String(calendarMonth.value + 1).length < 2 ? '0' + (calendarMonth.value + 1) : String(calendarMonth.value + 1);
                 monthlyViewMonth.value = calendarYear.value + "-" + mStr;
                 currentView.value = 'monthly'; 
             };
 
+            // 11. CRUD Operations
             const addWeeklyIssue = () => {
                 if (!weeklyData.value.issues) weeklyData.value.issues = [];
                 weeklyData.value.issues.push({ problem: '', measure: '', person: '', deadline: '', status: '进行中' });
             };
             const removeWeeklyIssue = (i) => { if(weeklyData.value.issues) weeklyData.value.issues.splice(i, 1); };
-            
             const importWeeklyIssues = () => {
                 const newIssues = weeklyAutoIssues.value.map(i => ({...i, person: db.settings.managerName }));
                 if (!weeklyData.value.issues) weeklyData.value.issues = [];
@@ -2195,7 +2073,6 @@
                     showToast('无可联动的新增异常', 'success');
                 }
             };
-
             const addMonthlyItem = (key) => { 
                 if(monthlyData.value.lists && monthlyData.value.lists[key]) monthlyData.value.lists[key].push('');
                 else monthlyData.value.lists[key] = [''];
@@ -2203,7 +2080,6 @@
             const removeMonthlyItem = (key, i) => { 
                 if(monthlyData.value.lists && monthlyData.value.lists[key]) monthlyData.value.lists[key].splice(i, 1);
             };
-
             const formatSlashString = (dateString) => {
                 if (!dateString) return "____/__/__";
                 const parts = dateString.split('-'); 
@@ -2290,70 +2166,6 @@
                 } finally {
                     loadingStates['daily_' + itemDef.id] = false;
                 }
-            };
-
-            const processFiles = async (files, item) => {
-                loadingStates['img_' + item.id] = true;
-                const newImages = [];
-                for(const file of files) {
-                    if (file.type.startsWith('image/')) {
-                        const base64Url = await compressImageAsync(file);
-                        newImages.push(base64Url);
-                    }
-                }
-                
-                if (newImages.length > 0) {
-                    const record = getDailyRecord(item.id);
-                    if (!record.images) record.images = record.image ? [record.image] : [];
-                    
-                    const wasEmpty = record.images.length === 0;
-                    record.images.push(...newImages);
-                    record.image = null;
-                    saveData();
-                    
-                    if (wasEmpty) {
-                        await aiAnalyzeDailyIssue(item, null); 
-                    }
-                } else {
-                    showToast('未检测到有效的本地图片文件', 'error');
-                }
-                loadingStates['img_' + item.id] = false;
-            };
-
-            const handleImageUpload = async (e, item) => {
-                const files = Array.from(e.target.files);
-                if (!files.length) return;
-                await processFiles(files, item);
-                e.target.value = '';
-            };
-            
-            const handleImageDrop = async (e, item) => {
-                let files = [];
-                
-                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                    files = Array.from(e.dataTransfer.files);
-                } else if (e.dataTransfer && e.dataTransfer.items) {
-                    for (let i = 0; i < e.dataTransfer.items.length; i++) {
-                        if (e.dataTransfer.items[i].kind === 'file') {
-                            const f = e.dataTransfer.items[i].getAsFile();
-                            if (f) files.push(f);
-                        }
-                    }
-                }
-                
-                if (!files.length) {
-                    showToast('受浏览器/跨域策略限制无法读取拖拽文件，请点击虚线框上传', 'error');
-                    return;
-                }
-
-                const validFiles = files.filter(f => f.type && f.type.startsWith('image/'));
-                
-                if (!validFiles.length) {
-                    showToast('请拖拽有效的图片文件', 'error');
-                    return;
-                }
-                
-                await processFiles(validFiles, item);
             };
 
             const aiGenerateWeeklyMeasures = async () => {
@@ -2477,13 +2289,185 @@
                 finally { loadingStates['monthly_risks'] = false; }
             };
 
+            // 12. Chart Initializers
+            const initDashboardCharts = () => {
+                if (typeof echarts === 'undefined' || !dashboardData.value) return;
+                
+                const trendEl = document.getElementById('trend-chart');
+                if (trendEl) {
+                    if(trendChartInstance) trendChartInstance.dispose();
+                    trendChartInstance = echarts.init(trendEl);
+                    trendChartInstance.setOption({
+                        tooltip: { trigger: 'axis', backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 12 } },
+                        grid: { left: '3%', right: '4%', bottom: '2%', top: '8%', containLabel: true },
+                        xAxis: { type: 'category', boundaryGap: false, data: dashboardData.value.trendLabels, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
+                        yAxis: { type: 'value', minInterval: 1, axisLine: { show: false }, splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
+                        series: [{
+                            name: '发现异常数', type: 'line', smooth: true,
+                            lineStyle: { width: 3, color: '#3b82f6' },
+                            itemStyle: { color: '#3b82f6', borderWidth: 2 },
+                            areaStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: 'rgba(59, 130, 246, 0.4)' },
+                                    { offset: 1, color: 'rgba(59, 130, 246, 0.0)' }
+                                ])
+                            },
+                            data: dashboardData.value.trendValues
+                        }]
+                    });
+                }
+
+                const radarEl = document.getElementById('radar-chart');
+                if (radarEl) {
+                    if(radarChartInstance) radarChartInstance.dispose();
+                    radarChartInstance = echarts.init(radarEl);
+                    const indicator = dashboardData.value.radarIndicator.length ? dashboardData.value.radarIndicator : [{name:'无记录', max:10}];
+                    const dataVal = dashboardData.value.radarData.reduce((a,b)=>a+b, 0) === 0 ? indicator.map(()=>0.1) : dashboardData.value.radarData;
+                    
+                    radarChartInstance.setOption({
+                        tooltip: { trigger: 'item', textStyle: { fontSize: 12 } },
+                        radar: {
+                            indicator: indicator,
+                            center: ['50%', '55%'],
+                            radius: '70%',
+                            splitNumber: 4,
+                            axisName: { color: '#475569', fontSize: 10, fontWeight: 'bold' },
+                            splitArea: { areaStyle: { color: ['rgba(250,250,250,0.3)','rgba(241,245,249,0.5)'] } },
+                            axisLine: { lineStyle: { color: '#cbd5e1' } },
+                            splitLine: { lineStyle: { color: '#cbd5e1' } }
+                        },
+                        series: [{
+                            type: 'radar',
+                            data: [{
+                                value: dataVal,
+                                name: '异常频次分布',
+                                itemStyle: { color: '#a855f7' },
+                                areaStyle: { color: 'rgba(168, 85, 247, 0.4)' },
+                                lineStyle: { color: '#a855f7', width: 2 }
+                            }]
+                        }]
+                    });
+                }
+
+                const funnelEl = document.getElementById('funnel-chart');
+                if (funnelEl) {
+                    if(funnelChartInstance) funnelChartInstance.dispose();
+                    funnelChartInstance = echarts.init(funnelEl);
+                    const fData = dashboardData.value.funnel;
+                    const chartData = [
+                        { value: fData.total === 0 ? 100 : fData.total, name: '期间发现 (' + fData.total + ')' },
+                        { value: fData.total === 0 ? 80 : (fData.pending > 0 ? Math.max(fData.pending, fData.total * 0.4) : 0), name: '待整改 (' + fData.pending + ')' },
+                        { value: fData.total === 0 ? 60 : fData.done, name: '已闭环 (' + fData.done + ')' }
+                    ];
+                    
+                    funnelChartInstance.setOption({
+                        tooltip: { trigger: 'item', formatter: "{b}", textStyle: { fontSize: 12 } },
+                        color: ['#94a3b8', '#f97316', '#10b981'],
+                        series: [
+                            {
+                                name: '整改漏斗', type: 'funnel', left: '10%', right: '10%', top: '5%', bottom: '5%',
+                                minSize: '20%', maxSize: '100%', sort: 'descending', gap: 2,
+                                label: { show: true, position: 'inside', formatter: '{b}', fontSize: 11, color: '#fff', fontWeight: 'bold' },
+                                labelLine: { length: 10, lineStyle: { width: 1, type: 'solid' } },
+                                itemStyle: { borderColor: '#fff', borderWidth: 1 },
+                                data: chartData
+                            }
+                        ]
+                    });
+                }
+
+                const topBarEl = document.getElementById('top-bar-chart');
+                if (topBarEl) {
+                    if(topBarChartInstance) topBarChartInstance.dispose();
+                    topBarChartInstance = echarts.init(topBarEl);
+                    const sourceData = dashboardData.value.topItems;
+                    const reverseData = [...sourceData].reverse();
+                    
+                    const yData = reverseData.length > 0 ? reverseData.map(item => item.name.length > 6 ? item.name.substring(0,6)+'...' : item.name) : ['暂无数据'];
+                    const xData = reverseData.length > 0 ? reverseData.map(item => item.count) : [0];
+
+                    topBarChartInstance.setOption({
+                        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 12 } },
+                        grid: { left: '3%', right: '8%', bottom: '2%', top: '5%', containLabel: true },
+                        xAxis: { type: 'value', show: false },
+                        yAxis: { 
+                            type: 'category', data: yData, 
+                            axisLine: { show: false }, axisTick: { show: false }, 
+                            axisLabel: { color: '#475569', fontSize: 11, fontWeight: 'bold', width: 90, overflow: 'truncate' } 
+                        },
+                        series: [
+                            {
+                                name: '触发次数', type: 'bar', barWidth: '40%',
+                                itemStyle: { 
+                                    color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                                        { offset: 0, color: '#ef4444' },
+                                        { offset: 1, color: '#fca5a5' }
+                                    ]),
+                                    borderRadius: [0, 4, 4, 0]
+                                },
+                                label: { show: true, position: 'right', color: '#64748b', fontSize: 10, formatter: '{c} 次' },
+                                data: xData
+                            }
+                        ]
+                    });
+                }
+            };
+
+            // 13. File/Image Handling
+            const processFiles = async (files, item) => {
+                loadingStates['img_' + item.id] = true;
+                const newImages = [];
+                for(const file of files) {
+                    if (file.type.startsWith('image/')) {
+                        const base64Url = await compressImageAsync(file);
+                        newImages.push(base64Url);
+                    }
+                }
+                
+                if (newImages.length > 0) {
+                    const record = getDailyRecord(item.id);
+                    if (!record.images) record.images = record.image ? [record.image] : [];
+                    const wasEmpty = record.images.length === 0;
+                    record.images.push(...newImages);
+                    record.image = null;
+                    saveData();
+                    if (wasEmpty) { await aiAnalyzeDailyIssue(item, null); }
+                } else { showToast('未检测到有效的本地图片文件', 'error'); }
+                loadingStates['img_' + item.id] = false;
+            };
+
+            const handleImageUpload = async (e, item) => {
+                const files = Array.from(e.target.files);
+                if (!files.length) return;
+                await processFiles(files, item);
+                e.target.value = '';
+            };
+            
+            const handleImageDrop = async (e, item) => {
+                let files = [];
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    files = Array.from(e.dataTransfer.files);
+                } else if (e.dataTransfer && e.dataTransfer.items) {
+                    for (let i = 0; i < e.dataTransfer.items.length; i++) {
+                        if (e.dataTransfer.items[i].kind === 'file') {
+                            const f = e.dataTransfer.items[i].getAsFile();
+                            if (f) files.push(f);
+                        }
+                    }
+                }
+                if (!files.length) { showToast('受浏览器/跨域策略限制无法读取拖拽文件，请点击虚线框上传', 'error'); return; }
+                const validFiles = files.filter(f => f.type && f.type.startsWith('image/'));
+                if (!validFiles.length) { showToast('请拖拽有效的图片文件', 'error'); return; }
+                await processFiles(validFiles, item);
+            };
+
+            // 14. PDF & Export
             const saveAndExportDaily = () => {
                 const key = selectedDate.value;
                 const data = db.daily && db.daily[key];
                 if (!data) return;
                 const incomplete = AUDIT_ITEMS.filter(it => data[it.id] && data[it.id].status === 'fail' && !data[it.id].remark);
                 if (incomplete.length > 0) { showToast("请先为不符合项【" + incomplete[0].name + "】补充详情", 'error'); return; }
-                
                 if (db.daily[key] && db.daily[key].meta) db.daily[key].meta.completed = true;
                 saveData();
                 isBackgroundExport.value = true;
@@ -2517,22 +2501,15 @@
             const exportPDF = async () => {
                 isExporting.value = true;
                 const element = document.getElementById('report-content');
-                
                 let filename = "导出报告.pdf";
                 const d = new Date(selectedDate.value);
                 const dateStr = d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate();
 
-                if (previewType.value === 'daily') {
-                    filename =  dateStr + "日管控.pdf";
-                } else if (previewType.value === 'weekly') {
-                    const sd = new Date(currentWeekRangeStart.value);
-                    const ed = new Date(currentWeekRangeEnd.value);
-                    const startStr = sd.getFullYear() + '.' + (sd.getMonth() + 1) + '.' + sd.getDate();
-                    const endStr = ed.getFullYear() + '.' + (ed.getMonth() + 1) + '.' + ed.getDate();
-                    filename = startStr + "到" + endStr + "周排查.pdf";
-                } else if (previewType.value === 'monthly') {
-                    filename = (monthlyData.value.basic.year) + "年" + (monthlyData.value.basic.month) + "月安全会议纪要.pdf";
-                }
+                if (previewType.value === 'daily') filename = dateStr + "日管控.pdf";
+                else if (previewType.value === 'weekly') {
+                    const sd = new Date(currentWeekRangeStart.value), ed = new Date(currentWeekRangeEnd.value);
+                    filename = sd.getFullYear() + '.' + (sd.getMonth() + 1) + '.' + sd.getDate() + "到" + ed.getFullYear() + '.' + (ed.getMonth() + 1) + '.' + ed.getDate() + "周排查.pdf";
+                } else if (previewType.value === 'monthly') filename = (monthlyData.value.basic.year) + "年" + (monthlyData.value.basic.month) + "月安全会议纪要.pdf";
 
                 const opt = {
                     margin: 0, filename: filename,
@@ -2551,64 +2528,54 @@
             const reEditWeekly = () => { if (db.weekly && db.weekly[currentWeekKey.value] && db.weekly[currentWeekKey.value].meta) { db.weekly[currentWeekKey.value].meta.completed = false; saveData(); } };
             const reEditMonthly = () => { if (monthlyData.value && monthlyData.value.meta) { monthlyData.value.meta.completed = false; saveData(); } };
 
-            const todayStats = computed(() => {
-                const rec = db.daily ? db.daily[today] : null;
-                if (!rec || !rec.meta) return { isDone: false, statusText: '未执行' };
-                const checked = Object.keys(rec).filter(k => k !== 'meta').length;
-                if (checked < AUDIT_ITEMS.length) return { isDone: false, statusText: '进行中' };
-                return { isDone: rec.meta.completed, statusText: rec.meta.completed ? '已完成' : '已填未交' };
-            });
-            
-            const currentWeekStats = computed(() => {
-                const issues = weeklyData.value && weeklyData.value.issues ? weeklyData.value.issues : [];
-                const pendingIssues = issues.filter(i => i && i.status !== '已完成').length;
-                return { pendingCount: pendingIssues + (weeklyAutoIssues.value ? weeklyAutoIssues.value.length : 0) };
-            });
-
-            // ===== 核心修复：图表生命周期与自动重绘管理 =====
+            // 15. Watchers & Lifecycle
             watch(currentView, (newVal, oldVal) => {
                 if (oldVal === 'dashboard') {
-                    // 切出前销毁旧实例，防止内存泄漏和DOM绑定的冲突报错
                     if (trendChartInstance) { trendChartInstance.dispose(); trendChartInstance = null; }
                     if (radarChartInstance) { radarChartInstance.dispose(); radarChartInstance = null; }
                     if (funnelChartInstance) { funnelChartInstance.dispose(); funnelChartInstance = null; }
                     if (topBarChartInstance) { topBarChartInstance.dispose(); topBarChartInstance = null; }
                 }
-                if (newVal === 'dashboard') {
-                    // 延长至350ms，确保Vue的渐入过渡动画 (300ms) 完全结束后再计算容器宽高
-                    setTimeout(initDashboardCharts, 350); 
-                }
+                if (newVal === 'dashboard') setTimeout(initDashboardCharts, 350); 
             });
 
-            // 监听数据变化，实现 Dashboard 在大屏时不刷新也能动态响应
             watch(dashboardData, () => {
-                if (currentView.value === 'dashboard') {
-                    nextTick(() => {
-                        initDashboardCharts();
-                    });
-                }
+                if (currentView.value === 'dashboard') nextTick(() => initDashboardCharts());
             }, { deep: true });
 
+            onMounted(() => {
+                const savedPath = localStorage.getItem('FS_ACTIVE_STORAGE_PATH');
+                if (savedPath) { currentStoragePath.value = savedPath; folderNameInput.value = savedPath; }
+                loadAllData();
+                window.addEventListener("dragover", (e) => e.preventDefault(), false);
+                window.addEventListener("drop", (e) => e.preventDefault(), false);
+                window.addEventListener('resize', () => {
+                    if(trendChartInstance) trendChartInstance.resize();
+                    if(radarChartInstance) radarChartInstance.resize();
+                    if(funnelChartInstance) funnelChartInstance.resize();
+                    if(topBarChartInstance) topBarChartInstance.resize();
+                });
+                if(currentView.value === 'dashboard') setTimeout(initDashboardCharts, 100);
+            });
+
+            // 确保所有的变量和方法都被严格按序且完整返回给模板
             return {
-                dashboardFilter, sidebarCollapsed, currentView, showSettings, isPreviewMode, previewType, isExporting, isBackgroundExport, showDownloadCompleteModal,
-                toast, isStorageConfigOpen, folderNameInput, currentStoragePath, saveStoragePath, loadingStates, dragActive,
-                selectedDate, currentDateFormatted, navItems, isDayCompleted, isMonthCompleted, isWeeklyCompleted,
-                currentWeekRangeStart, currentWeekRangeEnd,
-                currentMonthCN, db, dailyFlattened: AUDIT_ITEMS, dailyGroups: computed(() => {
-                    const g = {}; AUDIT_ITEMS.forEach(it => { if(!g[it.cat]) g[it.cat] = []; g[it.cat].push(it); }); return g;
-                }),
-                getDailyStatus, getRecordImages, getRecordRemark, setDailyStatus, getDailyRecord, changeDate,
-                weeklyData, addWeeklyIssue, removeWeeklyIssue, weeklyAutoIssues, importWeeklyIssues,
-                monthlyData, addMonthlyItem, removeMonthlyItem, formatSlashString,
-                todayStats, currentWeekStats, dashboardData,
-                calendarYear, calendarMonth, calendarDays, calendarPadding, changeMonth,
-                jumpToDailyReport, jumpToWeeklyReport, jumpToMonthlyReport, showInlinePreview, calendarPreviewType,
-                saveData, saveAndExportDaily, saveAndExportWeekly, saveAndExportMonthly, exportPDF, 
-                reEditDaily, reEditMonthly, reEditWeekly, handleSettingsSave,
-                downloadDailyReportDirectly, downloadWeeklyReportDirectly, downloadMonthlyReportDirectly,
-                today, aiAnalyzeDailyIssue, aiGenerateWeeklyMeasures, aiGenerateMonthlyPlans, aiExtractHighRisks,
-                currentWeekKey, monthlyViewMonth, changeMonthlyViewMonth,
-                handleImageDrop, handleImageUpload, removeImage
+                sidebarCollapsed, currentView, showSettings, isPreviewMode, previewType, isExporting, isBackgroundExport, showDownloadCompleteModal,
+                toast, isStorageConfigOpen, folderNameInput, currentStoragePath, loadingStates, dragActive,
+                selectedDate, dashTimeMode, dashCustomMonth, calendarYear, calendarMonth, calendarPreviewType, db, today,
+                navItems,
+
+                currentDateFormatted, currentMonthCN, currentWeekKey, currentMonthKey, currentWeekRangeStart, currentWeekRangeEnd,
+                calendarDays, calendarPadding, dailyFlattened, dailyGroups, getDailyRecord, getDailyStatus, getRecordImages, getRecordRemark,
+                weeklyData, weeklyAutoIssues, monthlyData, isDayCompleted, isWeeklyCompleted, isMonthCompleted, todayStats, dashboardData,
+
+                showToast, initDailyRecords, saveData, loadAllData, saveStoragePath, handleSettingsSave, initDashboardCharts,
+                processFiles, handleImageUpload, handleImageDrop, aiAnalyzeDailyIssue, aiGenerateWeeklyMeasures, aiGenerateMonthlyPlans, aiExtractHighRisks,
+                changeDate, changeMonth, jumpToDailyReport, jumpToWeeklyReport, jumpToMonthlyReport, showInlinePreview, changeMonthlyViewMonth,
+                addWeeklyIssue, removeWeeklyIssue, importWeeklyIssues, addMonthlyItem, removeMonthlyItem, formatSlashString,
+                setDailyStatus, removeImage, saveAndExportDaily, saveAndExportWeekly, saveAndExportMonthly,
+                downloadDailyReportDirectly, downloadWeeklyReportDirectly, downloadMonthlyReportDirectly, exportPDF,
+                reEditDaily, reEditWeekly, reEditMonthly
             };
         }
     }).mount('#app');
