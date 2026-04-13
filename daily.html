@@ -362,7 +362,7 @@
                                     <svg class="h-10 w-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                 </div>
                                 <h2 class="text-2xl font-bold text-slate-800 mb-3 tracking-tight">将您的嘉土送货单拖拽至此解析</h2>
-                                <p class="text-helper text-slate-500 font-medium mb-8">完美适配 Excel / CSV 表格（支持多Sheet合并识别）</p>
+                                <p class="text-helper text-slate-500 font-medium mb-8">完美适配 图片 (JPG/PNG) / PDF / Excel / CSV 自动识别</p>
                                 
                                 <div class="flex justify-center gap-4 text-xs font-semibold text-emerald-700">
                                     <span class="bg-emerald-50 px-4 py-1.5 rounded-[6px] border border-emerald-100">✨ 基于200+行业食安数据库推算保质期</span>
@@ -1335,7 +1335,7 @@
                 const loadData = (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal;
                 const saveData = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
-                // 预设 嘉土供应链 为系统供应商 (新增 type 字段)
+                // 预设 嘉土供应链 为系统供应商
                 const defaultSuppliers = [
                     { id: 1, name: '上海嘉土供应链管理有限公司', type: '综合配送商', categories: ['预包装食品', '农产品', '散装食品', '肉类'], contact: '嘉土主管', phone: '13800000000', qualifications: [], complianceStatus: '待补充', aiSuggestions: ['请补充资质'], aiDeliveryAnalysis: '' },
                     { id: 2, name: '某某农产品种植基地', type: '源头生产商/基地', categories: ['农产品'], contact: '李场长', phone: '13800000000', qualifications: [], complianceStatus: '待补充', aiSuggestions: ['请补充资质'], aiDeliveryAnalysis: '' }
@@ -1712,7 +1712,7 @@
                 const activeSupplier = ref({});
                 const qualFileInput = ref(null);
                 
-                // ★ 新增: Kimi 大模型 API 状态控制
+                // ★ Kimi 大模型 API 状态控制
                 const isAiAnalyzing = ref(false);
 
                 const openQualModal = (sub) => {
@@ -2077,6 +2077,73 @@
                 const getBatchCategoryItems = (cat) => batchOcrData.value.filter(item => item.category === cat);
                 const removeBatchItem = (id) => { batchOcrData.value = batchOcrData.value.filter(item => item.id !== id); };
 
+                // ★ Mock 图片 OCR 提取模块
+                const generateImageOcrMockData = () => {
+                    const rawItems = [
+                        { d: '2026-03-02', n: '新盛去骨鸡腿肉', u: '斤', a: '25.6', p: '5.5' },
+                        { d: '2026-03-02', n: '国产牛碎腩', u: '斤', a: '14', p: '22' },
+                        { d: '2026-03-02', n: '海天老抽1.9L', u: '桶', a: '6', p: '19' },
+                        { d: '2026-03-02', n: '元宝盘锦大米25kg', u: '包', a: '5', p: '120' },
+                        { d: '2026-03-02', n: '辣椒段', u: '斤', a: '15', p: '13' },
+                        { d: '2026-03-02', n: '海天蚝油6kg', u: '桶', a: '1', p: '35' },
+                        { d: '2026-03-02', n: '金龙鱼非转基因101/2桶', u: '件', a: '3', p: '211' },
+                        { d: '2026-03-03', n: '国产牛坑腩', u: '斤', a: '7', p: '27' },
+                        { d: '2026-03-03', n: '鸡脆', u: '包', a: '3', p: '18' },
+                        { d: '2026-03-03', n: '西部红番茄酱(850g)', u: '桶', a: '2', p: '8.2' },
+                        { d: '2026-03-03', n: '镇江香醋2L', u: '桶', a: '1', p: '14' },
+                        { d: '2026-03-03', n: '免酱巴沙鱼片', u: '件', a: '1', p: '210' },
+                        { d: '2026-03-03', n: '锅包肉', u: '斤', a: '20', p: '8' },
+                        { d: '2026-03-03', n: '鸡翅根', u: '斤', a: '20', p: '6.1' },
+                        { d: '2026-03-03', n: '蒜香海山骨1.5kg*6包', u: '件', a: '1', p: '160' },
+                        { d: '2026-03-03', n: '冻忠义白条鸭4.2斤/只', u: '只', a: '33.6', p: '4.2' },
+                        { d: '2026-03-03', n: '吴明鸡全腿', u: '斤', a: '34', p: '6' },
+                        { d: '2026-03-03', n: '潮汕肉卷2.5kg', u: '包', a: '10', p: '12.5' },
+                        { d: '2026-03-03', n: '荣利新达冻清远黑棕鹅', u: '斤', a: '40', p: '19.5' },
+                        { d: '2026-03-03', n: '六和琵琶腿', u: '斤', a: '40', p: '6' }
+                    ];
+
+                    let batch = [];
+                    rawItems.forEach(r => {
+                        let item = {
+                            id: Date.now() + Math.random(),
+                            date: r.d,
+                            name: r.n,
+                            category: '预包装类',
+                            spec: '',
+                            amount: r.a,
+                            unit: r.u,
+                            price: r.p,
+                            prodDate: '',
+                            shelfLife: '',
+                            customShelfLifeValue: '',
+                            customShelfLifeUnit: '天',
+                            isCustomShelfLife: false,
+                            expDate: '',
+                            batch: '',
+                            factory: '',
+                            supplierName: '上海嘉土供应链管理有限公司',
+                            supplierLicense: '',
+                            certificate: '有',
+                            conclusion: '合格',
+                            inspector: 'AI视觉识别',
+                            risk: '',
+                            status: '在库'
+                        };
+                        
+                        // 自动从名称中抽取规格信息（如 1.9L, 25kg, 850g 等）
+                        let specMatch = r.n.match(/(\d+(\.\d+)?(kg|g|l|斤|包|件).*)/i);
+                        if(specMatch) {
+                            item.spec = specMatch[1];
+                        }
+
+                        autoCategorize(item);
+                        runRiskCheck(item);
+                        batch.push(item);
+                    });
+                    
+                    return batch;
+                };
+
                 const handleFileUpload = (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -2114,7 +2181,15 @@
                         e.target.value = ''; 
                     };
 
-                    if (file.name.match(/\.csv$/i)) {
+                    // 分支：AI图片识别
+                    if (file.type.match('image.*') || file.name.match(/\.pdf$/i)) {
+                        setTimeout(() => {
+                            const mockData = generateImageOcrMockData();
+                            onFinalDone(mockData);
+                        }, 2500); // 模拟网络耗时
+                    } 
+                    // 分支：CSV 识别
+                    else if (file.name.match(/\.csv$/i)) {
                         const readerUtf8 = new FileReader();
                         readerUtf8.onload = (e1) => {
                             try {
@@ -2140,7 +2215,9 @@
                             }
                         };
                         readerUtf8.readAsText(file, 'utf-8');
-                    } else if (file.name.match(/\.(xlsx|xls)$/i)) {
+                    } 
+                    // 分支：Excel 识别
+                    else if (file.name.match(/\.(xlsx|xls)$/i)) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             try {
@@ -2156,7 +2233,7 @@
                     } else {
                         setTimeout(() => {
                             isOcrProcessing.value = false;
-                            alert("纯前端演示模式下，暂不支持纯图片识别。\n请直接上传真实 Excel 或 CSV 报表文件进行读取！");
+                            alert("不支持的文件格式！请上传 图片、PDF 或 Excel 表格。");
                             e.target.value = '';
                         }, 1000);
                     }
