@@ -135,7 +135,6 @@
 
                 <!-- ★★★★★ 0. 可视化监管驾驶舱 ★★★★★ -->
                 <div v-if="currentTab === 'dashboard'" class="absolute inset-0 dash-bg text-slate-300 flex flex-col overflow-y-auto overflow-x-hidden dash-scrollbar p-4 lg:p-6 min-w-[1200px]">
-                    <!-- 驾驶舱头部 -->
                     <div class="flex justify-between items-end mb-6 shrink-0 relative">
                         <div class="absolute left-1/2 -translate-x-1/2 top-0">
                             <h1 class="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-emerald-400 to-blue-400 tracking-widest neon-text drop-shadow-lg">
@@ -153,19 +152,14 @@
                         </div>
                     </div>
 
-                    <!-- 驾驶舱主体 12栏 Grid -->
                     <div class="flex-1 grid grid-cols-12 gap-5 h-full min-h-[700px]">
-                        <!-- 左侧栏 (Span 3) -->
                         <div class="col-span-3 flex flex-col gap-5">
-                            <!-- 风险结构占比 -->
                             <div class="dash-panel rounded-xl p-4 flex-1 flex flex-col relative">
                                 <h3 class="text-white font-bold flex items-center text-sm mb-2 before:content-[''] before:w-1 before:h-4 before:bg-blue-500 before:mr-2 before:rounded">
                                     在库物资风险结构
                                 </h3>
                                 <div class="flex-1 min-h-[200px]" ref="chartRiskPie"></div>
                             </div>
-                            
-                            <!-- 临期风险 TOP10 -->
                             <div class="dash-panel rounded-xl p-4 flex-[1.2] flex flex-col relative">
                                 <h3 class="text-white font-bold flex items-center text-sm mb-2 before:content-[''] before:w-1 before:h-4 before:bg-red-500 before:mr-2 before:rounded">
                                     高危/临期物资红榜 TOP10
@@ -174,9 +168,7 @@
                             </div>
                         </div>
 
-                        <!-- 中间主栏 (Span 6) -->
                         <div class="col-span-6 flex flex-col gap-5">
-                            <!-- 核心指标卡 (4个) -->
                             <div class="grid grid-cols-4 gap-4 shrink-0">
                                 <div class="dash-panel rounded-xl p-4 flex flex-col justify-center relative overflow-hidden group">
                                     <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform"><svg class="w-20 h-20 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg></div>
@@ -212,7 +204,6 @@
                                 </div>
                             </div>
 
-                            <!-- 中间双轴图：入库趋势与分类结构 -->
                             <div class="dash-panel rounded-xl p-4 flex-1 flex flex-col relative">
                                 <h3 class="text-white font-bold flex items-center text-sm mb-2 before:content-[''] before:w-1 before:h-4 before:bg-emerald-400 before:mr-2 before:rounded">
                                     近7日入库走势与分类构成分析
@@ -220,7 +211,6 @@
                                 <div class="flex-1 min-h-[200px]" ref="chartTrend"></div>
                             </div>
 
-                            <!-- 底部桑基流向图：生命周期 -->
                             <div class="dash-panel rounded-xl p-4 flex-[1.2] flex flex-col relative">
                                 <h3 class="text-white font-bold flex items-center text-sm mb-2 before:content-[''] before:w-1 before:h-4 before:bg-purple-500 before:mr-2 before:rounded">
                                     全生命周期溯源流向矩阵 (AI计算)
@@ -229,9 +219,7 @@
                             </div>
                         </div>
 
-                        <!-- 右侧栏 (Span 3) -->
                         <div class="col-span-3 flex flex-col gap-5">
-                            <!-- 监管级合规评分表 -->
                             <div class="dash-panel rounded-xl p-4 h-[220px] flex flex-col relative shrink-0">
                                 <h3 class="text-white font-bold flex items-center text-sm mb-0 before:content-[''] before:w-1 before:h-4 before:bg-yellow-400 before:mr-2 before:rounded z-10 relative">
                                     整体合规健康指数
@@ -239,7 +227,6 @@
                                 <div class="flex-1 w-full h-full absolute inset-0 pt-8" ref="chartGauge"></div>
                             </div>
 
-                            <!-- 供应商红黑榜 -->
                             <div class="dash-panel rounded-xl p-4 flex-1 flex flex-col relative overflow-hidden">
                                 <h3 class="text-white font-bold flex items-center text-sm mb-3 before:content-[''] before:w-1 before:h-4 before:bg-orange-500 before:mr-2 before:rounded">
                                     供应商信用风控看板
@@ -264,7 +251,6 @@
                                 </div>
                             </div>
 
-                            <!-- AI预测与行动建议 -->
                             <div class="dash-panel rounded-xl p-4 h-[180px] flex flex-col relative shrink-0">
                                 <h3 class="text-white font-bold flex items-center text-sm mb-3 before:content-[''] before:w-1 before:h-4 before:bg-pink-500 before:mr-2 before:rounded">
                                     AI 预见性防范与指令
@@ -280,7 +266,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
 
@@ -382,10 +367,7 @@
                     </div>
 
                     <div v-else class="flex-1 flex flex-col w-full p-6 pb-20 min-h-max gap-6">
-                        
-                        <!-- 顶栏三层架构第一层/第二层：合并在控制台面板 -->
                         <div class="bg-card rounded-card shadow-sm border border-slate-200 p-6 shrink-0 relative z-20 flex flex-col gap-6" style="padding-right: 17rem;">
-                            <!-- 第一层标题 -->
                             <div>
                                 <h2 class="text-module-title font-semibold text-slate-800 flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -394,7 +376,6 @@
                                 <p class="text-helper text-slate-500 mt-1">AI已完成数据抽取，请补充<strong class="text-blue-600">源头产地/厂家</strong>完善二级溯源记录后一键入账。</p>
                             </div>
                             
-                            <!-- 第二层操作条 -->
                             <div class="flex items-end justify-between bg-surface p-4 rounded-lg border border-slate-200">
                                 <div class="flex gap-6">
                                     <div class="flex flex-col gap-1.5">
@@ -416,7 +397,6 @@
                             </div>
                         </div>
 
-                        <!-- 下方：一行到底 数据表格区域 -->
                         <div class="space-y-6 flex-1 shrink-0">
                             <div v-for="cat in categories" :key="cat" v-show="getBatchCategoryItems(cat).length > 0" class="bg-card rounded-card overflow-hidden shadow-sm border border-slate-200">
                                 <div class="bg-surface border-b border-slate-200 px-5 py-3 flex justify-between items-center">
@@ -540,7 +520,6 @@
                         </div>
                     </div>
 
-                    <!-- ★ 右上角精致悬浮窗 (第三层 数据来源区) ★ -->
                     <div class="upload-panel" :class="batchOcrData.length === 0 ? 'hidden' : 'upload-corner'">
                         <div class="bg-card rounded-card shadow-lg border border-slate-200 p-4 flex flex-col">
                             <div class="flex justify-between items-center mb-3">
@@ -628,8 +607,6 @@
 
                 <!-- ================= 4. 历史时空追溯 ================= -->
                 <div v-if="currentTab === 'history'" class="p-6 h-full flex flex-col gap-6 overflow-hidden">
-                    
-                    <!-- 第一层：追溯检索区 -->
                     <div class="bg-card rounded-card shadow-sm border border-slate-200 p-5 shrink-0">
                         <div class="flex flex-wrap lg:flex-nowrap items-end gap-5">
                             <div class="flex flex-col gap-1.5">
@@ -661,10 +638,7 @@
                         </div>
                     </div>
 
-                    <!-- 下方主体：左侧数据表格 + 右侧时空分析面板 -->
                     <div class="flex-1 flex flex-col xl:flex-row gap-6 min-h-0">
-                        
-                        <!-- 第四层：数据表格区 -->
                         <div class="xl:w-3/5 bg-card rounded-card shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                             <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                                 <h3 class="font-bold text-slate-800 text-[15px] flex items-center">
@@ -711,7 +685,6 @@
                             </div>
                         </div>
 
-                        <!-- 右侧分析面板：第五层 关系图 & 第二/三层 时间轴与风险 -->
                         <div class="xl:w-2/5 bg-card rounded-card shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                             <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50">
                                 <h3 class="font-bold text-slate-800 text-[15px] flex items-center">
@@ -725,8 +698,6 @@
                             </div>
                             
                             <div v-else class="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-8 bg-slate-50/30">
-                                
-                                <!-- 第三层：风险监控预警器 -->
                                 <div v-if="getTraceRisk(activeTraceItem).hasRisk" class="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
                                     <div class="flex items-center text-danger font-black text-[14px] mb-2">
                                         <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -739,25 +710,21 @@
                                     </ul>
                                 </div>
 
-                                <!-- 第五层：二级溯源关系图 (三节点) -->
                                 <div class="relative flex flex-col items-center">
                                     <div class="text-xs font-bold text-slate-400 mb-4 tracking-widest uppercase">溯源主干网络</div>
                                     <div class="trace-link" style="top: 30px; bottom: 30px;"></div>
                                     
-                                    <!-- Node 1: 源头生产商 (Tier 2) -->
                                     <div class="relative bg-white border-2 border-slate-300 rounded-xl p-3 w-64 text-center shadow-sm z-10 mb-8">
                                         <div class="text-[10px] text-slate-400 font-bold mb-1">源头生产商/基地 (生产环节)</div>
                                         <div class="text-[14px] font-bold text-slate-800 truncate">{{ activeTraceItem.factory || '未录入/未知源头' }}</div>
                                     </div>
                                     
-                                    <!-- Node 2: 配送商 (Tier 1) -->
                                     <div class="relative bg-blue-50 border-2 border-blue-300 rounded-xl p-3 w-64 text-center shadow-sm z-10 mb-8">
                                         <div class="text-[10px] text-blue-500 font-bold mb-1">直供配送商 (流通环节)</div>
                                         <div class="text-[14px] font-bold text-blue-800 truncate">{{ activeTraceItem.supplierName || '缺失溯源实体' }}</div>
                                         <div class="text-[10px] text-blue-600 mt-1 font-mono opacity-80">流通许可: {{ activeTraceItem.supplierLicense || '未验证' }}</div>
                                     </div>
                                     
-                                    <!-- Node 3: 标的物料 (Asset) -->
                                     <div class="relative bg-emerald-50 border-2 border-primary rounded-xl p-3 w-64 text-center shadow-sm shadow-emerald-500/20 z-10">
                                         <div class="text-[10px] text-emerald-600 font-bold mb-1">终点标的资产</div>
                                         <div class="text-[16px] font-black text-emerald-800">{{ activeTraceItem.name }}</div>
@@ -765,19 +732,16 @@
                                     </div>
                                 </div>
 
-                                <!-- 第二层：平行审计时间轴 -->
                                 <div class="mt-4 border-t border-slate-200 pt-6">
                                     <div class="text-xs font-bold text-slate-400 mb-4 tracking-widest uppercase">审计事件轨迹</div>
                                     <div class="border-l-2 border-slate-200 ml-3 space-y-6 relative pl-6">
                                         
-                                        <!-- Event 1 -->
                                         <div class="relative">
                                             <div class="absolute w-3 h-3 bg-slate-200 border-2 border-white rounded-full -left-[29.5px] top-1"></div>
                                             <div class="text-[11px] text-slate-400 font-mono mb-0.5">{{ activeTraceItem.prodDate || '未定时刻' }}</div>
                                             <div class="text-[13px] font-bold text-slate-700">源头基地分装出厂</div>
                                         </div>
 
-                                        <!-- Event 2 -->
                                         <div class="relative">
                                             <div class="absolute w-4 h-4 bg-primary border-4 border-emerald-100 rounded-full -left-[31.5px] top-1 shadow-sm"></div>
                                             <div class="text-[11px] text-primary font-mono font-bold mb-0.5">{{ activeTraceItem.date }}</div>
@@ -788,7 +752,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Event 3: 动态生成 -->
                                         <div class="relative">
                                             <div class="absolute w-3 h-3 border-2 border-white rounded-full -left-[29.5px] top-1" 
                                                  :class="getTraceRisk(activeTraceItem).isExpired ? 'bg-danger' : 'bg-blue-400'"></div>
@@ -876,7 +839,6 @@
                 <div v-if="currentTab === 'export'" class="h-full flex flex-col overflow-hidden bg-surface">
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 flex flex-col gap-6">
                         
-                        <!-- 第一层：模块标题与选择区 -->
                         <div>
                             <h2 class="text-page-title font-semibold text-slate-800 tracking-tight flex items-center">
                                 <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
@@ -905,7 +867,6 @@
                             </div>
                         </div>
 
-                        <!-- 第二层：提取条件面板 & 第五层：导出按钮合体 -->
                         <div class="bg-card rounded-card shadow-sm border border-slate-200 p-5 shrink-0 flex flex-wrap items-end justify-between gap-4">
                             <div class="flex items-center gap-6">
                                 <div class="flex flex-col gap-1.5">
@@ -932,7 +893,6 @@
                             </div>
                         </div>
 
-                        <!-- 第四层：轻量级数据透视分析墙 -->
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0" v-if="reportPreviewData.length > 0">
                             <div class="bg-card rounded-card border border-slate-200 p-4 shadow-sm flex items-center gap-4">
                                 <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-lg">{{ reportPreviewData.length }}</div>
@@ -941,11 +901,9 @@
                                     <div class="text-sm font-black text-slate-800">笔入库验收账目</div>
                                 </div>
                             </div>
-                            <!-- 纯CSS饼图呈现类别分布 -->
                             <div class="md:col-span-3 bg-card rounded-card border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
                                 <div class="text-xs text-slate-500 font-bold mb-3">当期入库品类结构透视</div>
                                 <div class="w-full flex items-center gap-1.5 h-6 rounded overflow-hidden">
-                                    <!-- CSS比例条形图 -->
                                     <div v-for="(count, cat) in reportStats.categoryCounts" :key="cat" 
                                          class="h-full relative group transition-all" 
                                          :style="{width: (count/reportPreviewData.length)*100 + '%', backgroundColor: getCatColor(cat)}"
@@ -961,7 +919,6 @@
                             </div>
                         </div>
 
-                        <!-- 第三层：核规报表底表预览区 -->
                         <div class="bg-card rounded-card shadow-sm border border-slate-200 flex-1 flex flex-col min-h-[300px] overflow-hidden">
                             <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
                                 <h3 class="font-bold text-slate-700 text-[14px]">电子底表数据快照 ({{ exportMonth }})</h3>
@@ -1006,7 +963,6 @@
                             </div>
                         </div>
 
-                        <!-- 第六层：监管提示脚 -->
                         <div class="shrink-0 text-center py-2 text-[11px] font-bold text-slate-400 tracking-wider">
                             本核查矩阵底表由 AI 团餐食安引擎 自动化构筑，全面契合《中华人民共和国食品安全法》第五十条硬性约束。
                         </div>
@@ -1929,8 +1885,8 @@
                         let cat = '预包装类'; 
                         if (/原产国|进口商|海关|进口/.test(text)) cat = '进口食品';
                         else if (/味精|碳酸氢钠|色素|香精|甜味剂|碱|小苏打/.test(text)) cat = '食品添加剂';
-                        else if (/散装|蛋|米|面|豆|红米|黑米|燕麦|大米|小米|糯米|紫米|无花果|茯苓|干货|木耳|香菇|银耳|红枣|枸杞|桂圆|黄豆|绿豆|红豆|黑豆|花生|核桃|坚果|瓜子|糖果/.test(text)) cat = '散装食品';
-                        else if (/青|菜|果|肉|鱼|虾|鸡|鸭|猪|牛|羊|薯|笋|瓜|茄|萝卜|豆角|葱|蒜|姜|椒|生菜|柠檬/.test(text)) cat = '食用农产品';
+                        else if (/散装|蛋|豆|红米|黑米|燕麦|大米|小米|糯米|紫米|无花果|茯苓|干货|木耳|香菇|银耳|红枣|枸杞|桂圆|黄豆|绿豆|红豆|黑豆|花生|核桃|坚果|瓜子|糖果|菊花/.test(text)) cat = '散装食品';
+                        else if (/青|菜|笋|果|肉|鱼|鸭血|虾|鸡|鸭|猪|牛|羊|薯|瓜|茄|萝卜|豆角|葱|蒜|姜|椒|生菜|柠檬/.test(text)) cat = '食用农产品';
                         
                         if (/箱|瓶|袋|罐|只|桶|包|件|杯|盒/.test(unitText) || /箱|瓶|袋|罐|只|桶|包|件|杯|盒/.test(specText)) {
                             if (cat !== '食品添加剂' && cat !== '进口食品') {
@@ -1994,7 +1950,6 @@
                 const runRiskCheck = (item) => {
                     item.risk = '';
                 };
-                // ==============================
 
                 const updateCategoryDate = (cat) => {
                     const targetDate = categoryDates[cat];
@@ -2060,17 +2015,17 @@
                     const text = name.toLowerCase();
                     if (/盐|食盐/.test(text)) return '长期';
                     if (/罐头/.test(text)) return '36个月';
-                    if (/酱油|食醋|醋|豆瓣酱|味精|鸡精|食品添加剂|香精|香料|干货|木耳|香菇|银耳|红枣|枸杞|桂圆|黄豆|绿豆|红豆|黑豆|花生|核桃|坚果|瓜子|糖果/.test(text)) return '24个月';
-                    if (/蚝油|食用油|油|辣椒酱/.test(text)) return '18个月';
-                    if (/矿泉水|纯净水|大米|面粉|挂面|番茄酱|火锅底料|巧克力|果冻|水饺|包子|汤圆|丸子|冷冻|水产/.test(text)) return '12个月';
+                    if (/酱油|食醋|醋|豆瓣酱|味精|鸡精|食品添加剂|香精|香料|干货|木耳|香菇|银耳|红枣|枸杞|桂圆|黄豆|绿豆|红豆|黑豆|花生|核桃|坚果|瓜子|糖果|菊花/.test(text)) return '24个月';
+                    if (/蚝油|食用油|油|辣椒酱|排骨酱|鲜露|芝麻油|黄油|猪油/.test(text)) return '18个月';
+                    if (/矿泉水|纯净水|大米|面粉|挂面|番茄酱|火锅底料|巧克力|果冻|水饺|包子|汤圆|丸子|冷冻|冻|毛豆|猪爪|水产|榨菜/.test(text)) return '12个月';
                     if (/碳酸|果汁|薯片/.test(text)) return '9个月';
                     if (/纯牛奶|常温酸奶|方便面|面|火腿肠|饼干|膨化|午餐肉|香肠/.test(text)) return '6个月';
                     if (/鸡蛋|鸭蛋|鹌鹑蛋/.test(text)) return '30天';
                     if (/冷藏酸奶/.test(text)) return '21天';
                     if (/巴氏|鲜奶/.test(text)) return '15天';
                     if (/冷鲜肉|蔬菜|水果|生菜|柠檬|土豆|橙|葱|蒜|韭菜|芋|椒|瓜|茄|萝卜/.test(text)) return '7天';
-                    if (/面包|蛋糕/.test(text)) return '5天';
-                    if (/鲜肉|猪肉|牛肉|羊肉|鸡肉|鸭肉|肉|鱼/.test(text)) return '3天';
+                    if (/发糕|面包|蛋糕/.test(text)) return '5天';
+                    if (/鲜肉|猪肉|牛肉|羊肉|鸭血|鸡肉|鸭肉|肉|鱼/.test(text)) return '3天';
                     return '';
                 };
 
@@ -2080,26 +2035,28 @@
                 // ★ Mock 图片 OCR 提取模块
                 const generateImageOcrMockData = () => {
                     const rawItems = [
-                        { d: '2026-03-02', n: '新盛去骨鸡腿肉', u: '斤', a: '25.6', p: '5.5' },
+                        { d: '2026-03-02', n: '国产牛坑腩', u: '斤', a: '8', p: '27' },
+                        { d: '2026-03-02', n: '鸭腕1kg/包', u: '包', a: '4', p: '28.5' },
+                        { d: '2026-03-02', n: '免酱巴沙鱼片', u: '件', a: '1', p: '210' },
                         { d: '2026-03-02', n: '国产牛碎腩', u: '斤', a: '14', p: '22' },
-                        { d: '2026-03-02', n: '海天老抽1.9L', u: '桶', a: '6', p: '19' },
-                        { d: '2026-03-02', n: '元宝盘锦大米25kg', u: '包', a: '5', p: '120' },
-                        { d: '2026-03-02', n: '辣椒段', u: '斤', a: '15', p: '13' },
-                        { d: '2026-03-02', n: '海天蚝油6kg', u: '桶', a: '1', p: '35' },
-                        { d: '2026-03-02', n: '金龙鱼非转基因101/2桶', u: '件', a: '3', p: '211' },
-                        { d: '2026-03-03', n: '国产牛坑腩', u: '斤', a: '7', p: '27' },
-                        { d: '2026-03-03', n: '鸡脆', u: '包', a: '3', p: '18' },
-                        { d: '2026-03-03', n: '西部红番茄酱(850g)', u: '桶', a: '2', p: '8.2' },
-                        { d: '2026-03-03', n: '镇江香醋2L', u: '桶', a: '1', p: '14' },
-                        { d: '2026-03-03', n: '免酱巴沙鱼片', u: '件', a: '1', p: '210' },
-                        { d: '2026-03-03', n: '锅包肉', u: '斤', a: '20', p: '8' },
-                        { d: '2026-03-03', n: '鸡翅根', u: '斤', a: '20', p: '6.1' },
-                        { d: '2026-03-03', n: '蒜香海山骨1.5kg*6包', u: '件', a: '1', p: '160' },
-                        { d: '2026-03-03', n: '冻忠义白条鸭4.2斤/只', u: '只', a: '33.6', p: '4.2' },
-                        { d: '2026-03-03', n: '吴明鸡全腿', u: '斤', a: '34', p: '6' },
-                        { d: '2026-03-03', n: '潮汕肉卷2.5kg', u: '包', a: '10', p: '12.5' },
-                        { d: '2026-03-03', n: '荣利新达冻清远黑棕鹅', u: '斤', a: '40', p: '19.5' },
-                        { d: '2026-03-03', n: '六和琵琶腿', u: '斤', a: '40', p: '6' }
+                        { d: '2026-03-02', n: '冻忠义白条鸭4.2斤/只', u: '只', a: '33.6', p: '4.2' },
+                        { d: '2026-03-02', n: '传康三黄鸡', u: '斤', a: '19', p: '6.3' },
+                        { d: '2026-03-02', n: '吴明鸡全腿', u: '斤', a: '17', p: '6' },
+                        { d: '2026-03-02', n: '海天排骨酱', u: '瓶', a: '3', p: '5.9' },
+                        { d: '2026-03-02', n: '老榨坊芝麻油410ML*1', u: '瓶', a: '1', p: '8.5' },
+                        { d: '2026-03-02', n: '家乐辣鲜露', u: '瓶', a: '1', p: '16.7' },
+                        { d: '2026-03-02', n: '菊花', u: '斤', a: '0.5', p: '85' },
+                        { d: '2026-03-02', n: '枸杞', u: '斤', a: '1', p: '32' },
+                        { d: '2026-03-02', n: '红糖发糕', u: '包', a: '2', p: '5.75' },
+                        { d: '2026-03-02', n: '榨菜丝', u: '件', a: '1', p: '38.5' },
+                        { d: '2026-03-02', n: '王后高筋面粉25kg/包', u: '包', a: '2', p: '178' },
+                        { d: '2026-03-02', n: '王后低筋面粉25kg/包', u: '包', a: '2', p: '162' },
+                        { d: '2026-03-02', n: '车轮黄油', u: '桶', a: '1', p: '380' },
+                        { d: '2026-03-02', n: '正义猪油', u: '桶', a: '1', p: '206' },
+                        { d: '2026-03-02', n: '冷冻毛豆1kg*1', u: '包', a: '4', p: '8.3' },
+                        { d: '2026-03-02', n: '冻猪爪', u: '件', a: '1', p: '285' },
+                        { d: '2026-03-02', n: '老顾客蚝油牛肉片', u: '包', a: '2', p: '85' },
+                        { d: '2026-03-02', n: '吴明鸡边腿8kg', u: '件', a: '1', p: '85' }
                     ];
 
                     let batch = [];
@@ -2130,8 +2087,7 @@
                             status: '在库'
                         };
                         
-                        // 自动从名称中抽取规格信息（如 1.9L, 25kg, 850g 等）
-                        let specMatch = r.n.match(/(\d+(\.\d+)?(kg|g|l|斤|包|件).*)/i);
+                        let specMatch = r.n.match(/(\d+(\.\d+)?(kg|g|l|ml|斤|包|件).*)/i);
                         if(specMatch) {
                             item.spec = specMatch[1];
                         }
@@ -2144,6 +2100,7 @@
                     return batch;
                 };
 
+                // ★★★★ 核心解析模块升级 ★★★★
                 const handleFileUpload = (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -2175,20 +2132,18 @@
                             globalBatchSupplier.value = batch[0].supplierName;
                             batchOcrData.value = batch;
                         } else {
-                            alert("导入提示：\n未在文件中识别到有效数据。\n请检查：\n1. 表头是否包含「品种名称/品名」及「预定/实收」等字眼\n2. 如果是乱码，请尝试将文件另存为 XLSX 格式后重试。");
+                            alert("导入提示：\n未在文件中识别到有效数据。\n请检查：\n1. 表头是否包含「品种名称/品名/存货」等字眼\n2. 若为乱码，尝试另存为 CSV(UTF-8) 或 XLSX 格式后重试。");
                         }
                         isOcrProcessing.value = false;
                         e.target.value = ''; 
                     };
 
-                    // 分支：AI图片识别
                     if (file.type.match('image.*') || file.name.match(/\.pdf$/i)) {
                         setTimeout(() => {
                             const mockData = generateImageOcrMockData();
                             onFinalDone(mockData);
-                        }, 2500); // 模拟网络耗时
+                        }, 2500); 
                     } 
-                    // 分支：CSV 识别
                     else if (file.name.match(/\.csv$/i)) {
                         const readerUtf8 = new FileReader();
                         readerUtf8.onload = (e1) => {
@@ -2216,7 +2171,6 @@
                         };
                         readerUtf8.readAsText(file, 'utf-8');
                     } 
-                    // 分支：Excel 识别
                     else if (file.name.match(/\.(xlsx|xls)$/i)) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
@@ -2233,7 +2187,7 @@
                     } else {
                         setTimeout(() => {
                             isOcrProcessing.value = false;
-                            alert("不支持的文件格式！请上传 图片、PDF 或 Excel 表格。");
+                            alert("不支持的文件格式！");
                             e.target.value = '';
                         }, 1000);
                     }
@@ -2242,8 +2196,10 @@
                 const parseExcelData = (jsonData) => {
                     let newBatch = [];
                     let currentSupplier = '上海嘉土供应链管理有限公司'; 
-                    let currentDate = new Date().toISOString().split('T')[0]; 
-                    let colMap = { name: -1, spec: -1, unit: -1, amount_expected: -1, amount_actual: -1, price: -1 };
+                    let globalDate = new Date().toISOString().split('T')[0]; 
+                    
+                    // 引入新的列映射结构，加入单据日期、存货名称映射
+                    let colMap = { name: -1, spec: -1, unit: -1, amount_expected: -1, amount_actual: -1, amount_general: -1, price: -1, date: -1 };
                     let isReadingData = false;
 
                     for (let i = 0; i < jsonData.length; i++) {
@@ -2252,15 +2208,17 @@
                         
                         const rowString = row.join(' ');
 
+                        // 尝试获取全局供应商信息（防备旧模板）
                         const titleMatch = rowString.match(/([^\s,]+)送货单/);
                         if (titleMatch && titleMatch[1]) {
                             currentSupplier = titleMatch[1].trim();
                         }
 
+                        // 尝试全局日期扫描
                         const dateMatch = rowString.match(/日期：\s*(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
                         if (dateMatch) {
-                            currentDate = `${dateMatch[1]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[3].padStart(2, '0')}`;
-                        } else {
+                            globalDate = `${dateMatch[1]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[3].padStart(2, '0')}`;
+                        } else if (!isReadingData) {
                             for (let j = 0; j < row.length; j++) {
                                 let cell = String(row[j] || '').trim();
                                 if (cell.includes('日期：')) {
@@ -2268,60 +2226,88 @@
                                     let parts = dStr.split(/[-/]/);
                                     if(parts.length === 3) {
                                         let y = parts[0].length === 2 ? '20' + parts[0] : parts[0];
-                                        currentDate = `${y}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
+                                        globalDate = `${y}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
                                     }
                                 }
                             }
                         }
 
-                        let isHeaderRow = false;
+                        // 表头扫描引擎
+                        let foundHeaderThisRow = false;
                         for (let j = 0; j < row.length; j++) {
                             let cell = String(row[j] || '').trim();
-                            if (/品种名称|产品名称|品名|商品名称|物料名称/.test(cell)) {
-                                isHeaderRow = true;
+                            // 注意：避开"存货编号"，精确匹配"存货"
+                            if (/^(品种名称|产品名称|品名|商品名称|物料名称|存货)$/i.test(cell)) {
+                                foundHeaderThisRow = true;
                                 colMap.name = j;
-                            } else if (/规格/.test(cell)) {
+                            } else if (/^(单据日期|进货日期|日期)$/i.test(cell)) {
+                                colMap.date = j;
+                            } else if (/^(规格|规格型号)$/i.test(cell)) {
                                 colMap.spec = j;
-                            } else if (/单位/.test(cell)) {
+                            } else if (/^(单位|计量单位)$/i.test(cell)) {
                                 colMap.unit = j;
-                            } else if (/预定|应发数量/.test(cell) || cell === '数量') {
+                            } else if (/^(预定|应发数量)$/i.test(cell)) {
                                 colMap.amount_expected = j;
-                            } else if (/实收/.test(cell)) {
+                            } else if (/^(实收|实收数量)$/i.test(cell)) {
                                 colMap.amount_actual = j;
-                            } else if (/单价|最终定价/.test(cell)) {
-                                colMap.price = j;
+                            } else if (/^数量$/i.test(cell)) {
+                                colMap.amount_general = j;
+                            } else if (/含税单价|折后单价|单价|最终定价/i.test(cell)) {
+                                // 如果有多个单价列，优先采用带有"含税"的
+                                if (colMap.price === -1 || cell.includes('含税')) {
+                                    colMap.price = j;
+                                }
                             }
                         }
 
-                        if (isHeaderRow && colMap.name !== -1) {
+                        if (foundHeaderThisRow && colMap.name !== -1) {
                             isReadingData = true;
                             continue; 
                         }
 
+                        // 行数据提取引擎
                         if (isReadingData && colMap.name !== -1) {
                             let name = row[colMap.name];
                             if (name === undefined || name === null || String(name).trim() === '') continue;
                             let nameStr = String(name).trim();
 
-                            const blackList = ['产品名称', '品名', '商品名称', '收货人', '合计', '总计', '金额', '备注', '行号', '制单', '签字', '签名', '订单', '页次'];
-                            if (blackList.some(keyword => nameStr.includes(keyword))) {
+                            // 防御过滤词
+                            const blackList = ['产品名称', '品名', '商品名称', '存货', '收货人', '合计', '总计', '金额', '备注', '行号', '制单', '签字', '签名', '订单', '页次'];
+                            if (blackList.some(keyword => nameStr === keyword || nameStr.includes('合计'))) {
                                 continue; 
                             }
 
                             let spec = colMap.spec !== -1 ? String(row[colMap.spec] || '').trim() : '';
                             let unit = colMap.unit !== -1 ? String(row[colMap.unit] || '').trim() : '';
                             let price = colMap.price !== -1 ? String(row[colMap.price] || '').trim() : '';
+                            let rowDate = colMap.date !== -1 ? String(row[colMap.date] || '').trim() : '';
                             
                             let amtActual = colMap.amount_actual !== -1 ? String(row[colMap.amount_actual] || '').trim() : '';
                             let amtExpected = colMap.amount_expected !== -1 ? String(row[colMap.amount_expected] || '').trim() : '';
+                            let amtGen = colMap.amount_general !== -1 ? String(row[colMap.amount_general] || '').trim() : '';
 
-                            let finalAmt = amtActual !== '' ? amtActual : amtExpected;
+                            let finalAmt = amtActual !== '' ? amtActual : (amtGen !== '' ? amtGen : amtExpected);
 
                             if (!finalAmt || isNaN(parseFloat(finalAmt))) continue;
 
+                            // 解析行级日期
+                            let itemDate = globalDate;
+                            if (rowDate && rowDate.includes('-')) {
+                                const dMatch = rowDate.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+                                if (dMatch) {
+                                    itemDate = `${dMatch[1]}-${dMatch[2].padStart(2,'0')}-${dMatch[3].padStart(2,'0')}`;
+                                }
+                            }
+
+                            // 自动从存货名称中剥离规格
+                            let specMatch = nameStr.match(/(\d+(\.\d+)?(kg|g|l|ml|斤|包|件).*)/i);
+                            if(specMatch && !spec) {
+                                spec = specMatch[1];
+                            }
+
                             let item = {
                                 id: Date.now() + Math.random(),
-                                date: currentDate,
+                                date: itemDate,
                                 name: nameStr,
                                 category: '预包装类',
                                 spec: spec,
@@ -2335,8 +2321,8 @@
                                 isCustomShelfLife: false,
                                 expDate: '',
                                 batch: '',
-                                factory: '', // ★ 新增源头工厂属性
-                                supplierName: currentSupplier, // 配送商
+                                factory: '', 
+                                supplierName: currentSupplier, 
                                 supplierLicense: '',
                                 certificate: '有',
                                 conclusion: '合格',
@@ -2582,7 +2568,6 @@
                     isQualModalOpen, activeSupplier, qualFileInput, recognizedDocs,
                     openQualModal, closeQualModal, handleQualSelect, handleQualDrop, removeQualification, runAiRecognition,
                     getPanelStatusClass, getPanelStatusIcon,
-                    // ★ 暴露 Kimi 相关变量
                     isAiAnalyzing, runKimiAnalysis,
                     isOcrProcessing, batchOcrData, globalBatchDate, globalBatchSupplier, handleShelfLifeChange, updateCustomShelfLife,
                     categoryDates, updateCategoryDate,
