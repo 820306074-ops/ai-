@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI团餐食安系统 - 企业级监管平台</title>
+    <title>AI团餐食安系统 - 企业级监管平台(嘉土定制版)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
@@ -87,6 +87,8 @@
         .neon-text {
             text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
+        /* Trace tree connecting lines */
+        .trace-link { position: absolute; width: 2px; background: #CBD5E1; left: 50%; transform: translateX(-50%); z-index: 0; }
     </style>
 </head>
 <body class="overflow-hidden text-slate-800">
@@ -110,14 +112,14 @@
                 </a>
             </nav>
             <div class="p-5 bg-slate-950 text-xs text-slate-500 text-center border-t border-slate-800">
-                企业级 SaaS 核心引擎<br>V 2.0 (监管专供版)
+                企业级 SaaS 核心引擎<br>嘉土定制版 V2.3 (支持二级溯源)
             </div>
         </aside>
 
         <!-- ================= 右侧主体内容 ================= -->
         <main class="flex-1 flex flex-col h-screen overflow-hidden bg-surface relative">
             
-            <!-- 全局顶部状态栏 (当不在驾驶舱时显示) -->
+            <!-- 全局顶部状态栏 -->
             <header v-if="currentTab !== 'dashboard'" class="h-16 bg-card shadow-sm flex items-center justify-between px-8 shrink-0 z-40 relative border-b border-slate-200">
                 <h1 class="text-page-title font-semibold text-slate-800 tracking-tight">{{ currentMenuName }}</h1>
                 <div class="flex items-center gap-4 text-sm font-medium text-slate-500">
@@ -131,9 +133,8 @@
 
             <div class="flex-1 overflow-hidden relative">
 
-                <!-- ★★★★★ 0. 可视化监管驾驶舱 (新) ★★★★★ -->
+                <!-- ★★★★★ 0. 可视化监管驾驶舱 ★★★★★ -->
                 <div v-if="currentTab === 'dashboard'" class="absolute inset-0 dash-bg text-slate-300 flex flex-col overflow-y-auto overflow-x-hidden dash-scrollbar p-4 lg:p-6 min-w-[1200px]">
-                    
                     <!-- 驾驶舱头部 -->
                     <div class="flex justify-between items-end mb-6 shrink-0 relative">
                         <div class="absolute left-1/2 -translate-x-1/2 top-0">
@@ -154,7 +155,6 @@
 
                     <!-- 驾驶舱主体 12栏 Grid -->
                     <div class="flex-1 grid grid-cols-12 gap-5 h-full min-h-[700px]">
-                        
                         <!-- 左侧栏 (Span 3) -->
                         <div class="col-span-3 flex flex-col gap-5">
                             <!-- 风险结构占比 -->
@@ -298,7 +298,8 @@
                         <table class="w-full text-left whitespace-nowrap">
                             <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 text-table-txt">
                                 <tr>
-                                    <th class="px-6 py-4 font-semibold">供应商名称</th>
+                                    <th class="px-6 py-4 font-semibold">企业名称</th>
+                                    <th class="px-6 py-4 font-semibold">供应网角色</th>
                                     <th class="px-6 py-4 font-semibold">核定类别 (AI检查依据)</th>
                                     <th class="px-6 py-4 font-semibold">联系信息</th>
                                     <th class="px-6 py-4 font-semibold">资质合规雷达</th>
@@ -310,6 +311,12 @@
                                     <td class="px-6 py-4">
                                         <div class="font-bold text-slate-800 text-[14px]">{{ sub.name }}</div>
                                         <div class="text-[11px] text-slate-400 mt-1">云库证照: {{ sub.qualifications ? sub.qualifications.length : 0 }} 份</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 rounded-[6px] text-[11px] font-bold" 
+                                              :class="sub.type === '综合配送商' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-purple-50 text-purple-600 border border-purple-200'">
+                                            {{ sub.type || '综合配送商' }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-wrap gap-1.5">
@@ -336,7 +343,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="suppliers.length === 0">
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">暂无供应商数据，请新建供应商体系。</td>
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium">暂无供应商数据，请新建供应商体系。</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -354,12 +361,12 @@
                                 <div class="bg-surface w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-inner group-hover:-translate-y-1 transition-transform duration-300 border border-slate-100">
                                     <svg class="h-10 w-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                 </div>
-                                <h2 class="text-2xl font-bold text-slate-800 mb-3 tracking-tight">将进货单据拖拽至此解析</h2>
-                                <p class="text-helper text-slate-500 font-medium mb-8">支持 Excel / CSV 表格、单据图片及 PDF 智能映射</p>
+                                <h2 class="text-2xl font-bold text-slate-800 mb-3 tracking-tight">将您的嘉土送货单拖拽至此解析</h2>
+                                <p class="text-helper text-slate-500 font-medium mb-8">完美适配 Excel / CSV 表格（支持多Sheet合并识别）</p>
                                 
                                 <div class="flex justify-center gap-4 text-xs font-semibold text-emerald-700">
                                     <span class="bg-emerald-50 px-4 py-1.5 rounded-[6px] border border-emerald-100">✨ 基于200+行业食安数据库推算保质期</span>
-                                    <span class="bg-emerald-50 px-4 py-1.5 rounded-[6px] border border-emerald-100">✨ 自动核实验收供货商有效资质</span>
+                                    <span class="bg-emerald-50 px-4 py-1.5 rounded-[6px] border border-emerald-100">✨ 自动匹配二级溯源（配送商与源头厂家解耦）</span>
                                 </div>
                             </div>
                         </div>
@@ -370,8 +377,8 @@
                             <svg class="animate-spin w-full h-full text-emerald-100" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle></svg>
                             <svg class="absolute top-0 left-0 w-full h-full text-primary animate-pulse drop-shadow-md" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v2m0 12v2m8-8h-2M6 12H4m14.243-5.657l-1.414 1.414M7.172 17.828l-1.414 1.414m12.728 0l-1.414-1.414M7.172 6.172L5.758 4.758"></path></svg>
                         </div>
-                        <h2 class="text-page-title font-semibold text-slate-800 mb-2 animate-pulse tracking-tight">AI 引擎正在进行深度解析...</h2>
-                        <p class="text-helper text-slate-500 font-medium">正在映射物料明细、调度知识库预判、审查资质闭环</p>
+                        <h2 class="text-page-title font-semibold text-slate-800 mb-2 animate-pulse tracking-tight">专属 AI 引擎正在进行深度解析...</h2>
+                        <p class="text-helper text-slate-500 font-medium">正在映射物料明细、单价数量、调度知识库预判、审查资质闭环</p>
                     </div>
 
                     <div v-else class="flex-1 flex flex-col w-full p-6 pb-20 min-h-max gap-6">
@@ -384,7 +391,7 @@
                                     <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     全息视图：批量入账核对
                                 </h2>
-                                <p class="text-helper text-slate-500 mt-1">AI已完成数据抽取，请在下方补充或修正后一键入账。</p>
+                                <p class="text-helper text-slate-500 mt-1">AI已完成数据抽取，请补充<strong class="text-blue-600">源头产地/厂家</strong>完善二级溯源记录后一键入账。</p>
                             </div>
                             
                             <!-- 第二层操作条 -->
@@ -395,10 +402,10 @@
                                         <input type="date" v-model="globalBatchDate" @change="updateGlobalDate" class="w-44 bg-card border border-slate-300 rounded-[6px] px-3 py-1.5 text-table-txt text-slate-800 font-medium hover:border-primary transition-colors">
                                     </div>
                                     <div class="flex flex-col gap-1.5">
-                                        <label class="text-[12px] font-semibold text-slate-500">统一供应商匹配</label>
+                                        <label class="text-[12px] font-semibold text-slate-500">统一配送商 (一级渠道)</label>
                                         <select v-model="globalBatchSupplier" @change="updateGlobalSupplier" class="w-64 bg-card border border-slate-300 rounded-[6px] px-3 py-1.5 text-table-txt text-slate-800 font-medium hover:border-primary transition-colors">
-                                            <option value="">- 请选择供货商 -</option>
-                                            <option v-for="s in suppliers" :value="s.name">{{ s.name }}</option>
+                                            <option value="">- 请选择配送商 -</option>
+                                            <option v-for="s in suppliers.filter(sup => sup.type !== '源头生产商/基地')" :value="s.name">{{ s.name }}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -430,18 +437,20 @@
                                 </div>
                                 
                                 <div class="overflow-x-auto p-2 custom-scrollbar">
-                                    <table class="w-full text-left whitespace-nowrap border-collapse min-w-[1400px]">
+                                    <table class="w-full text-left whitespace-nowrap border-collapse min-w-[1600px]">
                                         <thead class="bg-card text-xs text-slate-500 border-b border-slate-100">
                                             <tr>
-                                                <th class="p-2.5 font-semibold min-w-[220px]">原料名称</th>
+                                                <th class="p-2.5 font-semibold min-w-[180px]">品种名称</th>
                                                 <th class="p-2.5 font-semibold text-center w-36">系统归类</th>
-                                                <th class="p-2.5 font-semibold text-center w-24">数量*</th>
-                                                <th class="p-2.5 font-semibold text-center w-16">单位*</th>
-                                                <th class="p-2.5 font-semibold text-center w-24">规格型号</th>
-                                                <th class="p-2.5 font-semibold text-center w-36">{{ (cat === '食用农产品' || cat === '散装食品') ? '来货日期' : '生产日期' }}</th>
-                                                <th v-if="cat !== '散装食品'" class="p-2.5 font-semibold text-center w-40">{{ cat === '食用农产品' ? '效期规则' : '保质时长(AI推演)' }}</th>
-                                                <th v-if="cat !== '散装食品'" class="p-2.5 font-semibold text-center w-36">{{ cat === '食用农产品' ? '效期状态' : '到期日(自动)' }}</th>
-                                                <th class="p-2.5 font-semibold text-center w-28">合格证明</th>
+                                                <th class="p-2.5 font-semibold text-center w-24">实收数量*</th>
+                                                <th class="p-2.5 font-semibold text-center w-16">单位</th>
+                                                <th class="p-2.5 font-semibold text-center w-24">单价(元)</th>
+                                                <th class="p-2.5 font-semibold text-center w-20">规格</th>
+                                                <th class="p-2.5 font-semibold text-center w-32 text-blue-600">源头产地/厂家</th>
+                                                <th class="p-2.5 font-semibold text-center w-32">{{ (cat === '食用农产品' || cat === '散装食品') ? '来货日期' : '生产日期' }}</th>
+                                                <th v-if="cat !== '散装食品'" class="p-2.5 font-semibold text-center w-32">{{ cat === '食用农产品' ? '效期规则' : '保质期(AI)' }}</th>
+                                                <th v-if="cat !== '散装食品'" class="p-2.5 font-semibold text-center w-28">{{ cat === '食用农产品' ? '效期状态' : '到期日' }}</th>
+                                                <th class="p-2.5 font-semibold text-center w-24">合格证明</th>
                                                 <th class="p-2.5 font-semibold text-center w-12">操作</th>
                                             </tr>
                                         </thead>
@@ -462,7 +471,13 @@
                                                     <input type="text" v-model="item.unit" class="w-full border border-slate-200 bg-surface rounded-[6px] px-1 py-1.5 text-table-txt font-medium text-slate-700 text-center hover:bg-white transition-colors">
                                                 </td>
                                                 <td class="p-2 align-middle">
+                                                    <input type="text" v-model="item.price" class="w-full border border-slate-200 bg-surface rounded-[6px] px-2 py-1.5 text-table-txt font-medium text-slate-700 text-center hover:bg-white transition-colors" placeholder="-">
+                                                </td>
+                                                <td class="p-2 align-middle">
                                                     <input type="text" v-model="item.spec" class="w-full border border-slate-200 bg-surface rounded-[6px] px-2 py-1.5 text-[12px] text-slate-600 text-center hover:bg-white transition-colors" placeholder="选填">
+                                                </td>
+                                                <td class="p-2 align-middle">
+                                                    <input type="text" v-model="item.factory" class="w-full border border-blue-200 bg-blue-50/30 rounded-[6px] px-2 py-1.5 text-[12px] font-bold text-blue-700 text-center hover:bg-white transition-colors placeholder:font-normal" placeholder="选填/建议填">
                                                 </td>
                                                 <td class="p-2 align-middle">
                                                     <input type="date" v-model="item.prodDate" @change="calcExpDate(item); runRiskCheck(item)" class="w-full border border-slate-200 bg-surface rounded-[6px] px-2 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-white transition-colors">
@@ -508,8 +523,8 @@
                                                 </td>
                                                 <td class="p-2 align-middle">
                                                     <select v-model="item.certificate" @change="runRiskCheck(item)" class="w-full border border-slate-200 bg-surface rounded-[6px] px-1 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-white text-center">
-                                                        <option value="有">✅ 有凭证</option>
-                                                        <option value="无">❌ 无凭证</option>
+                                                        <option value="有">✅ 有</option>
+                                                        <option value="无">❌ 无</option>
                                                     </select>
                                                 </td>
                                                 <td class="p-2 align-middle text-center">
@@ -570,16 +585,17 @@
 
                     <div class="bg-card rounded-card shadow-sm border border-slate-200 overflow-hidden">
                         <div class="overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-left text-table-txt whitespace-nowrap min-w-[1000px]">
+                            <table class="w-full text-left text-table-txt whitespace-nowrap min-w-[1200px]">
                                 <thead class="bg-surface text-slate-500 border-b border-slate-200">
                                     <tr>
                                         <th class="px-6 py-4 font-semibold">进货日期</th>
                                         <th class="px-6 py-4 font-semibold">原料名称</th>
                                         <th class="px-6 py-4 font-semibold">规格型号</th>
                                         <th class="px-6 py-4 font-semibold">入库数量</th>
+                                        <th class="px-6 py-4 font-semibold">单价</th>
                                         <th class="px-6 py-4 font-semibold">生命周期 (产/保)</th>
-                                        <th class="px-6 py-4 font-semibold">供货商网络</th>
-                                        <th class="px-6 py-4 font-semibold">流转结论</th>
+                                        <th class="px-6 py-4 font-semibold text-blue-600">生产源头/产地</th>
+                                        <th class="px-6 py-4 font-semibold">中转配送商</th>
                                         <th class="px-6 py-4 font-semibold text-center">操作</th>
                                     </tr>
                                 </thead>
@@ -589,21 +605,20 @@
                                         <td class="px-6 py-4 font-bold text-slate-800 text-[14px]">{{ item.name }}</td>
                                         <td class="px-6 py-4 text-slate-500">{{ item.spec || '-' }}</td>
                                         <td class="px-6 py-4 font-black text-primary">{{ item.amount }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-600">{{ item.price ? '¥'+item.price : '-' }}</td>
                                         <td class="px-6 py-4 text-[12px] text-slate-600 leading-tight">
                                             产: <span class="font-bold">{{ item.prodDate || '未标明' }}</span><br>
                                             至: <span class="font-bold text-slate-800">{{ item.expDate || '未计算' }}</span>
                                         </td>
+                                        <td class="px-6 py-4 text-blue-700 font-bold">{{ item.factory || '-' }}</td>
                                         <td class="px-6 py-4 text-slate-600 font-medium">{{ item.supplierName }}</td>
-                                        <td class="px-6 py-4">
-                                            <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-[6px] text-xs font-bold border border-emerald-100">{{ item.conclusion }}</span>
-                                        </td>
                                         <td class="px-6 py-4 text-center space-x-3">
                                             <button @click="openLedgerEditModal(item)" class="text-blue-600 hover:text-blue-800 font-medium text-xs">编辑</button>
                                             <button @click="deleteLedgerItem(item.id)" class="text-slate-400 hover:text-danger font-medium text-xs">删除</button>
                                         </td>
                                     </tr>
                                     <tr v-if="filteredCategoryLedger.length === 0">
-                                        <td colspan="8" class="px-6 py-16 text-center text-slate-400 font-medium">矩阵内暂无该分类流水资产。</td>
+                                        <td colspan="9" class="px-6 py-16 text-center text-slate-400 font-medium">矩阵内暂无该分类流水资产。</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -614,7 +629,7 @@
                 <!-- ================= 4. 历史时空追溯 ================= -->
                 <div v-if="currentTab === 'history'" class="p-6 h-full flex flex-col gap-6 overflow-hidden">
                     
-                    <!-- 第一层：追溯检索区 (高度约 100px 卡片) -->
+                    <!-- 第一层：追溯检索区 -->
                     <div class="bg-card rounded-card shadow-sm border border-slate-200 p-5 shrink-0">
                         <div class="flex flex-wrap lg:flex-nowrap items-end gap-5">
                             <div class="flex flex-col gap-1.5">
@@ -627,8 +642,8 @@
                             </div>
                             
                             <div class="flex flex-col gap-1.5 flex-1 min-w-[200px]">
-                                <label class="text-xs font-semibold text-slate-500">多维交叉搜索 (原料 / 批次 / 供应商)</label>
-                                <input type="text" v-model="traceSearch.keyword" placeholder="输入关键字追溯..." class="w-full bg-surface border border-slate-200 rounded-btn px-3 py-2 text-table-txt text-slate-800">
+                                <label class="text-xs font-semibold text-slate-500">多维交叉搜索 (原料 / 批次 / 产地 / 配送商)</label>
+                                <input type="text" v-model="traceSearch.keyword" placeholder="输入关键字溯源..." class="w-full bg-surface border border-slate-200 rounded-btn px-3 py-2 text-table-txt text-slate-800">
                             </div>
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-xs font-semibold text-slate-500">风险节点筛查</label>
@@ -636,13 +651,12 @@
                                     <option value="all">全量数据</option>
                                     <option value="normal">🟢 状态正常</option>
                                     <option value="warning">🟡 临期风险</option>
-                                    <option value="danger">🔴 阻断级风险(过期/无证)</option>
+                                    <option value="danger">🔴 阻断风险</option>
                                 </select>
                             </div>
                             <div class="flex items-center gap-3">
                                 <button class="bg-primary hover:bg-emerald-600 text-white rounded-btn px-5 py-2 text-btn font-semibold shadow-sm transition-all" @click="executeTraceSearch">执行追溯</button>
                                 <button class="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-btn px-4 py-2 text-btn font-medium transition-all" @click="resetTraceSearch">重置引擎</button>
-                                <button class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 rounded-btn px-4 py-2 text-btn font-semibold transition-all">导出防伪报告</button>
                             </div>
                         </div>
                     </div>
@@ -650,7 +664,7 @@
                     <!-- 下方主体：左侧数据表格 + 右侧时空分析面板 -->
                     <div class="flex-1 flex flex-col xl:flex-row gap-6 min-h-0">
                         
-                        <!-- 第四层：数据表格区 (占据剩余空间大半) -->
+                        <!-- 第四层：数据表格区 -->
                         <div class="xl:w-3/5 bg-card rounded-card shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                             <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                                 <h3 class="font-bold text-slate-800 text-[15px] flex items-center">
@@ -661,16 +675,15 @@
                             </div>
                             
                             <div class="flex-1 overflow-auto custom-scrollbar p-2">
-                                <table class="w-full text-left text-table-txt whitespace-nowrap min-w-[1000px]">
+                                <table class="w-full text-left text-table-txt whitespace-nowrap min-w-[1100px]">
                                     <thead class="bg-surface text-slate-500 border-b border-slate-200 sticky top-0 z-10">
                                         <tr>
                                             <th class="px-4 py-3 font-semibold w-12">#</th>
                                             <th class="px-4 py-3 font-semibold">进货节点</th>
                                             <th class="px-4 py-3 font-semibold">食品类别</th>
-                                            <th class="px-4 py-3 font-semibold">追溯原料标的</th>
-                                            <th class="px-4 py-3 font-semibold">数量</th>
-                                            <th class="px-4 py-3 font-semibold">批次/产期</th>
-                                            <th class="px-4 py-3 font-semibold">供应商信源</th>
+                                            <th class="px-4 py-3 font-semibold">标的物</th>
+                                            <th class="px-4 py-3 font-semibold">生产源头</th>
+                                            <th class="px-4 py-3 font-semibold">配送商信源</th>
                                             <th class="px-4 py-3 font-semibold text-center">探针操作</th>
                                         </tr>
                                     </thead>
@@ -682,17 +695,16 @@
                                             <td class="px-4 py-3 text-slate-700 font-mono text-[12px]">{{ item.date }}</td>
                                             <td class="px-4 py-3 text-slate-500 text-xs"><span class="bg-slate-100 px-2 py-0.5 rounded">{{ item.category }}</span></td>
                                             <td class="px-4 py-3 font-bold text-slate-800">{{ item.name }}</td>
-                                            <td class="px-4 py-3 font-black text-primary">{{ item.amount }}</td>
-                                            <td class="px-4 py-3 text-slate-500 font-mono text-[11px]">{{ item.prodDate || '无标定' }}</td>
+                                            <td class="px-4 py-3 font-medium text-blue-700">{{ item.factory || '-' }}</td>
                                             <td class="px-4 py-3 text-slate-600 truncate max-w-[150px]">{{ item.supplierName }}</td>
                                             <td class="px-4 py-3 text-center">
                                                 <button class="text-primary font-bold text-[12px] bg-white border border-emerald-200 px-3 py-1 rounded-full shadow-sm hover:bg-primary hover:text-white transition-colors">
-                                                    时空解析 👉
+                                                    二级解析 👉
                                                 </button>
                                             </td>
                                         </tr>
                                         <tr v-if="filteredTraceList.length === 0">
-                                            <td colspan="8" class="px-6 py-20 text-center text-slate-400 font-medium">在当前时空范围内未检索到数据碎片。</td>
+                                            <td colspan="7" class="px-6 py-20 text-center text-slate-400 font-medium">在当前时空范围内未检索到数据碎片。</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -704,7 +716,7 @@
                             <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50">
                                 <h3 class="font-bold text-slate-800 text-[15px] flex items-center">
                                     <svg class="w-4 h-4 mr-1.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
-                                    可视化时空链路拓扑
+                                    可视化三层时空链路图
                                 </h3>
                             </div>
                             
@@ -727,43 +739,34 @@
                                     </ul>
                                 </div>
 
-                                <!-- 第五层：垂直溯源关系图 (CSS节点实现) -->
+                                <!-- 第五层：二级溯源关系图 (三节点) -->
                                 <div class="relative flex flex-col items-center">
                                     <div class="text-xs font-bold text-slate-400 mb-4 tracking-widest uppercase">溯源主干网络</div>
+                                    <div class="trace-link" style="top: 30px; bottom: 30px;"></div>
                                     
-                                    <!-- Node 1: 供应商 -->
-                                    <div class="trace-arrow relative bg-white border-2 border-slate-300 rounded-xl p-3 w-64 text-center shadow-sm z-10">
-                                        <div class="text-[10px] text-slate-400 font-bold mb-1">上游责任方 (信源)</div>
-                                        <div class="text-[14px] font-bold text-slate-800 truncate">{{ activeTraceItem.supplierName || '缺失溯源实体' }}</div>
-                                        <div class="text-[10px] text-slate-500 mt-1 font-mono">许可牌照: {{ activeTraceItem.supplierLicense || '未录入验证' }}</div>
+                                    <!-- Node 1: 源头生产商 (Tier 2) -->
+                                    <div class="relative bg-white border-2 border-slate-300 rounded-xl p-3 w-64 text-center shadow-sm z-10 mb-8">
+                                        <div class="text-[10px] text-slate-400 font-bold mb-1">源头生产商/基地 (生产环节)</div>
+                                        <div class="text-[14px] font-bold text-slate-800 truncate">{{ activeTraceItem.factory || '未录入/未知源头' }}</div>
                                     </div>
                                     
-                                    <div class="h-10 w-px bg-slate-300"></div>
+                                    <!-- Node 2: 配送商 (Tier 1) -->
+                                    <div class="relative bg-blue-50 border-2 border-blue-300 rounded-xl p-3 w-64 text-center shadow-sm z-10 mb-8">
+                                        <div class="text-[10px] text-blue-500 font-bold mb-1">直供配送商 (流通环节)</div>
+                                        <div class="text-[14px] font-bold text-blue-800 truncate">{{ activeTraceItem.supplierName || '缺失溯源实体' }}</div>
+                                        <div class="text-[10px] text-blue-600 mt-1 font-mono opacity-80">流通许可: {{ activeTraceItem.supplierLicense || '未验证' }}</div>
+                                    </div>
                                     
-                                    <!-- Node 2: 标的物料 -->
-                                    <div class="trace-arrow relative bg-emerald-50 border-2 border-primary rounded-xl p-3 w-64 text-center shadow-sm shadow-emerald-500/20 z-10">
-                                        <div class="text-[10px] text-emerald-600 font-bold mb-1">标的物资产</div>
+                                    <!-- Node 3: 标的物料 (Asset) -->
+                                    <div class="relative bg-emerald-50 border-2 border-primary rounded-xl p-3 w-64 text-center shadow-sm shadow-emerald-500/20 z-10">
+                                        <div class="text-[10px] text-emerald-600 font-bold mb-1">终点标的资产</div>
                                         <div class="text-[16px] font-black text-emerald-800">{{ activeTraceItem.name }}</div>
-                                        <div class="text-[12px] font-bold text-emerald-700 mt-1">{{ activeTraceItem.amount }}</div>
-                                    </div>
-
-                                    <div class="h-10 w-px bg-slate-300"></div>
-
-                                    <!-- Node 3: 库存寿命 -->
-                                    <div class="bg-white border-2 border-slate-300 rounded-xl p-3 w-64 text-center shadow-sm z-10" 
-                                         :class="getTraceRisk(activeTraceItem).isExpired ? 'border-red-400 bg-red-50' : 'border-blue-300 bg-blue-50'">
-                                        <div class="text-[10px] text-slate-500 font-bold mb-1">时空坐标锚点</div>
-                                        <div class="text-[13px] font-bold" :class="getTraceRisk(activeTraceItem).isExpired ? 'text-red-700' : 'text-blue-800'">
-                                            生产溯源: {{ activeTraceItem.prodDate || '未知' }}
-                                        </div>
-                                        <div class="text-[13px] font-bold mt-0.5" :class="getTraceRisk(activeTraceItem).isExpired ? 'text-red-700' : 'text-blue-800'">
-                                            衰变终点: {{ activeTraceItem.expDate || '无限期' }}
-                                        </div>
+                                        <div class="text-[12px] font-bold text-emerald-700 mt-1">{{ activeTraceItem.amount }} {{ activeTraceItem.unit }}</div>
                                     </div>
                                 </div>
 
                                 <!-- 第二层：平行审计时间轴 -->
-                                <div class="mt-4">
+                                <div class="mt-4 border-t border-slate-200 pt-6">
                                     <div class="text-xs font-bold text-slate-400 mb-4 tracking-widest uppercase">审计事件轨迹</div>
                                     <div class="border-l-2 border-slate-200 ml-3 space-y-6 relative pl-6">
                                         
@@ -771,14 +774,14 @@
                                         <div class="relative">
                                             <div class="absolute w-3 h-3 bg-slate-200 border-2 border-white rounded-full -left-[29.5px] top-1"></div>
                                             <div class="text-[11px] text-slate-400 font-mono mb-0.5">{{ activeTraceItem.prodDate || '未定时刻' }}</div>
-                                            <div class="text-[13px] font-bold text-slate-700">供应商资产封装出厂</div>
+                                            <div class="text-[13px] font-bold text-slate-700">源头基地分装出厂</div>
                                         </div>
 
                                         <!-- Event 2 -->
                                         <div class="relative">
                                             <div class="absolute w-4 h-4 bg-primary border-4 border-emerald-100 rounded-full -left-[31.5px] top-1 shadow-sm"></div>
                                             <div class="text-[11px] text-primary font-mono font-bold mb-0.5">{{ activeTraceItem.date }}</div>
-                                            <div class="text-[14px] font-black text-slate-800">入库台账建立 (核查验收)</div>
+                                            <div class="text-[14px] font-black text-slate-800">配送商交接验收完成</div>
                                             <div class="text-[12px] text-slate-500 mt-1 bg-white border border-slate-200 p-2 rounded w-fit shadow-sm">
                                                 验收官：{{ activeTraceItem.inspector || '系统执行' }}<br>
                                                 判定：<span class="font-bold text-emerald-600">{{ activeTraceItem.conclusion || '合格' }}</span>
@@ -964,7 +967,7 @@
                                 <h3 class="font-bold text-slate-700 text-[14px]">电子底表数据快照 ({{ exportMonth }})</h3>
                             </div>
                             <div class="flex-1 overflow-auto custom-scrollbar p-2" id="report-preview-container">
-                                <table class="w-full text-left text-table-txt whitespace-nowrap min-w-[1200px] border-collapse">
+                                <table class="w-full text-left text-table-txt whitespace-nowrap min-w-[1300px] border-collapse">
                                     <thead class="bg-surface text-slate-600 border-y border-slate-200">
                                         <tr>
                                             <th class="px-3 py-2.5 font-bold border-x border-slate-200 w-12">#</th>
@@ -973,7 +976,8 @@
                                             <th class="px-3 py-2.5 font-bold border-x border-slate-200">原料名称</th>
                                             <th class="px-3 py-2.5 font-bold border-x border-slate-200">规格/数量</th>
                                             <th class="px-3 py-2.5 font-bold border-x border-slate-200">产期 / 保质期</th>
-                                            <th class="px-3 py-2.5 font-bold border-x border-slate-200">供应商及许可编号</th>
+                                            <th class="px-3 py-2.5 font-bold border-x border-slate-200 text-blue-700">生产厂家/源头</th>
+                                            <th class="px-3 py-2.5 font-bold border-x border-slate-200">中转配送商 (许可)</th>
                                             <th class="px-3 py-2.5 font-bold border-x border-slate-200">随附证明</th>
                                             <th class="px-3 py-2.5 font-bold border-x border-slate-200">验收判定</th>
                                         </tr>
@@ -986,6 +990,7 @@
                                             <td class="px-3 py-2 border-x border-slate-200 font-bold text-slate-800">{{ row.name }}</td>
                                             <td class="px-3 py-2 border-x border-slate-200">{{ row.spec ? row.spec+' / ' : '' }}{{ row.amount }}</td>
                                             <td class="px-3 py-2 border-x border-slate-200 font-mono text-[11px]">{{ row.prodDate }} <br>至: <span class="font-bold">{{ row.expDate }}</span></td>
+                                            <td class="px-3 py-2 border-x border-slate-200 text-blue-700 font-bold">{{ row.factory || '-' }}</td>
                                             <td class="px-3 py-2 border-x border-slate-200 leading-tight">
                                                 {{ row.supplierName }}<br>
                                                 <span class="text-[10px] text-slate-400 font-mono">{{ row.supplierLicense || 'NO-LICENSE' }}</span>
@@ -994,7 +999,7 @@
                                             <td class="px-3 py-2 border-x border-slate-200 font-bold" :class="row.conclusion==='合格'?'text-primary':'text-danger'">{{ row.conclusion }}</td>
                                         </tr>
                                         <tr v-if="reportPreviewData.length === 0">
-                                            <td colspan="9" class="px-6 py-16 text-center text-slate-400 font-medium bg-surface/50">该账期内无流转记录产生。（注意：您可以在上方选择“2026-02”以查看您的测试数据）</td>
+                                            <td colspan="10" class="px-6 py-16 text-center text-slate-400 font-medium bg-surface/50">该账期内无流转记录产生。（注意：您可以在上方选择对应的账期查看历史数据）</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1016,7 +1021,7 @@
             <div v-if="isSupplierModalOpen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100]">
                 <div class="bg-white rounded-card shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 transform transition-all">
                     <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/80">
-                        <h3 class="text-[18px] font-bold text-slate-800 tracking-tight">{{ editingSupplierId ? '编辑供货商档案' : '建立新供货商档案' }}</h3>
+                        <h3 class="text-[18px] font-bold text-slate-800 tracking-tight">{{ editingSupplierId ? '编辑供应商/产地档案' : '建立新供应商/产地档案' }}</h3>
                         <button @click="closeSupplierModal" class="text-slate-400 hover:text-slate-600 hover:bg-slate-200 p-1.5 rounded-full transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
@@ -1024,14 +1029,28 @@
                     <form @submit.prevent="saveSupplier" class="p-6 space-y-6 bg-white">
                         <div class="grid grid-cols-2 gap-5">
                             <div class="col-span-2">
-                                <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">企业/商户名称 *</label>
-                                <input v-model="supplierForm.name" required type="text" class="w-full border border-slate-300 rounded-btn px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 font-medium bg-surface focus:bg-white transition-colors" placeholder="如：广东惠隆供应链有限公司">
+                                <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">企业名称/产地名称 *</label>
+                                <input v-model="supplierForm.name" required type="text" class="w-full border border-slate-300 rounded-btn px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 font-medium bg-surface focus:bg-white transition-colors" placeholder="如：上海嘉土 或 某某农业种植基地">
                             </div>
                             
+                            <div class="col-span-2">
+                                <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">供应商网络角色 *</label>
+                                <div class="flex items-center gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer bg-slate-50 px-4 py-2 rounded border hover:border-blue-300 transition-colors" :class="supplierForm.type === '综合配送商' ? 'border-blue-500 ring-1 ring-blue-200' : 'border-slate-200'">
+                                        <input type="radio" value="综合配送商" v-model="supplierForm.type" class="text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm font-bold text-slate-700">🚚 综合配送商 (流通环节)</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer bg-slate-50 px-4 py-2 rounded border hover:border-purple-300 transition-colors" :class="supplierForm.type === '源头生产商/基地' ? 'border-purple-500 ring-1 ring-purple-200' : 'border-slate-200'">
+                                        <input type="radio" value="源头生产商/基地" v-model="supplierForm.type" class="text-purple-600 focus:ring-purple-500">
+                                        <span class="text-sm font-bold text-slate-700">🏭 源头生产商/基地 (生产环节)</span>
+                                    </label>
+                                </div>
+                            </div>
+
                             <div class="col-span-2 bg-blue-50/50 p-4 rounded-btn border border-blue-100">
                                 <label class="block text-[13px] font-bold text-blue-900 mb-3 flex items-center">
                                     <svg class="w-4 h-4 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                                    限定供应品类 (AI 合规基准) *
+                                    限定供应/生产类别 (AI 合规基准) *
                                 </label>
                                 <div class="flex flex-wrap gap-3">
                                     <label v-for="cat in availableCategories" :key="cat" class="flex items-center space-x-2 cursor-pointer bg-white border border-blue-200 px-3 py-1.5 rounded-[6px] hover:border-blue-400 transition-colors shadow-sm">
@@ -1042,7 +1061,7 @@
                                 
                                 <div v-if="smartHints.length > 0" class="mt-4 bg-blue-100/60 p-3 rounded-lg text-xs text-blue-800 border border-blue-200 shadow-inner">
                                     <div class="font-black mb-1.5 flex items-center tracking-wide">
-                                        🛡️ AI 智能防呆合规提醒：
+                                        🛡️ 规则引擎防呆提示：
                                     </div>
                                     <ul class="list-disc pl-5 space-y-1 font-medium opacity-90">
                                         <li v-for="hint in smartHints" :key="hint">{{ hint }}</li>
@@ -1079,6 +1098,7 @@
                                 <svg class="w-6 h-6 mr-2 text-[#10B981]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                                 资质 AI 云审中枢
                                 <span class="ml-3 text-[12px] bg-slate-200 text-slate-700 px-3 py-1 rounded-full font-bold">{{ activeSupplier.name }}</span>
+                                <span class="ml-2 text-[10px] border border-blue-200 text-blue-600 px-2 py-0.5 rounded">{{ activeSupplier.type || '综合配送商' }}</span>
                             </h3>
                         </div>
                         <button @click="closeQualModal" class="text-slate-400 hover:text-slate-700 p-2 bg-white rounded-full hover:bg-slate-200 transition shadow-sm border border-slate-200">
@@ -1113,7 +1133,7 @@
                                         
                                         <div v-if="!img.recognized && !img.isRecognizing">
                                             <button @click="runAiRecognition(img)" class="text-[12px] bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-[#10B981] hover:text-white px-4 py-2 rounded-btn font-bold transition-all flex items-center w-fit shadow-sm">
-                                                释放 AI 视网膜引擎
+                                                释放 OCR 提取引擎
                                             </button>
                                         </div>
                                         <div v-if="img.recognized" class="bg-emerald-50/50 border border-emerald-200 rounded-btn p-2.5 text-[12px] text-slate-700 grid grid-cols-1 gap-1.5 shadow-inner">
@@ -1134,7 +1154,7 @@
                         <div class="w-full md:w-2/5 bg-card p-8 overflow-y-auto flex flex-col relative z-10 shadow-[-10px_0_20px_-10px_rgba(0,0,0,0.05)]">
                             <h3 class="text-module-title font-bold text-slate-800 mb-6 border-b border-slate-100 pb-3 flex items-center">
                                 <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                AI 风险评估判定树
+                                资质合规判定树
                             </h3>
                             
                             <div class="mb-8">
@@ -1150,7 +1170,7 @@
                             </div>
 
                             <div class="flex-1">
-                                <h4 class="text-[14px] font-bold text-slate-800 mb-3 tracking-wide">诊断矩阵与整改命令：</h4>
+                                <h4 class="text-[14px] font-bold text-slate-800 mb-3 tracking-wide">本地诊断矩阵：</h4>
                                 <div v-if="activeSupplier.aiSuggestions && activeSupplier.aiSuggestions.length > 0" class="space-y-2.5">
                                     <div v-for="sug in activeSupplier.aiSuggestions" class="bg-card border border-slate-200 p-3.5 rounded-btn text-[13px] text-slate-700 shadow-sm"
                                           :class="sug.includes('必须') ? 'border-l-[3px] border-l-danger' : 'border-l-[3px] border-l-yellow-400'">
@@ -1163,16 +1183,40 @@
                                 </div>
                                 <div v-else class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-6 rounded-card text-center shadow-sm">
                                     <div class="font-bold text-[16px] mb-1">合规闭环确立</div>
-                                    <div class="text-[12px] font-medium opacity-80">放行至信任网络</div>
+                                    <div class="text-[12px] font-medium opacity-80">满足基础规则放行</div>
                                 </div>
                             </div>
+
+                            <!-- ★ Kimi 大模型深度诊断入口 ★ -->
+                            <div class="mt-6 border-t border-slate-200 pt-5">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="text-[14px] font-bold text-slate-800 tracking-wide flex items-center">
+                                        <svg class="w-4 h-4 mr-1.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                        Kimi 大模型深度诊断
+                                    </h4>
+                                    <button @click="runKimiAnalysis" :disabled="isAiAnalyzing" class="bg-purple-100 text-purple-700 hover:bg-purple-600 hover:text-white px-3 py-1.5 rounded-[6px] text-xs font-bold transition flex items-center shadow-sm disabled:opacity-50">
+                                        <svg v-if="isAiAnalyzing" class="animate-spin -ml-1 mr-2 h-3 w-3 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        {{ activeSupplier.aiDeliveryAnalysis ? '重新生成分析' : '一键 AI 识别' }}
+                                    </button>
+                                </div>
+                                <div v-if="activeSupplier.aiDeliveryAnalysis" class="bg-purple-50 border border-purple-200 p-4 rounded-[8px] text-[13px] text-slate-700 leading-relaxed shadow-inner font-medium">
+                                    {{ activeSupplier.aiDeliveryAnalysis }}
+                                </div>
+                                <div v-else-if="!isAiAnalyzing" class="bg-slate-50 border border-slate-200 p-4 rounded-[8px] text-[12px] text-slate-400 text-center font-medium">
+                                    点击右上方按钮调用 Kimi (Moonshot) 大语言模型进行深度合规性分析。
+                                </div>
+                                <div v-else class="bg-slate-50 border border-slate-200 p-4 rounded-[8px] text-[12px] text-slate-500 text-center animate-pulse font-medium">
+                                    Kimi 正在深度研判供货商资质，请稍候...
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
             </div>
         </transition>
 
-        <!-- ================= 3. 弹出层：台账数据编辑 (新增) ================= -->
+        <!-- ================= 3. 弹出层：台账数据编辑 ================= -->
         <transition name="fade">
             <div v-if="isLedgerEditModalOpen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100]">
                 <div class="bg-white rounded-card shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 transform transition-all">
@@ -1203,9 +1247,15 @@
                                 <input v-model="editingLedgerForm.amount" required type="text" class="w-full border border-slate-300 rounded-btn px-3 py-2 text-sm text-primary font-bold focus:ring-2 focus:ring-primary outline-none">
                             </div>
                             <div>
-                                <label class="block text-[12px] font-semibold text-slate-500 mb-1.5">规格型号</label>
-                                <input v-model="editingLedgerForm.spec" type="text" class="w-full border border-slate-300 rounded-btn px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-primary outline-none" placeholder="可为空">
+                                <label class="block text-[12px] font-semibold text-slate-500 mb-1.5">单价</label>
+                                <input v-model="editingLedgerForm.price" type="text" class="w-full border border-slate-300 rounded-btn px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-primary outline-none" placeholder="可为空">
                             </div>
+                            
+                            <div class="col-span-2 p-4 bg-slate-50/50 rounded-lg border border-slate-200">
+                                <label class="block text-[12px] font-bold text-slate-700 mb-2">源头产地/厂家 (二级溯源)</label>
+                                <input v-model="editingLedgerForm.factory" type="text" class="w-full border border-slate-300 rounded-btn px-3 py-2 text-sm text-blue-700 font-medium focus:ring-2 focus:ring-blue-400 outline-none" placeholder="如：某某食品加工厂">
+                            </div>
+                            
                             <div class="p-4 bg-blue-50/50 rounded-lg border border-blue-100 col-span-2 grid grid-cols-2 gap-5">
                                 <div>
                                     <label class="block text-[12px] font-semibold text-blue-800 mb-1.5">生产日期</label>
@@ -1263,7 +1313,7 @@
 
         createApp({
             setup() {
-                // =============== 1. 基础状态与数据存储设置 (必须最先初始化) ===============
+                // =============== 1. 基础状态与数据存储设置 ===============
                 const menus = [
                     { id: 'dashboard', name: '全景驾驶舱', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>' },
                     { id: 'suppliers', name: '供应商中枢', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>' },
@@ -1275,7 +1325,6 @@
                 ];
                 
                 const currentTab = ref('dashboard'); 
-                
                 const currentDate = ref(new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }));
                 const currentMenuName = computed(() => menus.find(m => m.id === currentTab.value)?.name || '');
 
@@ -1286,28 +1335,29 @@
                 const loadData = (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal;
                 const saveData = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
+                // 预设 嘉土供应链 为系统供应商 (新增 type 字段)
                 const defaultSuppliers = [
-                    { id: 1, name: '广东惠隆供应链有限公司', categories: ['预包装食品', '农产品', '散装食品'], contact: '李主管', phone: '13800000000', qualifications: [], complianceStatus: '待补充', aiSuggestions: ['请补充资质'] }
+                    { id: 1, name: '上海嘉土供应链管理有限公司', type: '综合配送商', categories: ['预包装食品', '农产品', '散装食品', '肉类'], contact: '嘉土主管', phone: '13800000000', qualifications: [], complianceStatus: '待补充', aiSuggestions: ['请补充资质'], aiDeliveryAnalysis: '' },
+                    { id: 2, name: '某某农产品种植基地', type: '源头生产商/基地', categories: ['农产品'], contact: '李场长', phone: '13800000000', qualifications: [], complianceStatus: '待补充', aiSuggestions: ['请补充资质'], aiDeliveryAnalysis: '' }
                 ];
                 const defaultLedgers = [
-                    { id: 1, date: '2026-02-24', name: '红米', category: '散装食品', spec: '', amount: '2.00', unit: '斤', prodDate: '2025-10-01', expDate: '2026-10-01', batch: '', factory: '', supplierName: '广东惠隆供应链有限公司', supplierLicense: '', certificate: '有', inspector: '系统管理员', conclusion: '合格', status: '在库' },
-                    { id: 2, date: '2026-02-25', name: '冰冻鸡腿', category: '预包装类', spec: '2kg', amount: '10.00', unit: '包', prodDate: '2025-01-01', expDate: '2026-01-01', batch: '', factory: '', supplierName: '未知供应商', supplierLicense: '', certificate: '无', inspector: '系统管理员', conclusion: '不合格', status: '在库' }
+                    { id: 1, date: '2026-03-02', name: '花菜/椰菜花', category: '食用农产品', spec: '', amount: '15.00', unit: '斤', price: '2.6', prodDate: '2026-03-02', expDate: '', batch: '', factory: '某某农产品种植基地', supplierName: '上海嘉土供应链管理有限公司', supplierLicense: '', certificate: '有', inspector: '系统管理员', conclusion: '合格', status: '在库' },
+                    { id: 2, date: '2026-03-02', name: '鲜鸡蛋', category: '散装食品', spec: '', amount: '48.00', unit: '斤', price: '4.8', prodDate: '2026-03-02', expDate: '', batch: '', factory: '', supplierName: '上海嘉土供应链管理有限公司', supplierLicense: '', certificate: '有', inspector: '系统管理员', conclusion: '合格', status: '在库' }
                 ];
 
-                const suppliers = ref(loadData('sys_suppliers_v8', defaultSuppliers));
-                const ledgers = ref(loadData('sys_ledgers_v8', defaultLedgers));
+                const suppliers = ref(loadData('sys_suppliers_v11', defaultSuppliers));
+                const ledgers = ref(loadData('sys_ledgers_v11', defaultLedgers));
                 const customShelfLifeDict = ref(loadData('sys_custom_shelflife_dict', {}));
                 const customCategoryDict = ref(loadData('sys_custom_category_dict', {}));
 
 
-                // =============== 2. 核心风险与追溯算法 (供 Dashboard 依赖) ===============
+                // =============== 2. 核心风险与追溯算法 ===============
                 const getTraceRisk = (item) => {
                     if(!item) return {};
                     let isExpired = false;
                     let isExpiring = false;
                     let risks = [];
                     
-                    // ★ 核心规则：只有【在库】的食品才参与风险判断
                     if (item.status === '在库') {
                         if (item.expDate && item.expDate !== '长期') {
                             const days = (new Date(item.expDate) - new Date()) / 86400000;
@@ -1315,9 +1365,9 @@
                             else if (days <= 7) { isExpiring = true; risks.push('临近保质期预警 (7天内)'); }
                         }
                         if (item.certificate === '无') risks.push('法定合格证明缺失');
-                        if (!item.supplierLicense) risks.push('供货商备案资质不明');
+                        if (!item.supplierLicense) risks.push('中转配送商备案资质不明');
+                        if (item.category === '预包装类' && !item.factory) risks.push('预包装食品缺失源头生产厂家溯源信息');
                     }
-
                     return { hasRisk: risks.length > 0, isExpired, isExpiring, risks };
                 };
 
@@ -1547,12 +1597,11 @@
                     }
                 };
 
-                // ★ 台账基础信息管理 (编辑与删除)
                 const isLedgerEditModalOpen = ref(false);
                 const editingLedgerForm = reactive({});
 
                 const openLedgerEditModal = (item) => {
-                    Object.assign(editingLedgerForm, JSON.parse(JSON.stringify(item))); // Deep copy
+                    Object.assign(editingLedgerForm, JSON.parse(JSON.stringify(item))); 
                     isLedgerEditModalOpen.value = true;
                 };
 
@@ -1563,7 +1612,6 @@
                 const saveLedgerEdit = () => {
                     const idx = ledgers.value.findIndex(l => l.id === editingLedgerForm.id);
                     if (idx !== -1) {
-                        // 如果供货商变了，重新获取一下许可证号
                         editingLedgerForm.supplierLicense = getSupplierLicense(editingLedgerForm.supplierName);
                         ledgers.value[idx] = { ...editingLedgerForm };
                     }
@@ -1579,26 +1627,30 @@
                 // 供应商基础信息管理 & 智能提示
                 const isSupplierModalOpen = ref(false);
                 const editingSupplierId = ref(null);
-                const supplierForm = reactive({ name: '', categories: [], contact: '', phone: '' });
+                const supplierForm = reactive({ name: '', type: '综合配送商', categories: [], contact: '', phone: '' });
 
                 const smartHints = computed(() => {
                     const hints = [];
                     const cats = supplierForm.categories;
-                    if(cats.includes('预包装食品')) hints.push('预包装食品必须具有【食品经营许可证】或【食品生产许可证】');
-                    if(cats.includes('农产品')) hints.push('建议保留供货商【营业执照】及对应批次【农产品检测报告】');
-                    if(cats.includes('肉类')) hints.push('强制要求！肉类必须随货附带【动物检疫合格证明】并归档照片');
-                    if(cats.includes('冷冻食品')) hints.push('必须具备【食品经营许可证】，并建议查验【冷链运输证明】');
-                    if(cats.includes('食品添加剂')) hints.push('必须查验并留存【食品添加剂生产许可证】');
+                    if(supplierForm.type === '综合配送商') {
+                        hints.push('作为中转配送网络，必须提供【食品经营许可证】或【营业执照】');
+                    } else {
+                        if(cats.includes('预包装食品')) hints.push('预包装食品源头生产方必须提供【食品生产许可证】');
+                        if(cats.includes('农产品')) hints.push('农产品源头基地建议保留【产地证明】或【农产品检测报告】');
+                        if(cats.includes('肉类')) hints.push('强制要求！肉类加工源头必须具备【动物检疫合格证明】与【肉类品质检验合格证】');
+                        if(cats.includes('冷冻食品')) hints.push('源头必须具备【食品生产许可证】');
+                        if(cats.includes('食品添加剂')) hints.push('必须查验并留存【食品添加剂生产许可证】');
+                    }
                     return hints;
                 });
 
                 const openSupplierModal = (sub = null) => {
                     if (sub) {
                         editingSupplierId.value = sub.id;
-                        Object.assign(supplierForm, { name: sub.name, categories: [...(sub.categories||[])], contact: sub.contact, phone: sub.phone });
+                        Object.assign(supplierForm, { name: sub.name, type: sub.type || '综合配送商', categories: [...(sub.categories||[])], contact: sub.contact, phone: sub.phone });
                     } else {
                         editingSupplierId.value = null;
-                        Object.assign(supplierForm, { name: '', categories: [], contact: '', phone: '' });
+                        Object.assign(supplierForm, { name: '', type: '综合配送商', categories: [], contact: '', phone: '' });
                     }
                     isSupplierModalOpen.value = true;
                 };
@@ -1608,6 +1660,7 @@
                     if (editingSupplierId.value) {
                         const idx = suppliers.value.findIndex(s => s.id === editingSupplierId.value);
                         suppliers.value[idx].name = supplierForm.name;
+                        suppliers.value[idx].type = supplierForm.type;
                         suppliers.value[idx].categories = [...supplierForm.categories];
                         suppliers.value[idx].contact = supplierForm.contact;
                         suppliers.value[idx].phone = supplierForm.phone;
@@ -1615,7 +1668,7 @@
                     } else {
                         const newSub = { 
                             id: Date.now(), ...supplierForm, 
-                            qualifications: [], complianceStatus: '待补充', aiSuggestions: ['请选择供应类别并上传对应资质'] 
+                            qualifications: [], complianceStatus: '待补充', aiSuggestions: ['请选择供应类别并上传对应资质'], aiDeliveryAnalysis: '' 
                         };
                         suppliers.value.push(newSub);
                         evaluateCompliance(suppliers.value[suppliers.value.length - 1]);
@@ -1655,14 +1708,17 @@
                     return { text: '合规验证通过', class: 'bg-emerald-50 text-emerald-700 border-emerald-300', icon: '🟢' };
                 };
 
-                // 资质管理 AI 弹窗
                 const isQualModalOpen = ref(false);
                 const activeSupplier = ref({});
                 const qualFileInput = ref(null);
+                
+                // ★ 新增: Kimi 大模型 API 状态控制
+                const isAiAnalyzing = ref(false);
 
                 const openQualModal = (sub) => {
                     activeSupplier.value = sub;
                     if(!activeSupplier.value.qualifications) activeSupplier.value.qualifications = [];
+                    if(!activeSupplier.value.aiDeliveryAnalysis) activeSupplier.value.aiDeliveryAnalysis = '';
                     evaluateCompliance(activeSupplier.value);
                     isQualModalOpen.value = true;
                 };
@@ -1720,12 +1776,16 @@
                         let mockType = '营业执照';
                         
                         const existingTypes = activeSupplier.value.qualifications.filter(q=>q.recognized).map(q=>q.ocrData.type);
-                        if (cats.includes('肉类') && !existingTypes.includes('动物检疫合格证明')) mockType = '动物检疫合格证明';
-                        else if (cats.includes('预包装食品') && !existingTypes.includes('食品经营许可证')) mockType = '食品经营许可证';
-                        else if (cats.includes('食品添加剂') && !existingTypes.includes('食品添加剂生产许可证')) mockType = '食品添加剂生产许可证';
-                        else {
-                            const pool = ['营业执照', '食品经营许可证', '食品生产许可证', '动物检疫合格证明', '肉类检验检疫证明', '冷链运输证明', '食品添加剂生产许可证', '农产品检测报告'];
-                            mockType = pool[Math.floor(Math.random() * pool.length)];
+                        if (activeSupplier.value.type === '综合配送商') {
+                            mockType = '食品经营许可证';
+                        } else {
+                            if (cats.includes('肉类') && !existingTypes.includes('动物检疫合格证明')) mockType = '动物检疫合格证明';
+                            else if (cats.includes('预包装食品') && !existingTypes.includes('食品生产许可证')) mockType = '食品生产许可证';
+                            else if (cats.includes('食品添加剂') && !existingTypes.includes('食品添加剂生产许可证')) mockType = '食品添加剂生产许可证';
+                            else {
+                                const pool = ['营业执照', '产地证明', '食品生产许可证', '动物检疫合格证明', '农产品检测报告'];
+                                mockType = pool[Math.floor(Math.random() * pool.length)];
+                            }
                         }
 
                         let mockExpiry = '长期';
@@ -1744,6 +1804,48 @@
                     }, 1600);
                 };
 
+                // ★ Kimi 2.5 大模型接口调用逻辑
+                const runKimiAnalysis = async () => {
+                    if(!activeSupplier.value) return;
+                    isAiAnalyzing.value = true;
+                    try {
+                        const docs = (activeSupplier.value.qualifications || []).filter(q => q.recognized).map(q => q.ocrData.type).join('、') || '暂无有效证件';
+                        const cats = (activeSupplier.value.categories || []).join('、') || '未分配';
+                        const supType = activeSupplier.value.type || '综合配送商';
+
+                        const prompt = `供应商/产地名称：${activeSupplier.value.name}\n网络角色：${supType}\n拟供应/生产类别：${cats}\n现已查明资质：${docs}\n请以食品安全监管专家的身份，分析该企业作为${supType}能否合法处理上述类别？缺失哪些核心资质？给出精简专业结论（150字内）。`;
+
+                        const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer sk-Y5Pk0QhKRa3xXwqm7aTl3E3CVdRjI9nvP2euXAbdR5ZRCmcw'
+                            },
+                            body: JSON.stringify({
+                                model: 'moonshot-v1-8k',
+                                messages: [
+                                    { role: 'system', content: '你是一个严谨客观的食品安全合规审查AI。' },
+                                    { role: 'user', content: prompt }
+                                ],
+                                temperature: 0.3
+                            })
+                        });
+
+                        const resData = await response.json();
+                        if (resData.choices && resData.choices.length > 0) {
+                            activeSupplier.value.aiDeliveryAnalysis = resData.choices[0].message.content;
+                        } else {
+                            activeSupplier.value.aiDeliveryAnalysis = "AI 响应异常或触发风控，请稍后再试。";
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        activeSupplier.value.aiDeliveryAnalysis = "AI 调用失败（网络波动或跨域问题），请检查 API 配置。";
+                    } finally {
+                        isAiAnalyzing.value = false;
+                        saveData('sys_suppliers_v11', suppliers.value); // 强制刷新本地缓存
+                    }
+                };
+
                 const evaluateCompliance = (supplier) => {
                     let status = '合规';
                     let suggestions = [];
@@ -1755,36 +1857,33 @@
 
                     if (!supplier.categories || supplier.categories.length === 0) {
                         status = '待补充';
-                        suggestions.push('请编辑供应商，选择供应类别以便系统自动检查资质。');
+                        suggestions.push('请编辑该企业信息，选择其负责的供应类别以便自动检查资质。');
                     } else {
-                        supplier.categories.forEach(cat => {
-                            if (cat === '预包装食品') {
-                                if (!checkDoc(['食品经营许可证', '食品生产许可证'])) {
-                                    suggestions.push('预包装食品必须提供【食品经营许可证】或【食品生产许可证】');
-                                    missingMandatory = true;
-                                }
-                            } else if (cat === '农产品') {
-                                if (!checkDoc(['营业执照'])) {
-                                    suggestions.push('农产品供应商必须提供【营业执照】');
-                                    missingMandatory = true;
-                                }
-                            } else if (cat === '肉类') {
-                                if (!checkDoc(['动物检疫合格证明', '肉类检验检疫证明'])) {
-                                    suggestions.push('缺少【动物检疫合格证明】，肉类供应商必须提供');
-                                    missingMandatory = true;
-                                }
-                            } else if (cat === '冷冻食品') {
-                                if (!checkDoc(['食品经营许可证'])) {
-                                    suggestions.push('冷冻食品必须提供【食品经营许可证】');
-                                    missingMandatory = true;
-                                }
-                            } else if (cat === '食品添加剂') {
-                                if (!checkDoc(['食品添加剂生产许可证'])) {
-                                    suggestions.push('食品添加剂必须提供【食品添加剂生产许可证】');
-                                    missingMandatory = true;
-                                }
+                        if (supplier.type === '综合配送商') {
+                            if (!checkDoc(['食品经营许可证', '营业执照'])) {
+                                suggestions.push('配送商必须提供【食品经营许可证】及【营业执照】');
+                                missingMandatory = true;
                             }
-                        });
+                        } else {
+                            supplier.categories.forEach(cat => {
+                                if (cat === '预包装食品') {
+                                    if (!checkDoc(['食品生产许可证'])) {
+                                        suggestions.push('预包装食品源头必须提供【食品生产许可证】');
+                                        missingMandatory = true;
+                                    }
+                                } else if (cat === '农产品') {
+                                    if (!checkDoc(['营业执照', '产地证明', '农产品检测报告'])) {
+                                        suggestions.push('农产品源头基地需提供【产地证明】或【检测报告】');
+                                        missingSuggested = true;
+                                    }
+                                } else if (cat === '肉类') {
+                                    if (!checkDoc(['动物检疫合格证明', '肉类检验检疫证明'])) {
+                                        suggestions.push('缺少【动物检疫合格证明】，肉类源头加工厂必须提供');
+                                        missingMandatory = true;
+                                    }
+                                }
+                            });
+                        }
                     }
 
                     if (missingMandatory) status = '不合规';
@@ -1796,10 +1895,10 @@
 
                     supplier.complianceStatus = status;
                     supplier.aiSuggestions = suggestions;
-                    saveData('sys_suppliers_v8', suppliers.value);
+                    saveData('sys_suppliers_v11', suppliers.value);
                 };
 
-                // 台账单据 OCR
+                // =============== 定制化核心：台账单据解析 OCR/Excel ===============
                 const isOcrProcessing = ref(false);
                 const batchOcrData = ref([]);
                 const globalBatchDate = ref('');
@@ -1808,11 +1907,94 @@
                 const uploadedFileName = ref('');
                 const uploadedFilePreview = ref('');
 
-                // ★ 新增：针对农产品和散装食品的一键来货日期更改
                 const categoryDates = reactive({
                     '食用农产品': new Date().toISOString().split('T')[0],
                     '散装食品': new Date().toISOString().split('T')[0]
                 });
+
+                // ==============================
+                // ★ 核心分类法则 ★
+                // ==============================
+                const autoCategorize = (item) => {
+                    const text = String(item.name || '').toLowerCase();
+                    const unitText = String(item.unit || '').trim();
+                    const specText = String(item.spec || '').toLowerCase(); 
+                    const cleanName = String(item.name || '').trim();
+                    
+                    const memorizedCategory = customCategoryDict.value[cleanName];
+                    
+                    if (memorizedCategory) {
+                        item.category = memorizedCategory;
+                    } else {
+                        let cat = '预包装类'; 
+                        if (/原产国|进口商|海关|进口/.test(text)) cat = '进口食品';
+                        else if (/味精|碳酸氢钠|色素|香精|甜味剂|碱|小苏打/.test(text)) cat = '食品添加剂';
+                        else if (/散装|蛋|米|面|豆|红米|黑米|燕麦|大米|小米|糯米|紫米|无花果|茯苓|干货|木耳|香菇|银耳|红枣|枸杞|桂圆|黄豆|绿豆|红豆|黑豆|花生|核桃|坚果|瓜子|糖果/.test(text)) cat = '散装食品';
+                        else if (/青|菜|果|肉|鱼|虾|鸡|鸭|猪|牛|羊|薯|笋|瓜|茄|萝卜|豆角|葱|蒜|姜|椒|生菜|柠檬/.test(text)) cat = '食用农产品';
+                        
+                        if (/箱|瓶|袋|罐|只|桶|包|件|杯|盒/.test(unitText) || /箱|瓶|袋|罐|只|桶|包|件|杯|盒/.test(specText)) {
+                            if (cat !== '食品添加剂' && cat !== '进口食品') {
+                                cat = '预包装类';
+                            }
+                        } 
+                        else if (/斤|公斤|kg|克|g|两/.test(unitText) || /斤|公斤|kg|克|g|两/.test(specText)) {
+                            if (cat === '预包装类') {
+                                cat = '食用农产品';
+                            }
+                        }
+                        
+                        item.category = cat;
+                    }
+                    
+                    const memorizedShelfLife = customShelfLifeDict.value[cleanName];
+                    if (memorizedShelfLife) {
+                        item.shelfLife = memorizedShelfLife;
+                        const standardOptions = ['3天', '5天', '7天', '15天', '21天', '30天', '6个月', '9个月', '12个月', '18个月', '24个月', '36个月', '长期'];
+                        item.isCustomShelfLife = !standardOptions.includes(item.shelfLife) && item.shelfLife !== '';
+                        
+                        if (item.isCustomShelfLife) {
+                            const match = item.shelfLife.match(/^([\d.]+)(小时|时|天|个月|月|年)$/);
+                            if (match) {
+                                item.customShelfLifeValue = match[1];
+                                item.customShelfLifeUnit = match[2] === '月' ? '个月' : (match[2] === '时' ? '小时' : match[2]);
+                            } else {
+                                item.customShelfLifeValue = parseInt(item.shelfLife) || '';
+                                item.customShelfLifeUnit = '天';
+                            }
+                        }
+                    } else {
+                        item.shelfLife = matchShelfLife(item.name);
+                        item.isCustomShelfLife = false;
+                    }
+                    
+                    applyCategoryRules(item);
+                };
+
+                const applyCategoryRules = (item) => {
+                    if (item.category === '食用农产品') {
+                        item.prodDate = item.prodDate || globalBatchDate.value || new Date().toISOString().split('T')[0];
+                        item.shelfLife = '';
+                        item.expDate = '';
+                        item.isCustomShelfLife = false;
+                    } else if (item.category === '散装食品') {
+                        item.prodDate = item.prodDate || globalBatchDate.value || new Date().toISOString().split('T')[0];
+                        item.shelfLife = '';
+                        item.expDate = '';
+                        item.isCustomShelfLife = false;
+                    } else {
+                        calcExpDate(item);
+                    }
+                };
+
+                const onSupplierChange = (item) => {
+                    item.supplierLicense = getSupplierLicense(item.supplierName);
+                    runRiskCheck(item);
+                };
+
+                const runRiskCheck = (item) => {
+                    item.risk = '';
+                };
+                // ==============================
 
                 const updateCategoryDate = (cat) => {
                     const targetDate = categoryDates[cat];
@@ -1820,7 +2002,7 @@
                     batchOcrData.value.forEach(item => {
                         if (item.category === cat) {
                             item.prodDate = targetDate;
-                            item.date = targetDate; // 同步修改主台账日期
+                            item.date = targetDate;
                             calcExpDate(item);
                             runRiskCheck(item);
                         }
@@ -1843,7 +2025,7 @@
                         item.isCustomShelfLife = true;
                         item.shelfLife = '';
                         item.customShelfLifeValue = '';
-                        item.customShelfLifeUnit = '天'; // Default
+                        item.customShelfLifeUnit = '天';
                         item.expDate = '';
                     } else {
                         calcExpDate(item);
@@ -1888,7 +2070,7 @@
                     if (/巴氏|鲜奶/.test(text)) return '15天';
                     if (/冷鲜肉|蔬菜|水果|生菜|柠檬|土豆|橙|葱|蒜|韭菜|芋|椒|瓜|茄|萝卜/.test(text)) return '7天';
                     if (/面包|蛋糕/.test(text)) return '5天';
-                    if (/鲜肉|猪肉|牛肉|羊肉|鸡肉|鸭肉|肉/.test(text)) return '3天';
+                    if (/鲜肉|猪肉|牛肉|羊肉|鸡肉|鸭肉|肉|鱼/.test(text)) return '3天';
                     return '';
                 };
 
@@ -1909,126 +2091,141 @@
                     isOcrProcessing.value = true;
                     batchOcrData.value = [];
                     
-                    const processWorkbook = (wb) => {
-                        try {
-                            const firstSheet = wb.Sheets[wb.SheetNames[0]];
-                            const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ''});
-                            parseExcelData(jsonData);
-                        } catch (err) {
-                            simulateImageParsing();
-                        } finally {
-                            isOcrProcessing.value = false;
-                            e.target.value = ''; 
+                    const tryParse = (workbook) => {
+                        let allBatches = [];
+                        workbook.SheetNames.forEach(sheetName => {
+                            const sheet = workbook.Sheets[sheetName];
+                            const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ''});
+                            const sheetBatch = parseExcelData(jsonData);
+                            allBatches = allBatches.concat(sheetBatch);
+                        });
+                        return allBatches;
+                    };
+
+                    const onFinalDone = (batch) => {
+                        if (batch && batch.length > 0) {
+                            globalBatchDate.value = batch[0].date;
+                            globalBatchSupplier.value = batch[0].supplierName;
+                            batchOcrData.value = batch;
+                        } else {
+                            alert("导入提示：\n未在文件中识别到有效数据。\n请检查：\n1. 表头是否包含「品种名称/品名」及「预定/实收」等字眼\n2. 如果是乱码，请尝试将文件另存为 XLSX 格式后重试。");
                         }
+                        isOcrProcessing.value = false;
+                        e.target.value = ''; 
                     };
 
                     if (file.name.match(/\.csv$/i)) {
-                        const textReader = new FileReader();
-                        textReader.onload = (event) => {
+                        const readerUtf8 = new FileReader();
+                        readerUtf8.onload = (e1) => {
                             try {
-                                const csvStr = event.target.result;
-                                const workbook = XLSX.read(csvStr, {type: 'string'});
-                                processWorkbook(workbook);
-                            } catch(err) { processWorkbook(null); }
+                                const wb1 = XLSX.read(e1.target.result, {type: 'string'});
+                                const batch = tryParse(wb1);
+                                if (batch && batch.length > 0) {
+                                    onFinalDone(batch);
+                                } else {
+                                    const readerGbk = new FileReader();
+                                    readerGbk.onload = (e2) => {
+                                        try {
+                                            const wb2 = XLSX.read(e2.target.result, {type: 'string'});
+                                            const batch2 = tryParse(wb2);
+                                            onFinalDone(batch2);
+                                        } catch(err) {
+                                            onFinalDone([]);
+                                        }
+                                    };
+                                    readerGbk.readAsText(file, 'gbk');
+                                }
+                            } catch(err) {
+                                onFinalDone([]);
+                            }
                         };
-                        textReader.readAsText(file, 'gbk'); 
+                        readerUtf8.readAsText(file, 'utf-8');
                     } else if (file.name.match(/\.(xlsx|xls)$/i)) {
-                        const bufferReader = new FileReader();
-                        bufferReader.onload = (event) => {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
                             try {
                                 const data = new Uint8Array(event.target.result);
                                 const workbook = XLSX.read(data, {type: 'array'});
-                                processWorkbook(workbook);
-                            } catch(err) { processWorkbook(null); }
+                                const batch = tryParse(workbook);
+                                onFinalDone(batch);
+                            } catch(err) { 
+                                onFinalDone([]); 
+                            }
                         };
-                        bufferReader.readAsArrayBuffer(file);
+                        reader.readAsArrayBuffer(file);
                     } else {
                         setTimeout(() => {
-                            simulateImageParsing();
                             isOcrProcessing.value = false;
+                            alert("纯前端演示模式下，暂不支持纯图片识别。\n请直接上传真实 Excel 或 CSV 报表文件进行读取！");
                             e.target.value = '';
-                        }, 1500);
+                        }, 1000);
                     }
                 };
 
                 const parseExcelData = (jsonData) => {
                     let newBatch = [];
-                    let currentSupplier = '';
-                    let currentDate = new Date().toISOString().split('T')[0]; // fallback
-                    let colMap = { name: -1, spec: -1, unit: -1, amount_expected: -1, amount_actual: -1 };
+                    let currentSupplier = '上海嘉土供应链管理有限公司'; 
+                    let currentDate = new Date().toISOString().split('T')[0]; 
+                    let colMap = { name: -1, spec: -1, unit: -1, amount_expected: -1, amount_actual: -1, price: -1 };
                     let isReadingData = false;
 
                     for (let i = 0; i < jsonData.length; i++) {
                         const row = jsonData[i];
                         if (!row || row.length === 0) continue;
+                        
+                        const rowString = row.join(' ');
 
-                        // 1. 扫描当前行的供货商（支持单个文件中多段不同供应商）
-                        for (let cell of row) {
-                            if (typeof cell === 'string' && (cell.includes('公司') || cell.includes('农贸') || cell.includes('批发') || cell.includes('合作社'))) {
-                                currentSupplier = cell.replace(/,|，/g, '').trim();
-                                break;
-                            }
+                        const titleMatch = rowString.match(/([^\s,]+)送货单/);
+                        if (titleMatch && titleMatch[1]) {
+                            currentSupplier = titleMatch[1].trim();
                         }
 
-                        // 2. 扫描当前行的日期（支持单个文件中按日期分段）
-                        for (let j = 0; j < row.length; j++) {
-                            let cell = String(row[j] || '').trim();
-                            if (cell.includes('日期')) {
-                                let dateStr = '';
-                                // 提取日期：可能是“日期：2026/4/1”在同一个格子，也可能分两个格子
-                                if (cell.length > 3 && cell.replace(/日期|:|：|\s/g, '') !== '') {
-                                    dateStr = cell.replace(/日期|:|：|\s/g, '');
-                                } else {
-                                    dateStr = String(row[j+1] || '').trim();
-                                }
-                                
-                                if (dateStr) {
-                                    let parsedDate = new Date(dateStr);
-                                    if (!isNaN(parsedDate.getTime())) {
-                                        currentDate = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
-                                    } else {
-                                        // 兜底正则匹配 yyyy/mm/dd 或 yyyy-mm-dd
-                                        let parts = dateStr.split(/[-/]/);
-                                        if(parts.length === 3) {
-                                            let y = parts[0].length === 2 ? '20' + parts[0] : parts[0];
-                                            currentDate = `${y}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
-                                        }
+                        const dateMatch = rowString.match(/日期：\s*(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
+                        if (dateMatch) {
+                            currentDate = `${dateMatch[1]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[3].padStart(2, '0')}`;
+                        } else {
+                            for (let j = 0; j < row.length; j++) {
+                                let cell = String(row[j] || '').trim();
+                                if (cell.includes('日期：')) {
+                                    let dStr = cell.replace(/日期|:|：|\s/g, '');
+                                    let parts = dStr.split(/[-/]/);
+                                    if(parts.length === 3) {
+                                        let y = parts[0].length === 2 ? '20' + parts[0] : parts[0];
+                                        currentDate = `${y}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
                                     }
                                 }
                             }
                         }
 
-                        // 3. 扫描表头列坐标
                         let isHeaderRow = false;
                         for (let j = 0; j < row.length; j++) {
                             let cell = String(row[j] || '').trim();
-                            if (cell.includes('产品名称') || cell.includes('品名') || cell.includes('商品名称')) {
+                            if (/品种名称|产品名称|品名|商品名称|物料名称/.test(cell)) {
                                 isHeaderRow = true;
                                 colMap.name = j;
-                            } else if (cell.includes('规格')) {
+                            } else if (/规格/.test(cell)) {
                                 colMap.spec = j;
-                            } else if (cell === '单位') {
+                            } else if (/单位/.test(cell)) {
                                 colMap.unit = j;
-                            } else if (cell === '应发数量' || cell === '数量') {
+                            } else if (/预定|应发数量/.test(cell) || cell === '数量') {
                                 colMap.amount_expected = j;
-                            } else if (cell === '实收数量') {
+                            } else if (/实收/.test(cell)) {
                                 colMap.amount_actual = j;
+                            } else if (/单价|最终定价/.test(cell)) {
+                                colMap.price = j;
                             }
                         }
 
-                        // 如果当前行是表头，开启读取数据模式，并跳过此行
-                        if (isHeaderRow) {
+                        if (isHeaderRow && colMap.name !== -1) {
                             isReadingData = true;
                             continue; 
                         }
 
-                        // 4. 解析具体数据行
                         if (isReadingData && colMap.name !== -1) {
                             let name = row[colMap.name];
                             if (name === undefined || name === null || String(name).trim() === '') continue;
                             let nameStr = String(name).trim();
 
-                            // 黑名单词拦截（遇到表尾、合计时跳过该行）
                             const blackList = ['产品名称', '品名', '商品名称', '收货人', '合计', '总计', '金额', '备注', '行号', '制单', '签字', '签名', '订单', '页次'];
                             if (blackList.some(keyword => nameStr.includes(keyword))) {
                                 continue; 
@@ -2036,23 +2233,24 @@
 
                             let spec = colMap.spec !== -1 ? String(row[colMap.spec] || '').trim() : '';
                             let unit = colMap.unit !== -1 ? String(row[colMap.unit] || '').trim() : '';
+                            let price = colMap.price !== -1 ? String(row[colMap.price] || '').trim() : '';
                             
-                            let finalAmt = '';
-                            if (colMap.amount_actual !== -1 && row[colMap.amount_actual] !== undefined && String(row[colMap.amount_actual]).trim() !== '') {
-                                finalAmt = String(row[colMap.amount_actual]).trim();
-                            } else if (colMap.amount_expected !== -1 && row[colMap.amount_expected] !== undefined && String(row[colMap.amount_expected]).trim() !== '') {
-                                finalAmt = String(row[colMap.amount_expected]).trim();
-                            }
+                            let amtActual = colMap.amount_actual !== -1 ? String(row[colMap.amount_actual] || '').trim() : '';
+                            let amtExpected = colMap.amount_expected !== -1 ? String(row[colMap.amount_expected] || '').trim() : '';
 
-                            // 根据实时的 currentDate 和 currentSupplier 生成台账对象
+                            let finalAmt = amtActual !== '' ? amtActual : amtExpected;
+
+                            if (!finalAmt || isNaN(parseFloat(finalAmt))) continue;
+
                             let item = {
                                 id: Date.now() + Math.random(),
-                                date: currentDate, // 动态日期
+                                date: currentDate,
                                 name: nameStr,
                                 category: '预包装类',
                                 spec: spec,
                                 amount: finalAmt,
                                 unit: unit,
+                                price: price,
                                 prodDate: '',
                                 shelfLife: '',
                                 customShelfLifeValue: '',
@@ -2060,12 +2258,12 @@
                                 isCustomShelfLife: false,
                                 expDate: '',
                                 batch: '',
-                                factory: '',
-                                supplierName: currentSupplier, // 动态供应商
+                                factory: '', // ★ 新增源头工厂属性
+                                supplierName: currentSupplier, // 配送商
                                 supplierLicense: '',
                                 certificate: '有',
                                 conclusion: '合格',
-                                inspector: '系统管理员',
+                                inspector: '系统执行',
                                 risk: '',
                                 status: '在库'
                             };
@@ -2077,111 +2275,7 @@
                         }
                     }
                     
-                    // 解析结束后，把全局日期占位符更新为最后一个抓取到的日期，方便UI显示
-                    if (newBatch.length > 0) {
-                        globalBatchDate.value = newBatch[0].date;
-                        globalBatchSupplier.value = newBatch[0].supplierName;
-                    }
-                    batchOcrData.value = newBatch;
-                };
-
-                const simulateImageParsing = () => {
-                      const mockDate = new Date().toISOString().split('T')[0];
-                      globalBatchDate.value = mockDate;
-                      globalBatchSupplier.value = '广东惠隆供应链有限公司';
-                      
-                      let items = [
-                          { id: Date.now()+1, date: mockDate, name: '优质生菜', category: '', spec: '', amount: '70', unit: '斤', prodDate: '', shelfLife: '', customShelfLifeValue: '', customShelfLifeUnit: '天', isCustomShelfLife: false, expDate: '', supplierName: '广东惠隆供应链有限公司', certificate: '有', conclusion: '合格', risk: '', status: '在库' },
-                          { id: Date.now()+2, date: mockDate, name: '大碗面爽滑型', category: '', spec: '4kg/箱', amount: '2', unit: '箱', prodDate: '2026-01-01', shelfLife: '', customShelfLifeValue: '', customShelfLifeUnit: '天', isCustomShelfLife: false, expDate: '', supplierName: '广东惠隆供应链有限公司', certificate: '有', conclusion: '合格', risk: '', status: '在库' },
-                         { id: Date.now()+3, date: mockDate, name: '散装木耳', category: '', spec: '1kg/袋', amount: '5', unit: '包', prodDate: '', shelfLife: '', customShelfLifeValue: '', customShelfLifeUnit: '天', isCustomShelfLife: false, expDate: '', supplierName: '广东惠隆供应链有限公司', certificate: '有', conclusion: '合格', risk: '', status: '在库' }
-                     ];
-                      items.forEach(item => {
-                          onSupplierChange(item);
-                          autoCategorize(item);
-                          runRiskCheck(item);
-                      });
-                      batchOcrData.value = items;
-                };
-
-                const autoCategorize = (item) => {
-                    const text = String(item.name || '').toLowerCase();
-                    const unitText = String(item.unit || '').trim();
-                    const specText = String(item.spec || '').toLowerCase(); 
-                    const cleanName = String(item.name || '').trim();
-                    
-                    const memorizedCategory = customCategoryDict.value[cleanName];
-                    
-                    if (memorizedCategory) {
-                        item.category = memorizedCategory;
-                    } else {
-                        let cat = '预包装类'; 
-                        if (/原产国|进口商|海关|进口/.test(text)) cat = '进口食品';
-                        else if (/味精|碳酸氢钠|色素|香精|甜味剂|碱|小苏打/.test(text)) cat = '食品添加剂';
-                        else if (/散装|红米|黑米|燕麦|大米|小米|糯米|紫米|无花果|茯苓|干货|木耳|香菇|银耳|红枣|枸杞|桂圆|黄豆|绿豆|红豆|黑豆|花生|核桃|坚果|瓜子|糖果/.test(text)) cat = '散装食品';
-                        else if (/蔬菜|水果|猪肉|牛肉|鸡肉|鸭肉|水产品|鲜虾|鲜鱼|活|鸡蛋|鸭蛋|鹌鹑蛋|肉|鱼|虾|蟹|菜|葱|蒜|韭菜|芋|椒|生菜|橙|柠檬|土豆|瓜|茄|豆角|萝卜|笋/.test(text)) cat = '食用农产品';
-                        
-                        if (/箱|瓶|袋|罐|只|桶|包|件|杯|盒/.test(unitText) || /箱|瓶|袋|罐|只|桶|包|件|杯|盒/.test(specText)) {
-                            if (cat !== '食品添加剂' && cat !== '进口食品') {
-                                cat = '预包装类';
-                            }
-                        } 
-                        else if (/斤|公斤|kg|克|g|两/.test(unitText) || /斤|公斤|kg|克|g|两/.test(specText)) {
-                            if (cat === '预包装类') {
-                                cat = '食用农产品';
-                            }
-                        }
-                        
-                        item.category = cat;
-                    }
-                    
-                    const memorizedShelfLife = customShelfLifeDict.value[cleanName];
-                    if (memorizedShelfLife) {
-                        item.shelfLife = memorizedShelfLife;
-                        const standardOptions = ['3天', '5天', '7天', '15天', '21天', '30天', '6个月', '9个月', '12个月', '18个月', '24个月', '36个月', '长期'];
-                        item.isCustomShelfLife = !standardOptions.includes(item.shelfLife) && item.shelfLife !== '';
-                        
-                        // Try to split UI values if it's a custom one
-                        if (item.isCustomShelfLife) {
-                            const match = item.shelfLife.match(/^([\d.]+)(小时|时|天|个月|月|年)$/);
-                            if (match) {
-                                item.customShelfLifeValue = match[1];
-                                item.customShelfLifeUnit = match[2] === '月' ? '个月' : (match[2] === '时' ? '小时' : match[2]);
-                            } else {
-                                item.customShelfLifeValue = parseInt(item.shelfLife) || '';
-                                item.customShelfLifeUnit = '天';
-                            }
-                        }
-                    } else {
-                        item.shelfLife = matchShelfLife(item.name);
-                        item.isCustomShelfLife = false;
-                    }
-                    
-                    applyCategoryRules(item);
-                };
-
-                const applyCategoryRules = (item) => {
-                    if (item.category === '食用农产品') {
-                        item.prodDate = item.prodDate || globalBatchDate.value || new Date().toISOString().split('T')[0];
-                        item.shelfLife = '';
-                        item.expDate = '';
-                        item.isCustomShelfLife = false;
-                    } else if (item.category === '散装食品') {
-                        item.prodDate = item.prodDate || globalBatchDate.value || new Date().toISOString().split('T')[0];
-                        item.shelfLife = '';
-                        item.expDate = '';
-                        item.isCustomShelfLife = false;
-                    } else {
-                        calcExpDate(item);
-                    }
-                };
-
-                const onSupplierChange = (item) => {
-                    item.supplierLicense = getSupplierLicense(item.supplierName);
-                    runRiskCheck(item);
-                };
-
-                const runRiskCheck = (item) => {
-                    item.risk = '';
+                    return newBatch;
                 };
 
                 const updateGlobalDate = () => {
@@ -2215,8 +2309,7 @@
 
                     const finalLedgerData = batchOcrData.value.map(item => ({
                         ...item,
-                        amount: item.amount + (item.unit || ''),
-                        status: '在库' // 确保新入账物料状态为在库
+                        status: '在库' 
                     }));
 
                     ledgers.value.unshift(...finalLedgerData);
@@ -2227,12 +2320,10 @@
                     uploadedFilePreview.value = '';
                 };
 
-                // 分类归档
                 const selectedCategory = ref('预包装类');
                 const getCategoryCount = (cat) => ledgers.value.filter(l => l.category === cat).length;
                 const filteredCategoryLedger = computed(() => ledgers.value.filter(l => l.category === selectedCategory.value));
 
-                // 历史时空追溯
                 const traceSearch = reactive({ start: '', end: '', keyword: '', risk: 'all' });
                 const activeTraceItem = ref(null);
 
@@ -2249,7 +2340,7 @@
                         if (traceSearch.end && l.date > traceSearch.end) matchDate = false;
                         
                         let kw = traceSearch.keyword.toLowerCase();
-                        let matchKw = kw ? (l.name.toLowerCase().includes(kw) || l.supplierName.toLowerCase().includes(kw) || (l.batch && l.batch.toLowerCase().includes(kw))) : true;
+                        let matchKw = kw ? (l.name.toLowerCase().includes(kw) || l.supplierName.toLowerCase().includes(kw) || (l.factory && l.factory.toLowerCase().includes(kw)) || (l.batch && l.batch.toLowerCase().includes(kw))) : true;
                         
                         let matchRisk = true;
                         const riskInfo = getTraceRisk(l);
@@ -2261,7 +2352,6 @@
                     });
                 });
 
-                // 迎检报表中心
                 const exportMonth = ref(
                     ledgers.value.length > 0 
                         ? ledgers.value[0].date.substring(0, 7) 
@@ -2295,13 +2385,14 @@
                         '类别': item.category,
                         '原料名称': item.name,
                         '规格型号': item.spec || '',
-                        '数量': item.amount,
+                        '数量': item.amount + (item.unit || ''),
+                        '单价': item.price || '',
                         '生产日期': item.prodDate || '',
                         '保质期': item.expDate || '',
                         '批号': item.batch || '',
                         '生产厂家': item.factory || '',
-                        '供货商': item.supplierName,
-                        '供货商许可证号': item.supplierLicense || '',
+                        '配送商': item.supplierName,
+                        '配送商许可证号': item.supplierLicense || '',
                         '合格证明': item.certificate,
                         '验收人': item.inspector || '系统管理员',
                         '验收结论': item.conclusion
@@ -2311,10 +2402,10 @@
                 const exportToExcel = () => {
                     let data = getExportData();
                     if(!data) {
-                        data = [{ '序号': '', '进货日期': '当前月份无数据', '类别': '', '原料名称': '', '规格型号': '', '数量': '', '生产日期': '', '保质期': '', '批号': '', '生产厂家': '', '供货商': '', '供货商许可证号': '', '合格证明': '', '验收人': '', '验收结论': '' }];
+                        data = [{ '序号': '', '进货日期': '当前月份无数据', '类别': '', '原料名称': '', '规格型号': '', '数量': '', '单价': '', '生产日期': '', '保质期': '', '批号': '', '生产厂家': '', '配送商': '', '配送商许可证号': '', '合格证明': '', '验收人': '', '验收结论': '' }];
                     }
                     const ws = XLSX.utils.json_to_sheet(data);
-                    const wscols = [{wch:5}, {wch:12}, {wch:10}, {wch:15}, {wch:10}, {wch:8}, {wch:12}, {wch:12}, {wch:12}, {wch:15}, {wch:15}, {wch:18}, {wch:8}, {wch:8}, {wch:8}];
+                    const wscols = [{wch:5}, {wch:12}, {wch:10}, {wch:15}, {wch:10}, {wch:8}, {wch:8}, {wch:12}, {wch:12}, {wch:12}, {wch:18}, {wch:15}, {wch:18}, {wch:8}, {wch:8}, {wch:8}];
                     ws['!cols'] = wscols;
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "迎检查验台账");
@@ -2336,7 +2427,8 @@
                                         <th style="border: 1px solid #000; padding: 4px;">名称</th>
                                         <th style="border: 1px solid #000; padding: 4px;">规格/数量</th>
                                         <th style="border: 1px solid #000; padding: 4px;">产期/保质期</th>
-                                        <th style="border: 1px solid #000; padding: 4px;">供货商</th>
+                                        <th style="border: 1px solid #000; padding: 4px;">源头生产商</th>
+                                        <th style="border: 1px solid #000; padding: 4px;">中转配送商</th>
                                         <th style="border: 1px solid #000; padding: 4px;">凭证</th>
                                         <th style="border: 1px solid #000; padding: 4px;">结论</th>
                                         <th style="border: 1px solid #000; padding: 4px;">验收人</th>
@@ -2346,7 +2438,7 @@
                     `;
                     
                     if (reportPreviewData.value.length === 0) {
-                        tableHTML += `<tr><td colspan="9" style="border: 1px solid #000; padding: 15px; text-align: center;">该账期内无流转记录产生</td></tr>`;
+                        tableHTML += `<tr><td colspan="10" style="border: 1px solid #000; padding: 15px; text-align: center;">该账期内无流转记录产生</td></tr>`;
                     } else {
                         reportPreviewData.value.forEach(row => {
                             tableHTML += `
@@ -2354,8 +2446,9 @@
                                     <td style="border: 1px solid #000; padding: 4px;">${row.date}</td>
                                     <td style="border: 1px solid #000; padding: 4px;">${row.category}</td>
                                     <td style="border: 1px solid #000; padding: 4px;">${row.name}</td>
-                                    <td style="border: 1px solid #000; padding: 4px;">${row.spec} / ${row.amount}</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">${row.spec} / ${row.amount}${row.unit}</td>
                                     <td style="border: 1px solid #000; padding: 4px;">产:${row.prodDate}<br>至:${row.expDate}</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">${row.factory || '-'}</td>
                                     <td style="border: 1px solid #000; padding: 4px;">${row.supplierName}</td>
                                     <td style="border: 1px solid #000; padding: 4px;">${row.certificate}</td>
                                     <td style="border: 1px solid #000; padding: 4px;">${row.conclusion}</td>
@@ -2383,11 +2476,10 @@
                     });
                 };
 
-                // =============== 5. 生命周期钩子与监听 ===============
-                watch(suppliers, (val) => saveData('sys_suppliers_v8', val), { deep: true });
+                watch(suppliers, (val) => saveData('sys_suppliers_v11', val), { deep: true });
                 
                 watch(ledgers, (val) => { 
-                    saveData('sys_ledgers_v8', val);
+                    saveData('sys_ledgers_v11', val);
                     if (currentTab.value === 'dashboard') initDashboardCharts();
                 }, { deep: true });
                 
@@ -2413,20 +2505,17 @@
                     isQualModalOpen, activeSupplier, qualFileInput, recognizedDocs,
                     openQualModal, closeQualModal, handleQualSelect, handleQualDrop, removeQualification, runAiRecognition,
                     getPanelStatusClass, getPanelStatusIcon,
+                    // ★ 暴露 Kimi 相关变量
+                    isAiAnalyzing, runKimiAnalysis,
                     isOcrProcessing, batchOcrData, globalBatchDate, globalBatchSupplier, handleShelfLifeChange, updateCustomShelfLife,
                     categoryDates, updateCategoryDate,
                     getBatchCategoryItems, removeBatchItem, calcExpDate, handleFileUpload, saveBatchLedger, autoCategorize, applyCategoryRules, runRiskCheck, onSupplierChange, updateGlobalDate, updateGlobalSupplier,
                     uploadedFileName, uploadedFilePreview,
                     selectedCategory, getCategoryCount, filteredCategoryLedger, 
-                    // History & Trace
                     traceSearch, activeTraceItem, filteredTraceList, executeTraceSearch, resetTraceSearch, getTraceRisk,
-                    // Ledger Actions
                     isLedgerEditModalOpen, editingLedgerForm, openLedgerEditModal, closeLedgerEditModal, saveLedgerEdit, deleteLedgerItem,
-                    // Risk
                     riskDashboard, updateLedgerStatus,
-                    // Export
                     exportMonth, reportPreviewData, reportStats, getCatColor, exportToExcel, exportToPDF,
-                    // Dashboard
                     currentTime, dashStats, chartRiskPie, chartRiskBar, chartTrend, chartSankey, chartGauge, getExpiringCategories
                 };
             }
