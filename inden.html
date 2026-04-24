@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧食堂后厨监管驾驶舱</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- 引入 Chart.js 用于渲染图表 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- 配置 Tailwind 科技深蓝主题色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ref: {
+                            bg: '#080d1c',        /* 深邃背景色 */
+                            panel: '#10172a',     /* 卡片背景色 */
+                            panelHover: '#16203a',
+                            cyan: '#00e5ff',      /* 高亮青色 */
+                            blue: '#3b82f6',
+                            alertBg: '#3f181f',   /* 偏低/异常 红色背景 */
+                            alertText: '#ff6b6b', /* 异常红字 */
+                            normalBg: '#133526',  /* 正常 绿色背景 */
+                            normalText: '#20c997',/* 正常绿字 */
+                            textMain: '#f8fafc',
+                            textSub: '#94a3b8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans SC"', 'system-ui', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 基础样式与深色背景 */
+        body {
+            background-color: #080d1c;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #172554 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, #0f172a 0%, transparent 50%);
+            color: #f8fafc;
+            overflow: hidden; /* 强制不出现整体滚动条 */
+        }
+
+        /* 隐藏元素的滚动条但保持可滚动 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 圆润拟物态卡片 */
+        .glass-panel {
+            background: linear-gradient(180deg, rgba(23, 33, 56, 0.8) 0%, rgba(13, 20, 36, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border-radius: 20px; /* 大圆角 */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 标题指示线 */
+        .title-indicator {
+            width: 4px;
+            height: 16px;
+            background: #00e5ff;
+            border-radius: 4px;
+            box-shadow: 0 0 8px #00e5ff;
+        }
+
+        /* 独立数据行胶囊卡片 */
+        .data-pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .data-pill:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 229, 255, 0.3);
+        }
+
+        /* 自动滚动动画 */
+        .scroll-container { overflow: hidden; position: relative; }
+        .scroll-content { animation: scrollUp 25s linear infinite; }
+        .scroll-container:hover .scroll-content { animation-play-state: paused; }
+        @keyframes scrollUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+
+        /* 状态呼吸动画 */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
+            50% { opacity: 0.5; filter: none; }
+        }
+        .animate-alert { animation: pulse-glow 1.5s infinite; }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col p-4 md:p-6 text-sm gap-4">
+
+    <!-- 顶部导航栏 -->
+    <header class="w-full flex justify-between items-center shrink-0 pb-2">
+        <!-- 左侧信息 -->
+        <div class="flex flex-col gap-1 w-1/3">
+            <h1 class="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-ref-cyan">
+                广州中味餐饮服务有限公司
+            </h1>
+            <div class="flex items-center gap-3 text-ref-textSub text-xs">
+                <span class="px-2 py-0.5 rounded-full bg-ref-normalBg text-ref-normalText flex items-center gap-1 border border-ref-normalText/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-ref-normalText animate-pulse"></span> 设备在线
+                </span>
+                <span>高新科技园示范店</span>
+            </div>
+        </div>
+
+        <!-- 中间标题 -->
+        <div class="w-1/3 text-center flex flex-col items-center justify-center">
+            <div class="text-xl tracking-[0.2em] font-medium text-white/90">智慧后厨监管驾驶舱</div>
+            <div class="h-[2px] w-32 mt-2 bg-gradient-to-r from-transparent via-ref-cyan to-transparent opacity-50"></div>
+        </div>
+
+        <!-- 右侧时间 -->
+        <div class="w-1/3 text-right flex flex-col items-end gap-1">
+            <div class="text-2xl font-mono text-ref-cyan font-bold" id="current-time">00:00:00</div>
+            <div class="text-ref-textSub font-mono text-xs tracking-widest" id="current-date">YYYY-MM-DD WEEK</div>
+        </div>
+    </header>
+
+    <!-- 主体内容区 (三列布局 16:9 一屏展示) -->
+    <main class="flex-1 grid grid-cols-12 gap-5 min-h-0">
+        
+        <!-- ================= 左侧区域 ================= -->
+        <div class="col-span-3 flex flex-col gap-5 h-full min-h-0">
+            
+            <!-- 模块：冷链温度趋势 -->
+            <div class="glass-panel h-[40%] flex flex-col min-h-0 p-4">
+                <div class="flex justify-between items-center shrink-0 mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="title-indicator"></div>
+                        <h2 class="text-white font-bold text-base tracking-wide">冷链温度趋势 (℃)</h2>
+                    </div>
+                    <!-- 模拟下拉选框样式 -->
+                    <div class="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-xs text-ref-textSub flex items-center gap-2 cursor-pointer hover:bg-white/10">
+                        <span>01 冷藏冰箱</span>
+                        <i class="ph ph-caret-down"></i>
+                    </div>
+                </div>
+                
+                <!-- Chart.js 图表容器 -->
+                <div class="flex-1 w-full min-h-0 relative">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 模块：多设备实时温度列表 -->
+            <div class="glass-panel h-[60%] flex flex-col min-h-0 p-4">
+                <div class="flex items-center gap-2 shrink-0 mb-4">
+                    <div class="title-indicator"></div>
+                    <h2 class="text-white font-bold text-base tracking-wide">实时设备状态</h2>
+                </div>
+                
+                <!-- 表头 -->
+                <div class="grid grid-cols-4 text-ref-textSub text-xs pb-2 px-2 shrink-0">
+                    <div class="col-span-2">设备名称</div>
+                    <div class="col-span-1 text-center">中心温度</div>
+                    <div class="col-span-1 text-right">状态</div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto no-scrollbar scroll-container relative">
+                    <div id="fridge-list" class="flex flex-col gap-2 scroll-content pt-1">
+                        <!-- JS 动态填充 (胶囊样式) -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 中间区域 (主视觉) ================= -->
+        <div class="col-span-6 flex flex-col gap-4 h-full min-h-0">
+            <!-- 主图全景展示区 (自适应完整显示) -->
+            <div class="glass-panel flex-1 relative flex items-center justify-center cursor-pointer group overflow-hidden" onclick="document.getElementById('imageUpload').click()">
+                
+                <!-- 装饰角标 -->
+                <div class="absolute top-5 left-5 flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur z-30 pointer-events-none">
+                    <span class="w-2 h-2 rounded-full bg-ref-cyan animate-pulse"></span>
+                    <span class="text-xs font-mono text-white/90 tracking-widest">后厨3D全景</span>
+                </div>
+
+                <!-- 隐藏的文件上传控件 -->
+                <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                
+                <!-- 图片展示容器 -->
+                <img id="mainImage" src="" 
+                     alt="" 
+                     class="absolute inset-0 w-full h-full object-contain z-10 hidden transition-transform duration-500"
+                     style="image-rendering: -webkit-optimize-contrast; image-rendering: high-quality;" />
+                
+                <!-- 上传提示 / 更换提示 -->
+                <div id="uploadOverlay" class="absolute inset-0 flex flex-col items-center justify-center z-20 transition-all duration-300 bg-[#050a15]/60 hover:bg-[#050a15]/80">
+                    <div id="placeholderContent" class="flex flex-col items-center text-ref-cyan/60 group-hover:text-ref-cyan/90 transition-colors">
+                        <i class="ph ph-upload-simple text-5xl mb-3 opacity-80"></i>
+                        <span class="tracking-widest text-sm font-bold opacity-90">点击上传后厨全景图（无大小限制）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部数据统计卡片 -->
+            <div class="h-20 shrink-0 flex gap-4">
+                <div class="glass-panel flex-1 flex items-center justify-between px-5 py-3 hover:border-ref-cyan/40 transition-colors">
+                    <div>
+                        <div class="text-ref-textSub text-xs mb-1">今日食安综合评分</div>
+                        <div class="text-2xl font-bold text-white font-mono flex items-baseline gap-1">
+                            98 <span class="text-sm text-ref-normalText font-sans">↑ 极佳</span>
+                        </div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-ref-normalBg border border-ref-normalText/30 flex items-center justify-center">
+                        <i class="ph ph-shield-check text-ref-normalText text-xl"></i>
+                    </div>
+                </div>
+                
+                <div class="glass-panel flex-1 flex items-center justify-between px-5 py-3 hover:border-ref-cyan/40 transition-colors">
+                    <div>
+                        <div class="text-ref-textSub text-xs mb-1">物联设备运行情况</div>
+                        <div class="text-2xl font-bold text-white font-mono flex items-baseline gap-1">
+                            12 <span class="text-sm text-ref-textSub font-sans">/12 在线</span>
+                        </div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-blue-900/40 border border-blue-500/30 flex items-center justify-center">
+                        <i class="ph ph-hard-drives text-blue-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW: AI 智能综合分析面板 -->
+            <div class="glass-panel shrink-0 p-4 relative overflow-hidden group border border-ref-cyan/20" style="background: rgba(0, 229, 255, 0.02);">
+                <!-- AI 光效背景 -->
+                <div class="absolute inset-0 bg-gradient-to-r from-ref-cyan/10 via-transparent to-transparent opacity-30 pointer-events-none"></div>
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-ref-cyan/20 blur-3xl rounded-full pointer-events-none"></div>
+                
+                <div class="flex items-start gap-4 relative z-10">
+                    <!-- AI 图标 -->
+                    <div class="w-10 h-10 rounded-xl bg-[#080d1c] border border-ref-cyan/40 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,229,255,0.2)] mt-0.5">
+                        <i class="ph ph-robot text-ref-cyan text-2xl animate-pulse"></i>
+                    </div>
+                    
+                    <!-- AI 播报文字区 -->
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-ref-cyan flex items-center gap-2">
+                                AI 态势综合研判
+                                <span class="text-[10px] px-1.5 py-0 rounded border border-ref-cyan/50 text-ref-cyan bg-ref-cyan/10 flex items-center gap-1">
+                                    <span class="w-1 h-1 rounded-full bg-ref-cyan animate-pulse"></span>
+                                    实时分析中
+                                </span>
+                            </div>
+                            <div class="text-xs text-ref-textSub font-mono" id="ai-time">等待数据接入...</div>
+                        </div>
+                        <div class="text-xs text-ref-textSub leading-relaxed min-h-[2.5rem] flex items-start" id="ai-analysis-text">
+                            <!-- JS 动态注入流式打字内容 -->
+                            正在初始化大模型引擎，汇聚多维传感数据...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= 右侧区域 ================= -->
+        <div class="col-span-3 flex flex-col gap-5 h-full min-h-0">
+            
+            <!-- 模块：餐具消毒记录 -->
+            <div class="glass-panel h-[50%] flex flex-col min-h-0 p-4">
+                <div class="flex justify-between items-center shrink-0 mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="title-indicator"></div>
+                        <h2 class="text-white font-bold text-base tracking-wide">餐具消毒记录</h2>
+                    </div>
+                    <i class="ph ph-sparkle text-ref-cyan text-lg"></i>
+                </div>
+                
+                <!-- 表头 -->
+                <div class="grid grid-cols-12 text-ref-textSub text-xs pb-2 px-2 shrink-0">
+                    <div class="col-span-5">时段 / 班次</div>
+                    <div class="col-span-4 text-center">消毒设备</div>
+                    <div class="col-span-3 text-right">结果</div>
+                </div>
+
+                <div class="flex-1 overflow-hidden scroll-container relative">
+                    <div id="disinfect-list" class="flex flex-col gap-2 scroll-content pt-1">
+                        <!-- JS 动态填充 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模块：紫外线灯管与异常预警 -->
+            <div class="glass-panel h-[50%] flex flex-col min-h-0 p-4 relative">
+                <!-- 顶部模糊红色告警光效 -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 blur-3xl rounded-full pointer-events-none"></div>
+
+                <div class="flex justify-between items-center shrink-0 mb-4 z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="title-indicator" style="background: #ff6b6b; box-shadow: 0 0 8px #ff6b6b;"></div>
+                        <h2 class="text-white font-bold text-base tracking-wide">实时预警与专间动态</h2>
+                    </div>
+                    <span class="bg-ref-alertBg text-ref-alertText text-xs px-2 py-1 rounded-full border border-ref-alertText/30 flex items-center gap-1">
+                        <i class="ph ph-warning-circle"></i> 自动更新
+                    </span>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto no-scrollbar relative z-10">
+                    <div id="alert-list" class="flex flex-col gap-2.5 pt-1">
+                        <!-- JS 动态填充 -->
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- JavaScript 逻辑交互 -->
+    <script>
+        // 1. 时钟功能
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('zh-CN', { hour12: false });
+            const days = ['日', '一', '二', '三', '四', '五', '六'];
+            document.getElementById('current-date').innerText = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} 星期${days[now.getDay()]}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 2. 本地图片上传与缓存功能 (带自动压缩黑科技)
+        function displayImage(imageSrc) {
+            const imgElement = document.getElementById('mainImage');
+            const overlay = document.getElementById('uploadOverlay');
+            const placeholderContent = document.getElementById('placeholderContent');
+            
+            imgElement.src = imageSrc;
+            imgElement.classList.remove('hidden');
+            
+            // 改变上传区域的样式为：平常透明，鼠标悬停时显示黑底和更换提示
+            overlay.className = 'absolute inset-0 flex flex-col items-center justify-center z-20 transition-all duration-300 opacity-0 group-hover:opacity-100 bg-black/60 backdrop-blur-sm';
+            placeholderContent.innerHTML = `
+                <i class="ph ph-arrows-clockwise text-5xl mb-3 text-white"></i>
+                <span class="tracking-widest text-sm font-bold text-white">点击更换全景图（无大小限制）</span>
+            `;
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 1. 立即使用本地 URL 显示极清原图，绝不卡顿
+            const objectURL = URL.createObjectURL(file);
+            displayImage(objectURL);
+
+            // 2. 在后台静默进行智能压缩并存入 localStorage 缓存，完美绕过 5MB 限制
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // 限制最大宽高到 1920，保证大屏够用且不会撑爆缓存
+                    const MAX_WIDTH = 1920;
+                    const MAX_HEIGHT = 1080;
+                    
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height = Math.round(height * MAX_WIDTH / width);
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width = Math.round(width * MAX_HEIGHT / height);
+                            height = MAX_HEIGHT;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 输出为 80% 质量的 JPEG，可将体积缩小 90% 以上
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    try {
+                        localStorage.setItem('dashboardMainImage', compressedBase64);
+                    } catch (error) {
+                        console.error('浏览器缓存空间仍不足:', error);
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // 清空 input value，确保下次选同一张图也能触发 change 事件
+            event.target.value = '';
+        }
+
+        // 页面加载时检查并恢复图片
+        function loadCachedImage() {
+            const cachedImage = localStorage.getItem('dashboardMainImage');
+            if (cachedImage) {
+                displayImage(cachedImage);
+            }
+        }
+
+        // 3. 初始化图表 (Chart.js 还原参考图)
+        function initChart() {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            
+            // 渐变填充背景
+            let gradient = ctx.createLinearGradient(0, 0, 0, 150);
+            gradient.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 229, 255, 0.01)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
+                    datasets: [{
+                        label: '温度 (℃)',
+                        data: [4.1, 5.5, 3.2, 6.8, 4.3, 7.0],
+                        borderColor: '#00e5ff',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#080d1c',
+                        pointBorderColor: '#00e5ff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4 // 平滑曲线
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(16, 23, 42, 0.9)', titleColor: '#94a3b8', bodyColor: '#00e5ff' } },
+                    scales: {
+                        y: { 
+                            min: 2, max: 8, 
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                            ticks: { color: '#94a3b8', stepSize: 1, padding: 10 }
+                        },
+                        x: { 
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#94a3b8', padding: 10 }
+                        }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
+            });
+        }
+
+        // 4. 渲染右侧和左下方的胶囊列表
+        const fridges = [
+            { id: '早餐', name: '生肉留样柜', temp: 2.5, status: '正常' },
+            { id: '午餐', name: '凉菜专间柜', temp: 4.5, status: '正常' },
+            { id: '午餐', name: '半成品冷藏', temp: 9.1, status: '偏高' },
+            { id: '晚餐', name: '奶制品冷柜', temp: 5.0, status: '正常' },
+            { id: '晚餐', name: '熟食保温柜', temp: 68.5, status: '偏低' },
+            { id: '全天', name: '深冷冷冻库', temp: -18.5, status: '正常' }
+        ];
+
+        function renderFridges() {
+            const container = document.getElementById('fridge-list');
+            container.innerHTML = '';
+            
+            [...fridges, ...fridges].forEach((f, idx) => {
+                let isWarn = f.status !== '正常';
+                let badgeClass = isWarn ? 'bg-ref-alertBg text-ref-alertText border-ref-alertText/30' : 'bg-ref-normalBg text-ref-normalText border-ref-normalText/30';
+                let tempColor = isWarn ? 'text-ref-alertText' : 'text-white';
+
+                container.innerHTML += `
+                    <div class="data-pill flex items-center p-2.5 px-3">
+                        <div class="w-10 text-xs text-ref-textSub border-r border-white/10 mr-3 shrink-0">${f.id}</div>
+                        <div class="flex-1 text-white text-sm truncate">${f.name}</div>
+                        <div class="w-16 text-center font-mono font-bold ${tempColor}">${f.temp}°C</div>
+                        <div class="w-14 text-right shrink-0">
+                            <span class="text-xs px-2 py-0.5 rounded-full border ${badgeClass}">${f.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        const disinfectRecords = [
+            { time: '08:00 - 08:45', dev: '1号消毒柜', result: '合格' },
+            { time: '09:30 - 10:15', dev: '2号保洁柜', result: '合格' },
+            { time: '11:00 - 11:30', dev: '洗碗机高温', result: '合格' },
+            { time: '13:00 - 13:45', dev: '1号消毒柜', result: '待复核' },
+            { time: '15:00 - 15:30', dev: '专间紫外线', result: '进行中' }
+        ];
+
+        function renderDisinfect() {
+            const container = document.getElementById('disinfect-list');
+            container.innerHTML = '';
+            
+            [...disinfectRecords, ...disinfectRecords].forEach(r => {
+                let rClass = r.result === '合格' ? 'bg-ref-normalBg text-ref-normalText border-ref-normalText/30' : (r.result === '进行中' ? 'bg-blue-900/40 text-blue-400 border-blue-400/30' : 'bg-orange-900/40 text-orange-400 border-orange-400/30');
+
+                container.innerHTML += `
+                    <div class="data-pill flex items-center p-2.5 px-3">
+                        <div class="col-span-5 w-28 text-ref-textSub font-mono text-xs shrink-0">${r.time}</div>
+                        <div class="col-span-4 flex-1 text-white text-sm text-center truncate">${r.dev}</div>
+                        <div class="col-span-3 w-16 text-right shrink-0">
+                            <span class="text-[10px] px-2 py-0.5 rounded-full border ${rClass}">${r.result}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        const alerts = [
+            { type: '紫外线状态', desc: '裱花间灯管运行完毕已关闭', time: '10分钟前', level: 'info' },
+            { type: '温度预警', desc: '半成品冷藏柜温度达到9.1℃', time: '15分钟前', level: 'high' },
+            { type: '设备提示', desc: '2号保洁柜按计划需进行消毒', time: '1小时前', level: 'info' }
+        ];
+
+        function renderAlerts() {
+            const container = document.getElementById('alert-list');
+            container.innerHTML = '';
+
+            alerts.forEach(a => {
+                let isHigh = a.level === 'high';
+                let iconClass = isHigh ? 'text-ref-alertText bg-ref-alertBg border-ref-alertText/30 animate-alert' : 'text-blue-400 bg-blue-900/40 border-blue-400/30';
+                let icon = a.type.includes('温度') ? 'ph-thermometer-hot' : (a.type.includes('紫外线') ? 'ph-lightbulb' : 'ph-info');
+
+                container.innerHTML += `
+                    <div class="data-pill flex items-start gap-3 p-3 border-l-4 ${isHigh ? 'border-l-ref-alertText' : 'border-l-blue-400'}">
+                        <div class="w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${iconClass}">
+                            <i class="ph ${icon} text-lg"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-white text-sm font-bold ${isHigh ? 'text-red-300' : ''}">${a.type}</span>
+                                <span class="text-ref-textSub text-[10px]">${a.time}</span>
+                            </div>
+                            <div class="text-ref-textSub text-xs truncate" title="${a.desc}">${a.desc}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 5. 新增：模拟 AI 分析打字机效果，供后期接入真实 API
+        const aiInsights = [
+            "【预警研判】当前冷链温度整体达标，仅「半成品冷藏」温度（9.1℃）偏高。系统研判：可能因备餐期频繁开门导致。建议后厨主管现场核实冷柜密封状态。",
+            "【设备体检】12台物联监控设备全部在线，网络延迟正常。餐具消毒任务执行良好，专间紫外线消毒按计划执行中，整体设备健康度 100%。",
+            "【综合态势】今日食安综合评分 98 分。结合传感器数据：凉菜间与生肉处理区环境指标正常，整体食安风险处于「极低」水平。",
+            "【效率建议】结合历史画像分析，即将进入午市高峰期。建议：提前开启二号排烟系统，并关注熟食保温柜温度曲线，确保核心菜品中心温度达标。"
+        ];
+        let currentAiIndex = 0;
+        let aiTypingTimer = null;
+
+        function runAITyping() {
+            const text = aiInsights[currentAiIndex];
+            const container = document.getElementById('ai-analysis-text');
+            const timeEl = document.getElementById('ai-time');
+            
+            container.innerHTML = '<span class="text-ref-cyan font-bold">_</span>';
+            timeEl.innerText = '分析计算中...';
+            
+            let charIdx = 0;
+            clearInterval(aiTypingTimer);
+            
+            aiTypingTimer = setInterval(() => {
+                if (charIdx <= text.length) {
+                    let currentStr = text.substring(0, charIdx);
+                    
+                    // 正则替换高亮预警/正常词汇（在字符打出的过程中即时变色）
+                    currentStr = currentStr.replace(/(9\.1℃|偏高|预警|异常)/g, '<span class="text-ref-alertText font-bold">$1</span>');
+                    currentStr = currentStr.replace(/(98 分|极低|达标|良好|100%|正常)/g, '<span class="text-ref-normalText font-bold">$1</span>');
+                    currentStr = currentStr.replace(/(【.*?】)/g, '<span class="text-white font-bold">$1</span>');
+                    
+                    container.innerHTML = currentStr + '<span class="text-ref-cyan font-bold animate-pulse">_</span>';
+                    charIdx++;
+                } else {
+                    clearInterval(aiTypingTimer);
+                    timeEl.innerText = '分析完成 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                    container.innerHTML = container.innerHTML.replace('<span class="text-ref-cyan font-bold animate-pulse">_</span>', ''); // 打字结束移除光标
+                    
+                    // 为下一次播放做准备
+                    currentAiIndex = (currentAiIndex + 1) % aiInsights.length;
+                }
+            }, 50); // 每50毫秒打出一个字，模拟流式输出
+        }
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCachedImage(); // 检查缓存
+            initChart();
+            renderFridges();
+            renderDisinfect();
+            renderAlerts();
+            
+            // 延迟两秒启动 AI 打字机分析，之后每隔 15 秒轮换一条分析
+            setTimeout(() => {
+                runAITyping();
+                setInterval(runAITyping, 15000);
+            }, 2000);
+        });
+
+    </script>
+</body>
+</html>
