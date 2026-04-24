@@ -189,7 +189,7 @@
                 <!-- 装饰角标 -->
                 <div class="absolute top-5 left-5 flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur z-30 pointer-events-none">
                     <span class="w-2 h-2 rounded-full bg-ref-cyan animate-pulse"></span>
-                    <span class="text-xs font-mono text-white/90 tracking-widest">后厨3D全景</span>
+                    <span class="text-xs font-mono text-white/90 tracking-widest">后厨3D布局图</span>
                 </div>
 
                 <!-- 隐藏的文件上传控件 -->
@@ -261,7 +261,8 @@
                             </div>
                             <div class="text-xs text-ref-textSub font-mono" id="ai-time">等待数据接入...</div>
                         </div>
-                        <div class="text-xs text-ref-textSub leading-relaxed min-h-[2.5rem] flex items-start" id="ai-analysis-text">
+                        <!-- 修复：去除了导致文字换行错乱的 flex 相关类名，使用原生文本排版 -->
+                        <div class="text-xs text-ref-textSub leading-relaxed min-h-[2.5rem] break-words" id="ai-analysis-text">
                             <!-- JS 动态注入流式打字内容 -->
                             正在初始化大模型引擎，汇聚多维传感数据...
                         </div>
