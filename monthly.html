@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -2026,6 +2027,26 @@
                 };
             });
 
+
+
+            // ??????????????????/????
+            const sendDashboardSync = () => {
+                if (!window.parent || window.parent === window || !dashboardData.value) return;
+                window.parent.postMessage({
+                    type: 'DASHBOARD_SYNC',
+                    source: 'security',
+                    data: {
+                        issues: dashboardData.value.urgentIssues,
+                        recentFailCount: dashboardData.value.recentFailCount,
+                        riskLevel: dashboardData.value.riskLevel,
+                        riskScore: dashboardData.value.riskScore
+                    }
+                }, '*');
+            };
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'REQUEST_DASHBOARD_DATA') sendDashboardSync();
+            });
+
             // 10. View Operations
             const changeDate = (n) => {
                 const d = new Date(selectedDate.value);
@@ -2556,6 +2577,7 @@
                     if(topBarChartInstance) topBarChartInstance.resize();
                 });
                 if(currentView.value === 'dashboard') setTimeout(initDashboardCharts, 100);
+                nextTick(sendDashboardSync);
             });
 
             // 确保所有的变量和方法都被严格按序且完整返回给模板
@@ -2582,3 +2604,4 @@
 </script>
 </body>
 </html>
+
