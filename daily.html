@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -2539,7 +2540,27 @@
                     });
                 };
 
-                watch(suppliers, (val) => saveData('sys_suppliers_v11', val), { deep: true });
+
+
+                // ?????????????????????/????
+                const sendDashboardSync = () => {
+                    if (!window.parent || window.parent === window) return;
+                    window.parent.postMessage({
+                        type: 'DASHBOARD_SYNC',
+                        source: 'ingredient',
+                        data: {
+                            ledgers: ledgers.value,
+                            suppliers: suppliers.value,
+                            expiringItems: riskDashboard.value.expiringItems,
+                            expiredItems: riskDashboard.value.expiredItems
+                        }
+                    }, '*');
+                };
+                window.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'REQUEST_DASHBOARD_DATA') sendDashboardSync();
+                });
+
+                watch(suppliers, (val) => { saveData('sys_suppliers_v11', val); sendDashboardSync(); }, { deep: true });
                 
                 watch(ledgers, (val) => { 
                     saveData('sys_ledgers_v11', val);
@@ -2585,3 +2606,4 @@
     </script>
 </body>
 </html>
+
