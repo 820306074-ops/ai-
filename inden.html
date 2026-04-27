@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -661,6 +662,20 @@
         }
 
         const alerts = [ { type: '超温预警', desc: '初加工区冷冻库温度达到 -12℃', time: '2分钟前', level: 'high' }, { type: '灯管异常', desc: '备餐间紫外线灯开启超时 (>60分)', time: '10分钟前', level: 'high' }, { type: '操作提示', desc: '红烧肉熟食留样已完成', time: '15分钟前', level: 'info' } ];
+
+
+        function sendDashboardSync() {
+            if (!window.parent || window.parent === window) return;
+            window.parent.postMessage({
+                type: 'DASHBOARD_SYNC',
+                source: 'processing',
+                data: { fridgeGroups, cookData, alerts }
+            }, '*');
+        }
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'REQUEST_DASHBOARD_DATA') sendDashboardSync();
+        });
+
         function renderAlerts() {
             const container = document.getElementById('alert-list');
             [...alerts, ...alerts].forEach(a => {
@@ -727,9 +742,11 @@
             renderServeList();
             renderWashList();
             renderAlerts();
+            sendDashboardSync();
             setTimeout(() => { runAITyping(); setInterval(runAITyping, 15000); }, 2000);
         });
 
     </script>
 </body>
 </html>
+
