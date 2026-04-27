@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1006,6 +1007,20 @@
       }
     };
 
+
+
+    function sendDashboardSync(){
+      if(!window.parent || window.parent === window) return;
+      window.parent.postMessage({
+        type: 'DASHBOARD_SYNC',
+        source: 'health',
+        data: state.records.map(getComputedRecord)
+      }, '*');
+    }
+    window.addEventListener('message', (event) => {
+      if(event.data && event.data.type === 'REQUEST_DASHBOARD_DATA') sendDashboardSync();
+    });
+
     function renderAll(){
       renderNav();
       renderMetricCards();
@@ -1535,3 +1550,4 @@
   </script>
 </body>
 </html>
+
