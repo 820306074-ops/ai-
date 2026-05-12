@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食堂食品安全智能管理驾驶舱</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
+    <style>
+        :root {
+            --bg-base: #050b1c;
+            --bg-deep: #07142f;
+            --bg-surface: rgba(10, 24, 56, 0.68);
+            --bg-surface-strong: rgba(11, 28, 66, 0.86);
+            --bg-elevated: rgba(18, 37, 84, 0.78);
+            --glass-white: rgba(255, 255, 255, 0.08);
+            --glass-line: rgba(151, 195, 255, 0.18);
+            --line-soft: rgba(125, 171, 255, 0.16);
+            --line-strong: rgba(83, 167, 255, 0.42);
+            --shadow-soft: 0 14px 36px rgba(0, 9, 28, 0.32);
+            --shadow-card: 0 22px 44px rgba(1, 12, 36, 0.42);
+            --shadow-glow: 0 0 0 1px rgba(129, 194, 255, 0.08), 0 0 32px rgba(39, 123, 255, 0.14);
+            --text-main: #eef4ff;
+            --text-strong: #ffffff;
+            --text-sub: #a9bddf;
+            --text-muted: #7f98bf;
+            --brand-cyan: #54d3ff;
+            --brand-blue: #4b7dff;
+            --brand-violet: #7275ff;
+            --brand-green: #24d7a1;
+            --brand-warn: #ffb84d;
+            --brand-danger: #ff6f6f;
+            --radius-card: 22px;
+            --radius-inner: 16px;
+            --radius-pill: 999px;
+            --header-height: 88px;
+            --nav-height: 64px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 50% 18%, rgba(74, 122, 255, 0.26), transparent 28%),
+                radial-gradient(circle at 82% 22%, rgba(84, 211, 255, 0.15), transparent 18%),
+                radial-gradient(circle at 20% 82%, rgba(114, 117, 255, 0.14), transparent 22%),
+                linear-gradient(180deg, #06101f 0%, #071226 34%, #08162b 100%);
+            position: relative;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            background:
+                linear-gradient(rgba(155, 199, 255, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(155, 199, 255, 0.045) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+            opacity: 0.55;
+        }
+
+        body::after {
+            background:
+                radial-gradient(circle at center, rgba(100, 154, 255, 0.1), transparent 34%),
+                linear-gradient(120deg, rgba(255, 255, 255, 0.04), transparent 30%, transparent 70%, rgba(255, 255, 255, 0.03));
+            opacity: 0.7;
+        }
+
+        #app {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1920px;
+            height: 1080px;
+            transform-origin: center center;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 22px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0)),
+                radial-gradient(circle at center, rgba(73, 106, 255, 0.09), transparent 46%);
+        }
+
+        #app::before {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            border: 1px solid rgba(132, 176, 255, 0.12);
+            border-radius: 28px;
+            pointer-events: none;
+        }
+
+        header {
+            height: var(--header-height);
+            flex-shrink: 0;
+            border-radius: 24px;
+            background:
+                linear-gradient(135deg, rgba(17, 34, 78, 0.92), rgba(9, 23, 55, 0.8)),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 55%);
+            border: 1px solid rgba(128, 173, 255, 0.22);
+            box-shadow: var(--shadow-card);
+            padding: 0 28px;
+            display: grid;
+            grid-template-columns: 1.3fr 1.8fr 1.15fr;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(84, 211, 255, 0.1), transparent 24%, transparent 76%, rgba(114, 117, 255, 0.12)),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 65%);
+            pointer-events: none;
+        }
+
+        header::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 12px;
+            bottom: 12px;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(145, 190, 255, 0.26), transparent);
+            transform: translateX(-50%);
+            opacity: 0.8;
+        }
+
+        .header-left,
+        .header-center,
+        .header-right {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .company-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            padding: 8px 14px;
+            border-radius: var(--radius-pill);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(144, 190, 255, 0.18);
+            color: var(--text-sub);
+            font-size: 13px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .company-badge::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, var(--brand-cyan), var(--brand-blue));
+            box-shadow: 0 0 14px rgba(84, 211, 255, 0.7);
+        }
+
+        .company-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-strong);
+            letter-spacing: 0.04em;
+        }
+
+        .company-subtitle {
+            color: var(--text-muted);
+            font-size: 13px;
+            letter-spacing: 0.08em;
+        }
+
+        .header-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 6px;
+        }
+
+        .header-title {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            color: var(--text-strong);
+            text-shadow: 0 0 30px rgba(90, 156, 255, 0.28);
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            color: var(--text-sub);
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+            padding: 0 16px;
+            border-radius: var(--radius-pill);
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(145, 190, 255, 0.16);
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .header-chip-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .header-chip-value {
+            font-size: 14px;
+            color: var(--text-strong);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--brand-green);
+            box-shadow: 0 0 0 0 rgba(36, 215, 161, 0.7);
+            animation: pulse 2s infinite;
+            flex-shrink: 0;
+        }
+
+        #currentTime {
+            font-family: "DIN Alternate", "Bahnschrift", monospace;
+            color: #d8e7ff;
+            font-weight: 700;
+            font-size: 17px;
+            letter-spacing: 0.08em;
+        }
+
+        .fullscreen-btn {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            cursor: pointer;
+            color: var(--text-sub);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(145, 190, 255, 0.18);
+            transition: 0.28s ease;
+        }
+
+        .fullscreen-btn:hover {
+            color: var(--text-strong);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(31, 88, 192, 0.24), 0 0 20px rgba(84, 211, 255, 0.16);
+            border-color: rgba(110, 188, 255, 0.32);
+        }
+
+        /* 主容器封装 */
+        .content-area {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            gap: 16px;
+            min-height: 0;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* 开发中占位页面 */
+        .dev-view {
+            flex: 1;
+            display: none; /* 默认隐藏，由JS控制 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: 
+                linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 24%),
+                linear-gradient(135deg, rgba(16, 34, 75, 0.4), rgba(8, 20, 48, 0.4));
+            border: 1px solid rgba(128, 174, 255, 0.1);
+            border-radius: var(--radius-card);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .dev-icon-wrapper {
+            font-size: 72px;
+            margin-bottom: 24px;
+            animation: floatUp 2.5s ease-in-out infinite alternate;
+            filter: drop-shadow(0 10px 20px rgba(84, 211, 255, 0.15));
+            color: rgba(84, 211, 255, 0.8);
+        }
+
+        .dev-text {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-strong);
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 15px rgba(84, 211, 255, 0.3);
+        }
+
+        .dev-subtext {
+            font-size: 15px;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+            max-width: 480px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* Iframe嵌入容器 */
+        .iframe-view {
+            flex: 1;
+            display: none; /* 默认隐藏 */
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            border: 1px solid rgba(128, 174, 255, 0.1);
+            background: rgba(8, 20, 48, 0.4);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .iframe-view iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+        }
+
+        /* -------------------------- 底部导航栏设计 -------------------------- */
+        .bottom-nav {
+            height: var(--nav-height);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(180deg, rgba(11, 26, 62, 0.8), rgba(6, 14, 38, 0.95));
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            border-radius: 16px;
+            padding: 0 16px;
+            position: relative;
+            box-shadow: 0 12px 30px rgba(0, 5, 20, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            overflow: hidden;
+        }
+
+        /* 导航栏全屏隐藏逻辑 */
+        :fullscreen .bottom-nav { display: none !important; }
+        :-webkit-full-screen .bottom-nav { display: none !important; }
+        :-moz-full-screen .bottom-nav { display: none !important; }
+        :-ms-fullscreen .bottom-nav { display: none !important; }
+
+        /* 导航栏底部全息亮线 */
+        .bottom-nav::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            right: 5%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(84, 211, 255, 0.3), transparent);
+        }
+
+        /* 装饰左右切角效果 */
+        .bottom-nav::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                linear-gradient(135deg, rgba(84, 211, 255, 0.05) 0%, transparent 15%),
+                linear-gradient(-135deg, rgba(84, 211, 255, 0.05) 0%, transparent 15%);
+            pointer-events: none;
+        }
+
+        .nav-item {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 15px;
+            color: #8da4ca;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            z-index: 1;
+        }
+
+        .nav-item svg {
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: #d1e2ff;
+        }
+
+        .nav-item:hover svg {
+            transform: scale(1.1);
+        }
+
+        .nav-item.active {
+            color: var(--brand-cyan);
+            font-weight: 700;
+        }
+
+        .nav-item.active svg {
+            filter: drop-shadow(0 0 8px rgba(84, 211, 255, 0.6));
+        }
+
+        /* Active 状态的科技感平行四边形背景 */
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            inset: 8px -6px;
+            background: linear-gradient(90deg, rgba(84, 211, 255, 0.12) 0%, rgba(84, 211, 255, 0.02) 100%);
+            transform: skewX(-20deg);
+            border-left: 2px solid rgba(84, 211, 255, 0.6);
+            z-index: -1;
+            box-shadow: -4px 0 15px rgba(84, 211, 255, 0.15);
+        }
+
+        /* Active 状态底部的亮蓝色高光条 */
+        .nav-item.active::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 15%;
+            width: 70%;
+            height: 3px;
+            background: var(--brand-cyan);
+            box-shadow: 0 -2px 10px var(--brand-cyan), 0 0 20px var(--brand-cyan);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* -------------------------- 业务面板 -------------------------- */
+        .panel-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 0;
+        }
+
+        .left-panel,
+        .right-panel {
+            width: 448px;
+        }
+
+        .center-panel {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            padding: 16px 18px;
+            border-radius: var(--radius-card);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 24%),
+                linear-gradient(135deg, rgba(16, 34, 75, 0.82), rgba(8, 20, 48, 0.72));
+            border: 1px solid rgba(128, 174, 255, 0.18);
+            backdrop-filter: blur(18px);
+            box-shadow: var(--shadow-soft), var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            overflow: hidden;
+            transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at top left, rgba(84, 211, 255, 0.12), transparent 26%),
+                linear-gradient(120deg, rgba(255, 255, 255, 0.05), transparent 26%, transparent 72%, rgba(255, 255, 255, 0.02));
+            pointer-events: none;
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: calc(var(--radius-card) - 1px);
+            border: 1px solid rgba(255, 255, 255, 0.035);
+            pointer-events: none;
+        }
+
+        .clickable { cursor: pointer; }
+        .clickable:hover {
+            transform: translateY(-2px);
+            border-color: rgba(128, 194, 255, 0.3);
+            box-shadow: 0 24px 44px rgba(1, 12, 36, 0.42), 0 0 0 1px rgba(122, 192, 255, 0.12), 0 0 28px rgba(60, 124, 255, 0.14);
+        }
+
+        .card-title,
+        .video-title-bar,
+        .section-caption {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 30px;
+            margin-bottom: 12px;
+            color: var(--text-strong);
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.03em;
+        }
+
+        .card-title > span:first-child {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title > span:first-child::before {
+            content: "";
+            width: 4px;
+            height: 16px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--brand-cyan), var(--brand-violet));
+            box-shadow: 0 0 12px rgba(84, 211, 255, 0.46);
+            flex-shrink: 0;
+        }
+
+        .chart-box {
+            width: 100%;
+            flex: 1;
+            min-height: 160px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .custom-select {
+            appearance: none;
+            padding: 6px 32px 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(132, 181, 255, 0.2);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+                rgba(8, 22, 52, 0.88);
+            color: #d8e7ff;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .kpi-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            height: 180px;
+        }
+
+        .kpi-item {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 18px;
+            overflow: hidden;
+            background:
+                linear-gradient(135deg, rgba(76, 123, 255, 0.16), rgba(7, 25, 62, 0.72) 54%, rgba(84, 211, 255, 0.08)),
+                rgba(11, 24, 52, 0.74);
+            border: 1px solid rgba(126, 168, 255, 0.18);
+            box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: 0.28s ease;
+        }
+
+        .kpi-item::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 34%, transparent 68%, rgba(255, 255, 255, 0.03));
+            pointer-events: none;
+        }
+
+        .kpi-item:hover {
+            transform: translateY(-3px);
+            border-color: rgba(136, 190, 255, 0.32);
+            box-shadow: 0 20px 34px rgba(7, 19, 46, 0.4), 0 0 24px rgba(84, 211, 255, 0.16);
+        }
+
+        .kpi-info {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .kpi-info h4 { font-size: 13px; font-weight: 600; color: #c8d8f6; margin-bottom: 6px; }
+        .kpi-info .val { font-size: 24px; font-weight: 800; line-height: 1; color: #f5fbff; }
+        .kpi-note { margin-top: 6px; font-size: 11px; color: var(--text-muted); }
+
+        .kpi-icon {
+            position: relative;
+            z-index: 1;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+                rgba(14, 40, 92, 0.7);
+            border: 1px solid rgba(141, 186, 255, 0.18);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .video-module {
+            position: relative;
+            flex: 1;
+            margin-bottom: 14px;
+            border-radius: 24px;
+            border: 1px solid rgba(127, 178, 255, 0.22);
+            background: linear-gradient(135deg, rgba(12, 28, 66, 0.92), rgba(5, 12, 25, 0.98));
+            overflow: hidden;
+        }
+
+        .video-header {
+            position: absolute;
+            top: 14px; left: 16px; right: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; border-radius: 16px;
+            background: linear-gradient(180deg, rgba(7, 20, 45, 0.84), rgba(7, 20, 45, 0.42));
+            border: 1px solid rgba(124, 175, 255, 0.16);
+            backdrop-filter: blur(14px); z-index: 5;
+        }
+
+        .video-tags { display: flex; gap: 8px; align-items: center; }
+        .tag, .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            min-height: 24px; padding: 0 10px; border-radius: var(--radius-pill);
+            font-size: 12px; font-weight: 600; border: 1px solid transparent;
+        }
+        .tag { color: #dff7ff; background: rgba(255, 255, 255, 0.06); border-color: rgba(137, 188, 255, 0.16); }
+        .tag-location { background: rgba(84, 211, 255, 0.12); color: #8be4ff; border-color: rgba(84, 211, 255, 0.24); }
+
+        .video-title-main { font-size: 16px; font-weight: 700; color: var(--text-strong); text-align: right;}
+        .video-title-sub { font-size: 11px; color: var(--text-sub); text-align: right;}
+
+        video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+
+        .ai-alert {
+            position: absolute; left: 16px; bottom: 16px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255, 122, 122, 0.16), rgba(14, 23, 49, 0.8));
+            border: 1px solid rgba(255, 123, 123, 0.26);
+            color: #fff4f4; font-size: 13px; z-index: 5;
+        }
+
+        .video-controls {
+            position: absolute; right: 16px; bottom: 16px; z-index: 5; display: flex; gap: 8px;
+        }
+
+        .v-btn {
+            padding: 8px 12px; border: 1px solid rgba(131, 178, 255, 0.18);
+            border-radius: 12px; background: rgba(7, 20, 45, 0.72);
+            color: #d6e5ff; font-size: 12px; cursor: pointer; backdrop-filter: blur(10px);
+        }
+        .v-btn.active {
+            color: #ffffff; background: linear-gradient(135deg, rgba(84, 211, 255, 0.3), rgba(84, 125, 255, 0.22));
+            border-color: rgba(122, 199, 255, 0.34);
+        }
+
+        /* 各种列表样式 */
+        .table-module { height: 210px; display: flex; flex-direction: column; }
+        .table-header, .mini-table-header {
+            display: grid; align-items: center; text-align: center;
+            background: linear-gradient(180deg, rgba(95, 140, 255, 0.18), rgba(255, 255, 255, 0.04));
+            border: 1px solid rgba(132, 181, 255, 0.14); border-radius: 12px;
+            font-size: 13px; font-weight: 700; color: #dce8ff;
+        }
+        .table-header { grid-template-columns: 1fr 2fr 1fr 1.5fr 1fr; min-height: 40px; margin-bottom: 10px; }
+        
+        .table-body, .mini-table-body, .meal-scroll-wrapper, .supplier-wrapper {
+            position: relative; flex: 1; overflow: hidden; z-index: 1;
+        }
+        .table-scroll, .mini-scroll, .supplier-scroll {
+            position: absolute; width: 100%; animation: scrollUp 15s linear infinite;
+        }
+
+        .table-row {
+            display: grid; grid-template-columns: 1fr 2fr 1fr 1.5fr 1fr; min-height: 38px;
+            font-size: 12px; align-items: center; text-align: center; border-bottom: 1px solid rgba(128, 168, 255, 0.1);
+        }
+
+        .bg-red { background: rgba(255, 111, 111, 0.12); border-color: rgba(255, 122, 122, 0.3); color: #ff9b9b; }
+        .bg-yellow { background: rgba(255, 184, 77, 0.12); border-color: rgba(255, 184, 77, 0.26); color: #ffd494; }
+        .bg-green { background: rgba(36, 215, 161, 0.12); border-color: rgba(36, 215, 161, 0.24); color: #8ff2cc; }
+
+        .mini-table-header { grid-template-columns: 1fr 1.5fr 1fr 1fr; min-height: 36px; font-size: 12px; margin-bottom: 8px;}
+        .mini-table-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr; min-height: 34px; font-size: 12px; align-items: center; text-align: center;}
+        
+        .meal-group {
+            display: flex; flex: 1; min-height: 0; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(132, 181, 255, 0.12); border-radius: 14px; overflow: hidden;
+        }
+        .meal-badge {
+            width: 38px; writing-mode: vertical-lr; text-align: center; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: #dbe8ff; background: rgba(84, 211, 255, 0.15);
+        }
+        .hot-food-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr; min-height: 32px; font-size: 12px; align-items: center;}
+
+        .morning-stat-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+        .m-stat-box { padding: 10px 8px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); text-align: center; border: 1px solid rgba(131, 178, 255, 0.14);}
+        .m-stat-label { font-size: 11px; color: var(--text-sub); }
+        .m-stat-val { font-size: 20px; font-weight: 800; }
+        .morning-grid { grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr !important; }
+
+        /* 供应商及索证索票模块定制样式 */
+        .tab-switcher {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(132, 181, 255, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .tab-btn {
+            padding: 4px 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+        .tab-btn.active {
+            background: rgba(84, 211, 255, 0.15);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .supplier-item {
+            display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px; margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(131, 178, 255, 0.08); border-radius: 12px;
+            transition: background 0.2s ease;
+        }
+        .supplier-item:hover {
+            background: rgba(255, 255, 255, 0.06); border-color: rgba(131, 178, 255, 0.2);
+        }
+
+        .doc-thumb { 
+            width: 32px; height: 42px; border-radius: 6px; 
+            border: 1px solid rgba(131, 178, 255, 0.2); object-fit: cover; 
+            background: rgba(18, 37, 84, 0.5);
+        }
+        .supplier-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; }
+        .supplier-name { font-size: 13px; color: #f4f8ff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .supplier-status { font-size: 11px; color: #95f3cf; padding: 2px 8px; background: rgba(36, 215, 161, 0.12); border-radius: var(--radius-pill); border: 1px solid rgba(36, 215, 161, 0.2); }
+        
+        .qual-row { display: flex; gap: 8px; margin-top: 2px; }
+        .qual-doc {
+            display: flex; align-items: center; gap: 4px; padding: 2px 6px 2px 2px;
+            background: rgba(84, 211, 255, 0.08); border: 1px solid rgba(84, 211, 255, 0.15);
+            border-radius: 6px; font-size: 10px; color: #a9bddf;
+        }
+        .qual-doc img { width: 16px; height: 16px; border-radius: 4px; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(36, 215, 161, 0.66); }
+            70% { box-shadow: 0 0 0 10px rgba(36, 215, 161, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(36, 215, 161, 0); }
+        }
+        @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes floatUp { from { transform: translateY(0px); } to { transform: translateY(-15px); } }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- 头部区域 -->
+    <header>
+        <div class="header-left">
+            <div class="company-badge">Food Safety Command Center</div>
+            <div class="company-name">广州中味餐饮服务有限公司</div>
+            <div class="company-subtitle">智慧厨房 / 食堂食品安全智能管理平台</div>
+        </div>
+        <div class="header-center">
+            <div class="header-title">食堂食品安全智能管理驾驶舱</div>
+            <div class="header-subtitle">Smart Kitchen Safety Dashboard</div>
+        </div>
+        <div class="header-right">
+            <div class="header-chip">
+                <div class="status-dot"></div>
+                <div>
+                    <div class="header-chip-label">系统状态</div>
+                    <div class="header-chip-value">稳定运行中</div>
+                </div>
+            </div>
+            <div class="header-chip">
+                <div>
+                    <div class="header-chip-label">当前时间</div>
+                    <div class="header-chip-value" id="currentTime"></div>
+                </div>
+            </div>
+            <div class="fullscreen-btn" onclick="toggleFullScreen();" title="全屏/退出全屏">
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- 中间动态内容区域（容器） -->
+    <div class="content-area">
+        
+        <!-- ================= 首页监控面板（默认展示） ================= -->
+        <div class="main-container" id="mainContainer">
+            <aside class="panel-column left-panel">
+                <div class="card" style="flex: 1;">
+                    <div class="card-title">
+                        <span>冷链温度监控 (℃)</span>
+                        <select id="fridgeSelector" class="custom-select" onchange="updateFridgeChart()">
+                            <option value="01">01 冷藏冰箱</option>
+                            <option value="02">02 冷冻冰箱</option>
+                            <option value="03">03 留样冰箱</option>
+                        </select>
+                    </div>
+                    <div id="chart-fridge" class="chart-box"></div>
+                </div>
+
+                <div class="card" style="flex: 1.2;">
+                    <div class="card-title"><span>热食中心温度 (实时)</span></div>
+                    <div style="display:flex; flex-direction:column; flex:1; gap:6px; overflow:hidden;">
+                        <div class="mini-table-header" style="grid-template-columns: 38px 2fr 1.5fr 1fr;">
+                            <div></div><div>菜品名称</div><div>中心温度</div><div>状态</div>
+                        </div>
+                        <div class="meal-group">
+                            <div class="meal-badge">早餐</div>
+                            <div class="meal-scroll-wrapper"><div class="mini-scroll" id="scroll-bf"></div></div>
+                        </div>
+                        <div class="meal-group">
+                            <div class="meal-badge">午餐</div>
+                            <div class="meal-scroll-wrapper"><div class="mini-scroll" id="scroll-lu"></div></div>
+                        </div>
+                        <div class="meal-group">
+                            <div class="meal-badge">晚餐</div>
+                            <div class="meal-scroll-wrapper"><div class="mini-scroll" id="scroll-dn"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="flex: 1;">
+                    <div class="card-title"><span>环境温湿度监测</span></div>
+                    <div id="chart-env" class="chart-box"></div>
+                </div>
+            </aside>
+
+            <section class="panel-column center-panel">
+                <div class="kpi-cards">
+                    <div class="kpi-item"><div class="kpi-info"><h4>今日风险等级</h4><div class="val" style="color: var(--brand-green);">低风险</div><div class="kpi-note">风险态势稳定</div></div><div class="kpi-icon">🛡️</div></div>
+                    <div class="kpi-item"><div class="kpi-info"><h4>巡检完成率</h4><div class="val num-anim" data-target="98.5">0</div><div class="kpi-note">日巡闭环持续提升</div></div><div class="kpi-icon">📝</div></div>
+                    <div class="kpi-item"><div class="kpi-info"><h4>隐患整改率</h4><div class="val num-anim" data-target="100">0</div><div class="kpi-note">问题流转已闭环</div></div><div class="kpi-icon">🔧</div></div>
+                    <div class="kpi-item"><div class="kpi-info"><h4>晨检合格率</h4><div class="val num-anim" data-target="100">0</div><div class="kpi-note">人员上岗健康可控</div></div><div class="kpi-icon">👨‍🍳</div></div>
+                    <div class="kpi-item"><div class="kpi-info"><h4>食材验收合格率</h4><div class="val num-anim" data-target="99.2">0</div><div class="kpi-note">原料准入高标准</div></div><div class="kpi-icon">🥬</div></div>
+                    <div class="kpi-item"><div class="kpi-info"><h4>餐具消毒合格率</h4><div class="val num-anim" data-target="100">0</div><div class="kpi-note">消毒节点全记录</div></div><div class="kpi-icon">🍽️</div></div>
+                    <div class="kpi-item"><div class="kpi-info"><h4>留样完成率</h4><div class="val num-anim" data-target="100">0</div><div class="kpi-note">关键样本可追溯</div></div><div class="kpi-icon">🍱</div></div>
+                    <div class="kpi-item"><div class="kpi-info"><h4>培训覆盖率</h4><div class="val num-anim" data-target="95.6">0</div><div class="kpi-note">制度与操作同步</div></div><div class="kpi-icon">📚</div></div>
+                </div>
+
+                <div class="video-module">
+                    <div class="video-header">
+                        <div class="video-tags">
+                            <span class="tag"><span class="status-dot" style="width: 7px; height: 7px;"></span>在线</span>
+                            <span class="tag tag-location">烹饪操作区 01</span>
+                        </div>
+                        <div class="video-title-bar">
+                            <div class="video-title-main">名厨亮灶实时监控</div>
+                            <div class="video-title-sub">摄像机矩阵 / AI行为分析运作中</div>
+                        </div>
+                    </div>
+                    <video id="mainVideo" autoplay muted loop controls></video>
+                    <div class="ai-alert">
+                        <span>🤖 AI分析：人员穿戴规范，未发现未戴口罩/厨师帽行为，区域温度正常。</span>
+                    </div>
+                    <div class="video-controls">
+                        <button class="v-btn active" id="btn-mp4" onclick="switchVideo('mp4', this)">MP4 演示</button>
+                        <button class="v-btn" id="btn-hls" onclick="switchVideo('hls', this)">HLS 实时流</button>
+                        <button class="v-btn" id="btn-flv" onclick="switchVideo('flv', this)">FLV 监控流</button>
+                    </div>
+                </div>
+
+                <div class="card table-module">
+                    <div class="card-title">
+                        <span>风险预警实时监控表</span>
+                    </div>
+                    <div class="table-header">
+                        <div>预警等级</div><div>问题类型</div><div>责任人</div><div>整改时限</div><div>当前状态</div>
+                    </div>
+                    <div class="table-body">
+                        <div class="table-scroll" id="scrollTable"></div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="panel-column right-panel">
+                <div class="card" style="flex: 1.5;">
+                    <div class="card-title"><span>原料农残快速检测监控</span></div>
+                    <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
+                        <div class="mini-table-header">
+                            <div>食材</div><div>检测项目</div><div>抑制率</div><div>结果</div>
+                        </div>
+                        <div class="mini-table-body">
+                            <div class="mini-scroll" id="scrollPesticide"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="flex: 1.3;">
+                    <div class="card-title">
+                        <span>资质审查</span>
+                        <div class="tab-switcher" id="supplierTabs">
+                            <div class="tab-btn active" onclick="switchSupplierTab('cert', this, event)">预包装索证</div>
+                            <div class="tab-btn" onclick="switchSupplierTab('qual', this, event)">供应商资质</div>
+                        </div>
+                    </div>
+                    <div class="supplier-wrapper" id="wrapperCert">
+                        <div class="supplier-scroll" id="scrollCert"></div>
+                    </div>
+                    <div class="supplier-wrapper" id="wrapperQual" style="display: none;">
+                        <div class="supplier-scroll" id="scrollQual"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="flex: 1.6;">
+                    <div class="card-title"><span>智能晨检</span></div>
+                    <div class="morning-stat-bar">
+                        <div class="m-stat-box"><div class="m-stat-label">总人数</div><div class="m-stat-val" style="color: var(--brand-cyan);">82</div></div>
+                        <div class="m-stat-box"><div class="m-stat-label">已检数</div><div class="m-stat-val" style="color: var(--brand-cyan);">60</div></div>
+                        <div class="m-stat-box"><div class="m-stat-label">合格</div><div class="m-stat-val" style="color: var(--brand-green);">57</div></div>
+                        <div class="m-stat-box"><div class="m-stat-label">不合格</div><div class="m-stat-val" style="color: var(--brand-danger);">3</div></div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
+                        <div class="mini-table-header morning-grid">
+                            <div>食堂</div><div>姓名</div><div>体温</div><div>结果</div><div>健康证</div>
+                        </div>
+                        <div class="mini-table-body">
+                            <div class="mini-scroll" id="scrollMorning"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- ================= 其他模块占位页面 ================= -->
+        <div class="dev-view" id="devView">
+            <div class="dev-icon-wrapper">
+                <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </div>
+            <div class="dev-text" id="devTitle">「食材管理」</div>
+            <div class="dev-subtext">该模块的业务功能及数据可视化接口正在全力开发联调中，敬请期待后续版本更新带来的全流程监管体验升级。</div>
+        </div>
+
+        <!-- ================= iframe外部模块页面 ================= -->
+        <!-- 预加载所有外部网页，系统启动时直接在后台跑 -->
+        <div class="iframe-view" id="iframeView_ingredient" style="display: none;">
+            <iframe src="https://820306074-ops.github.io/ai-/daily.html"></iframe>
+        </div>
+        <div class="iframe-view" id="iframeView_personnel" style="display: none;">
+            <iframe src="https://820306074-ops.github.io/ai-/index.html"></iframe>
+        </div>
+        <div class="iframe-view" id="iframeView_processing" style="display: none;">
+            <iframe src="https://820306074-ops.github.io/ai-/inden.html"></iframe>
+        </div>
+        <div class="iframe-view" id="iframeView_security" style="display: none;">
+            <iframe src="https://820306074-ops.github.io/ai-/monthly.html"></iframe>
+        </div>
+    </div>
+
+    <!-- 底部统一导航栏 -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home', '首页', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            <span>首页</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('ingredient', '食材管理', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 0-2 2-2 5 0 0 4 0 4-5z" /><path d="M20 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" /></svg>
+            <span>食材管理</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('processing', '加工制作', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+            <span>加工制作</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('equipment', '设备管理', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/><path d="M12 14v-4"/><path d="M12 6h.01"/></svg>
+            <span>设备管理</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('security', '安全管理', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>安全管理</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('personnel', '人员管理', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>人员管理</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('data', '数据分析', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span>数据分析</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('alert', '预警中心', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span>预警中心</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('system', '系统管理', this)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>系统管理</span>
+        </div>
+    </nav>
+</div>
+
+<script>
+    // -------------- 屏幕自适应缩放 --------------
+    function setScale() {
+        const app = document.getElementById("app");
+        const designWidth = 1920;
+        const designHeight = 1080;
+        const scaleX = window.innerWidth / designWidth;
+        const scaleY = window.innerHeight / designHeight;
+        
+        // 判断当前是否处于全屏状态
+        const isFullScreen = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+
+        if (isFullScreen) {
+            // 全屏时，采取X轴、Y轴独立缩放强制铺满屏幕，消除上下左右黑框
+            app.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
+        } else {
+            // 退出全屏（窗口模式）时，保持设计比例等比缩放
+            const scale = Math.min(scaleX, scaleY);
+            app.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+    }
+    window.addEventListener("resize", setScale);
+    setScale();
+
+    // 监听全屏状态变化，并同步更新图表尺寸和外层缩放比例
+    function handleFullscreenChange() {
+        setScale(); // 重新计算是否要强制满屏
+        
+        // 延时等待 CSS 中 display: none 生效及布局重新计算完成
+        setTimeout(() => {
+            if (typeof chartFridge !== 'undefined' && chartFridge) chartFridge.resize();
+            if (typeof chartEnv !== 'undefined' && chartEnv) chartEnv.resize();
+        }, 150);
+    }
+    
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    }
+
+    // -------------- 底部导航栏联动切换逻辑 --------------
+    function switchTab(tabId, tabName, element) {
+        // 清除所有导航项的高亮状态
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        // 为当前点击项添加高亮
+        element.classList.add('active');
+
+        const mainContainer = document.getElementById('mainContainer');
+        const devView = document.getElementById('devView');
+        const devTitle = document.getElementById('devTitle');
+        const iframeViews = document.querySelectorAll('.iframe-view');
+
+        // 先隐藏所有内容区域
+        mainContainer.style.display = 'none';
+        devView.style.display = 'none';
+        iframeViews.forEach(view => view.style.display = 'none');
+
+        if (tabId === 'home') {
+            // 显示首页仪表盘面板
+            mainContainer.style.display = 'flex';
+            // 重新计算并渲染ECharts（因为在 display:none 时图表宽度会获取错误）
+            if (typeof chartFridge !== 'undefined' && chartFridge) chartFridge.resize();
+            if (typeof chartEnv !== 'undefined' && chartEnv) chartEnv.resize();
+        } else {
+            const targetIframe = document.getElementById('iframeView_' + tabId);
+            if (targetIframe) {
+                // 如果在 HTML 中配置了该模块的 iframe 容器，则将其显示
+                targetIframe.style.display = 'block';
+            } else {
+                // 否则显示科技感待开发状态
+                devView.style.display = 'flex';
+                devTitle.textContent = `「${tabName}」模块`;
+            }
+        }
+    }
+
+    // -------------- 基础系统逻辑 --------------
+    function updateTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const date = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        document.getElementById("currentTime").textContent = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // 数字滚动动画
+    document.querySelectorAll(".num-anim").forEach((num) => {
+        const target = parseFloat(num.getAttribute("data-target"));
+        const isFloat = num.getAttribute("data-target").includes(".");
+        let current = 0;
+        const speed = target / 50;
+
+        const updateNum = () => {
+            current += speed;
+            if (current < target) {
+                num.innerText = isFloat ? `${current.toFixed(1)}%` : `${Math.ceil(current)}%`;
+                requestAnimationFrame(updateNum);
+            } else {
+                num.innerText = `${target}%`;
+            }
+        };
+        updateNum();
+    });
+
+    // -------------- 滚动列表渲染 --------------
+    const renderScrollList = (data, containerId, rowTemplate) => {
+        let html = data.map(rowTemplate).join("");
+        document.getElementById(containerId).innerHTML = html + html; // 双倍数据实现无缝滚动
+    };
+
+    renderScrollList([
+        { level: "高风险", type: "冷冻库A区温度偏高 (-10℃)", person: "张三", time: "立即整改", status: "处理中", color: "red" },
+        { level: "中风险", type: "生熟切板混放隐患", person: "李四", time: "今日内", status: "已完成", color: "yellow" },
+        { level: "低风险", type: "员工健康证即将到期(3天)", person: "王五", time: "本周内", status: "待处理", color: "green" },
+        { level: "中风险", type: "紫外线消毒灯超时未开", person: "赵六", time: "今日内", status: "已完成", color: "yellow" }
+    ], "scrollTable", (r) => `
+        <div class="table-row">
+            <div><span class="badge bg-${r.color}">${r.level}</span></div>
+            <div style="text-align:left; padding-left: 10px; color: #eef4ff;">${r.type}</div>
+            <div>${r.person}</div>
+            <div style="color:${r.color === "red" ? "#ff9b9b" : "#c5d7ff"}">${r.time}</div>
+            <div>${r.status}</div>
+        </div>
+    `);
+
+    renderScrollList([
+        { name: "大白菜", item: "有机磷类", value: "12.5%", status: "合格", color: "green" },
+        { name: "长豆角", item: "有机磷类", value: "52.3%", status: "不合格", color: "red" },
+        { name: "西红柿", item: "氨基甲酸酯", value: "5.4%", status: "合格", color: "green" },
+        { name: "黄瓜", item: "有机磷类", value: "15.8%", status: "合格", color: "green" }
+    ], "scrollPesticide", (r) => `
+        <div class="mini-table-row">
+            <div style="color: #f2f7ff;">${r.name}</div>
+            <div style="color: #bfd2f5;">${r.item}</div>
+            <div style="color: ${r.color === 'red' ? '#ff9b9b' : '#b7cdf7'}; font-family: monospace;">${r.value}</div>
+            <div><span class="badge bg-${r.color}">${r.status}</span></div>
+        </div>
+    `);
+
+    // --- 智能晨检 数据同步与渲染 ---
+    let morningCheckData = [
+        { name: "李松仁", temp: "36.1℃", status: "合格", color: "green", cert: "已验证", certColor: "#8ff2cc" },
+        { name: "肖文喜", temp: "36.4℃", status: "合格", color: "green", cert: "已验证", certColor: "#8ff2cc" },
+        { name: "苏善强", temp: "37.5℃", status: "异常", color: "red", cert: "已验证", certColor: "#8ff2cc" },
+        { name: "张三丰", temp: "36.5℃", status: "合格", color: "green", cert: "临期(3天)", certColor: "#ffd494" },
+        { name: "王大拿", temp: "36.2℃", status: "合格", color: "green", cert: "已过期", certColor: "#ff9b9b" }
+    ];
+
+    function renderMorningData() {
+        renderScrollList(morningCheckData, "scrollMorning", (r) => `
+            <div class="mini-table-row morning-grid">
+                <div style="color: #f2f7ff; text-align:left; overflow:hidden; white-space:nowrap;" title="中味餐饮">中味餐饮</div>
+                <div style="color: #f2f7ff;">${r.name}</div>
+                <div style="color: #d6e5ff; font-family: monospace;">${r.temp}</div>
+                <div><span class="badge bg-${r.color}">${r.status}</span></div>
+                <div style="color: ${r.certColor}; font-size: 11px;">${r.cert}</div>
+            </div>
+        `);
+    }
+    // 初始渲染
+    renderMorningData();
+
+    // 监听来自嵌套 iframe (例如：人员管理页面) 的健康证同步消息
+    // 前提：双方网页发布在同一域名下 (如 github.io)
+    window.addEventListener("message", (event) => {
+        if (event.data && event.data.type === 'SYNC_HEALTH_CERT') {
+            console.log("【驾驶舱】接收到子页面同步的健康证数据:", event.data.data);
+            const syncData = event.data.data;
+            
+            // 匹配人名并更新对应的健康证状态和颜色
+            morningCheckData = morningCheckData.map(person => {
+                const match = syncData.find(s => s.name === person.name);
+                if (match) {
+                    return { ...person, cert: match.cert, certColor: match.certColor };
+                }
+                return person;
+            });
+            // 数据更新后重新渲染
+            renderMorningData();
+        }
+    });
+
+    // --- 供应商双标签切换与渲染逻辑 ---
+    function switchSupplierTab(tabId, btn, event) {
+        event.stopPropagation(); // 阻止触发卡片本身的 onclick 事件（如果有联动弹窗）
+        document.querySelectorAll('#supplierTabs .tab-btn').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('wrapperCert').style.display = tabId === 'cert' ? 'block' : 'none';
+        document.getElementById('wrapperQual').style.display = tabId === 'qual' ? 'block' : 'none';
+    }
+
+    // 1. 索证索票 (预包装) 数据渲染
+    renderScrollList([
+        { name: "金龙鱼调和油 (5L/桶)", expire: "128天", status: "合规", color: "green" },
+        { name: "海天生抽酱油 (1.9L/瓶)", expire: "210天", status: "合规", color: "green" },
+        { name: "双汇王中王火腿肠 (散装)", expire: "15天", status: "临期", color: "yellow" },
+        { name: "珠江面粉 (25kg/袋)", expire: "80天", status: "合规", color: "green" }
+    ], "scrollCert", (r) => `
+        <div class="supplier-item">
+            <img src="https://dummyimage.com/32x42/152e61/8fcfff.png&text=报告" class="doc-thumb" alt="报告">
+            <div class="supplier-info">
+                <div class="supplier-name" title="${r.name}">${r.name}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#7f98bf;">
+                    <span>保质期余：<span style="color: ${r.color === 'yellow' ? '#ffd494' : '#8ff2cc'}; font-weight:700; font-family:monospace;">${r.expire}</span></span>
+                    <span class="supplier-status" style="${r.color === 'yellow' ? 'color:#ffd494; border-color:#ffd494; background:rgba(255,184,77,0.12)' : ''}">${r.status}</span>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // 2. 供应商资质 数据渲染
+    renderScrollList([
+        { name: "广州市生鲜农产品供应基地", status: "已验证", docs: ["营业执照", "流通许可"] },
+        { name: "广东省宏农食品批发有限公司", status: "已验证", docs: ["营业执照", "经营许可"] },
+        { name: "白云区绿色蔬菜直销农场", status: "已验证", docs: ["营业执照", "产地证明"] }
+    ], "scrollQual", (r) => `
+        <div class="supplier-item" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="supplier-name">${r.name}</div>
+                <span class="supplier-status">${r.status}</span>
+            </div>
+            <div class="qual-row">
+                ${r.docs.map(doc => `<div class="qual-doc"><img src="https://dummyimage.com/16x16/24468f/8fcfff.png&text=证" alt="证"><span>${doc}</span></div>`).join('')}
+            </div>
+        </div>
+    `);
+
+    // 热食渲染
+    const renderHot = (data, id) => {
+        let html = data.map(i => `
+            <div class="hot-food-row">
+                <div style="color:#f2f7ff; text-align:left; padding-left:10px;">${i.name}</div>
+                <div style="color:${i.temp>=75?'#8ff2cc':'#ff9b9b'}; font-weight:700;">${i.temp}℃</div>
+                <div><span class="badge bg-${i.temp>=75?'green':'red'}">${i.temp>=75?'正常':'偏低'}</span></div>
+            </div>
+        `).join("");
+        document.getElementById(id).innerHTML = html + html;
+    };
+    renderHot([{name:"白粥",temp:76.1},{name:"鲜肉包",temp:74.5},{name:"茶叶蛋",temp:78.0}], "scroll-bf");
+    renderHot([{name:"香米饭",temp:77.6},{name:"红烧肉",temp:76.1},{name:"清炒菜心",temp:72.5}], "scroll-lu");
+    renderHot([{name:"糙米饭",temp:76.2},{name:"清蒸海鱼",temp:74.8},{name:"排骨汤",temp:80.4}], "scroll-dn");
+
+    // -------------- 视频逻辑 --------------
+    const videoElement = document.getElementById("mainVideo");
+    let hlsPlayer = null, flvPlayer = null;
+    const sources = {
+        mp4: "https://www.w3schools.com/html/mov_bbb.mp4",
+        hls: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        flv: "https://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv"
+    };
+
+    function switchVideo(type, btnElement) {
+        document.querySelectorAll(".v-btn").forEach((btn) => btn.classList.remove("active"));
+        if(btnElement) btnElement.classList.add("active");
+
+        if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+        if (flvPlayer) { flvPlayer.destroy(); flvPlayer = null; }
+        videoElement.pause(); videoElement.removeAttribute("src"); videoElement.load();
+
+        if (type === "mp4") {
+            videoElement.src = sources.mp4;
+            videoElement.play().catch(e=>{});
+        } else if (type === "hls" && Hls.isSupported()) {
+            hlsPlayer = new Hls(); hlsPlayer.loadSource(sources.hls);
+            hlsPlayer.attachMedia(videoElement);
+            hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => videoElement.play().catch(e=>{}));
+        } else if (type === "flv" && flvjs.isSupported()) {
+            flvPlayer = flvjs.createPlayer({ type: "flv", url: sources.flv });
+            flvPlayer.attachMediaElement(videoElement);
+            flvPlayer.load(); flvPlayer.play().catch(e=>{});
+        }
+    }
+    switchVideo("mp4", document.getElementById("btn-mp4"));
+
+    // -------------- ECharts 逻辑 --------------
+    const commonOptions = {
+        animationDuration: 900,
+        textStyle: { color: "#a9bddf", fontSize: 12 },
+        tooltip: { trigger: "axis", backgroundColor: "rgba(9, 20, 46, 0.94)", borderColor: "rgba(110, 190, 255, 0.28)", borderWidth: 1, textStyle: { color: "#ffffff" } },
+        grid: { top: 30, bottom: 20, left: 35, right: 15 }
+    };
+
+    const chartFridge = echarts.init(document.getElementById("chart-fridge"));
+    const fridgeData = {
+        "01": { name: "冷藏冰箱", data: [4.2, 5.5, 3.1, 6.8, 4.3, 7.0], color: "#54d3ff", areaColor: "rgba(84,211,255,0.28)" },
+        "02": { name: "冷冻冰箱", data: [-13.5, -14.2, -12.1, -15.5, -13.8, -14.5], color: "#4b7dff", areaColor: "rgba(75,125,255,0.26)" },
+        "03": { name: "留样冰箱", data: [2.1, 4.5, 3.0, 5.8, 2.2, 4.9], color: "#24d7a1", areaColor: "rgba(36,215,161,0.22)" }
+    };
+    function updateFridgeChart() {
+        const val = document.getElementById("fridgeSelector").value;
+        const conf = fridgeData[val];
+        chartFridge.setOption({
+            ...commonOptions,
+            xAxis: { type: "category", data: ["08:00","10:00","12:00","14:00","16:00","18:00"], axisLine:{show:false}, axisTick:{show:false} },
+            yAxis: { type: "value", scale: true, splitLine: { lineStyle: { color: "rgba(163,193,244,0.08)", type:"dashed" } } },
+            series: [{
+                name: conf.name, type: "line", smooth: true, symbolSize: 6,
+                lineStyle: { width: 3, shadowBlur: 10, shadowColor: conf.color },
+                itemStyle: { color: conf.color, borderColor: "#fff" },
+                areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:conf.areaColor}, {offset:1, color:"transparent"}]) },
+                data: conf.data
+            }]
+        });
+    }
+    updateFridgeChart();
+
+    const chartEnv = echarts.init(document.getElementById("chart-env"));
+    chartEnv.setOption({
+        ...commonOptions,
+        legend: { data: ["温度(℃)", "湿度(%)"], top: 0, textStyle: { color: "#e8f1ff" } },
+        xAxis: { type: "category", data: ["备餐间", "烹饪区", "粗加工", "洗消间", "库房"], axisTick: { show: false } },
+        yAxis: [{ type: "value", splitLine:{show:false} }, { type: "value", splitLine: { lineStyle: { color: "rgba(163,193,244,0.08)", type:"dashed" } } }],
+        series: [
+            { name: "温度(℃)", type: "bar", barWidth: 16, itemStyle: { borderRadius: [8,8,0,0], color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:"#6ddcff"},{offset:1, color:"#4b7dff"}]) }, data: [23, 26, 22, 24, 21] },
+            { name: "湿度(%)", type: "line", yAxisIndex: 1, smooth: true, lineStyle: { width: 3, color: "#24d7a1" }, itemStyle: { color: "#24d7a1" }, data: [58, 62, 60, 65, 56] }
+        ]
+    });
+
+    window.addEventListener("resize", () => {
+        chartFridge.resize();
+        chartEnv.resize();
+    });
+</script>
+</body>
+</html>
