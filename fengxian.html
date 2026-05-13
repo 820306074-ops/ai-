@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广州中味餐饮 - 风险评估报告生成系统</title>
+    <style>
+        /* ========================================= */
+        /* 系统控制区样式（非打印区） */
+        /* ========================================= */
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --danger: #e74c3c;
+            --warning: #e67e22;
+            --info: #f1c40f;
+            --bg-color: #f4f7f6;
+            --border-color: #dcdcdc;
+        }
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+        }
+        * { box-sizing: border-box; }
+
+        .app-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .header-bar {
+            background-color: var(--primary);
+            color: #fff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-bar h2 { margin: 0; font-size: 20px; }
+
+        #editor-section { padding: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: flex; gap: 20px; margin-bottom: 20px; }
+        .form-col { flex: 1; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #555; }
+        input[type="text"], input[type="date"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .risk-card {
+            background: #f9fbfd;
+            border: 1px solid #cce0ff;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .risk-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #cce0ff;
+        }
+        .risk-card-title { font-weight: bold; color: var(--secondary); font-size: 16px; }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: var(--secondary); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; padding: 6px 12px; font-size: 12px; }
+        .btn-success { background: #27ae60; color: #fff; width: 100%; font-size: 16px; padding: 15px; margin-top: 20px; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-word { background: #1f5fbf; color: #fff; }
+        .btn-html { background: #8e44ad; color: #fff; }
+        
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: #f1f2f6;
+            border-top: 1px solid #ddd;
+        }
+        .export-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .risk-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 12px;
+        }
+
+        /* 图片上传与预览样式 */
+        .image-upload-wrapper {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 16px;
+            background: #fff;
+            border: 1px dashed #b8c2cc;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .image-upload-wrapper:hover,
+        .image-upload-wrapper.drag-over {
+            border-color: var(--secondary);
+            background: #f4f9ff;
+        }
+        .image-upload-wrapper input[type="file"] {
+            display: none;
+        }
+        .upload-drop-text {
+            color: #607080;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .image-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .image-preview-container img {
+            width: 100%;
+            height: auto;
+            max-height: 160px;
+            object-fit: contain;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: #f8f8f8;
+        }
+
+        /* ========================================= */
+        /* 报告预览区样式 (严格复刻 Word 文档风格) */
+        /* ========================================= */
+        #report-section {
+            display: none;
+            width: 210mm;
+            min-height: 297mm;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 24mm 18mm;
+            background-color: #fff;
+            font-family: "SimSun", "宋体", "Times New Roman", serif; /* 正式公文使用宋体 */
+            color: #000;
+            box-sizing: border-box;
+        }
+        
+        .report-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        
+        .report-subtitle {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .report-paragraph {
+            font-size: 16px;
+            line-height: 2;
+            text-indent: 2em; /* 首行缩进 */
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .report-paragraph span {
+            text-decoration: underline;
+            padding: 0 5px;
+            font-weight: bold;
+        }
+
+        .doc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            table-layout: fixed;
+        }
+
+        .doc-table th, .doc-table td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: left;
+            vertical-align: middle;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .doc-table th {
+            background-color: #f2f2f2; /* 轻微灰色背景区分表头 */
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* 风险详情表专用样式 */
+        .details-table th { background-color: #f2f2f2; text-align: center; }
+        .details-table td { vertical-align: top; }
+        
+        .report-img-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+        .report-img {
+            width: 100%;
+            max-width: 120px;
+            height: auto;
+            max-height: 180px;
+            object-fit: contain;
+            border: 1px solid #000;
+            display: block;
+        }
+
+        .report-footer {
+            margin-top: 60px;
+            text-align: right;
+            font-size: 16px;
+            padding-right: 20px;
+        }
+        .report-footer p { margin: 5px 0; }
+
+        /* 打印模式控制 */
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: #fff; }
+            .app-container { box-shadow: none; margin: 0 auto; width: 210mm; max-width: 210mm; border: none;}
+            .header-bar, .actions-bar, #editor-section { display: none !important; }
+            #report-section { display: block !important; width: 210mm; min-height: 297mm; padding: 24mm 18mm; box-sizing: border-box; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+
+        @media (max-width: 768px) {
+            body { background: #fff; }
+            .app-container {
+                width: 100%;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .header-bar {
+                padding: 14px 16px;
+                align-items: flex-start;
+                gap: 8px;
+                flex-direction: column;
+            }
+            .header-bar h2 { font-size: 18px; }
+            #editor-section { padding: 18px 14px 24px; }
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 14px;
+            }
+            .risk-list-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .risk-list-header h3 {
+                margin-bottom: 0;
+            }
+            .risk-card {
+                padding: 14px;
+                margin-bottom: 16px;
+            }
+            .risk-card-header {
+                gap: 12px;
+                align-items: flex-start;
+            }
+            .btn {
+                width: 100%;
+                min-height: 42px;
+                padding: 10px 12px;
+            }
+            .btn-danger {
+                width: auto;
+                min-height: 34px;
+                white-space: nowrap;
+            }
+            .actions-bar {
+                position: sticky;
+                bottom: 0;
+                z-index: 20;
+                padding: 12px;
+                gap: 10px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .export-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+            .image-upload-wrapper {
+                padding: 14px;
+            }
+            .image-preview-container {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .image-preview-container img {
+                max-height: 220px;
+            }
+            #report-section {
+                width: 100%;
+                min-height: auto;
+                padding: 18px 12px 28px;
+                overflow-x: auto;
+            }
+            .report-title {
+                font-size: 22px;
+                letter-spacing: 1px;
+            }
+            .report-subtitle,
+            .report-paragraph,
+            .report-footer {
+                font-size: 14px;
+            }
+            .doc-table {
+                min-width: 760px;
+                font-size: 13px;
+            }
+            .doc-table th,
+            .doc-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- 顶部导航栏 -->
+    <div class="header-bar" id="header-bar">
+        <h2>🛡️ 风险评估报告生成系统</h2>
+        <span style="font-size: 14px; opacity: 0.8;">适配广发金融中心排版标准</span>
+    </div>
+
+    <!-- 编辑区 -->
+    <div id="editor-section">
+        <h3>一、基本信息录入</h3>
+        <div class="form-row">
+            <div class="form-col">
+                <label>受评项目 / 分店名称 <span style="color:red">*</span></label>
+                <input type="text" id="input-branch" placeholder="例如：广发金融中心" required>
+            </div>
+            <div class="form-col">
+                <label>评估人 <span style="color:red">*</span></label>
+                <input type="text" id="input-assessor" placeholder="例如：李川" required>
+            </div>
+            <div class="form-col">
+                <label>评估日期</label>
+                <input type="date" id="input-date">
+            </div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #eee; margin: 30px 0;">
+
+        <div class="risk-list-header">
+            <h3>二、风险明细录入</h3>
+            <button class="btn btn-primary" onclick="addRiskItem()">+ 添加风险项</button>
+        </div>
+
+        <div id="risk-items-container">
+            <!-- 动态生成的表单 -->
+        </div>
+
+        <button class="btn btn-success" onclick="generateReport()">✅ 预览并生成排版报告</button>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- 报告预览区 (严格匹配Word排版) -->
+    <!-- ========================================= -->
+    <div id="report-section">
+        <div class="report-title">风险评估检查报告</div>
+        <div class="report-subtitle" style="text-indent: 2em;"><span id="out-branch-title"></span> 分店：</div>
+        
+        <!-- 自动生成的文案段落 -->
+        <div class="report-paragraph">
+            食品安全部同事于<span id="out-date-text"></span>，对<span id="out-branch-text"></span>现场进行全面风险评估。共发现 <span id="out-total"></span> 项风险项，其中高风险 <span id="out-high"></span> 项，中等风险 <span id="out-medium"></span> 项，低风险 <span id="out-low"></span> 项；
+        </div>
+        <div class="report-paragraph">
+            对照《中华人民共和国食品安全法》《餐饮服务食品安全操作规范》《中华人民共和国消防安全法》中味餐饮食品安全管理制度、中味餐饮十大安全政策，对应安全部整改建议，请分店根据每个风险点隐患级别和特点制定具体的防控措施，来保障安全工作；<br>
+            具体报告如下：
+        </div>
+
+        <!-- 基本信息表格 -->
+        <table class="doc-table">
+            <tr>
+                <th width="15%">受评项目</th>
+                <td width="20%" id="out-proj"></td>
+                <th width="15%">评估人：</th>
+                <td width="20%" id="out-assessor"></td>
+                <th width="15%">评估日期：</th>
+                <td width="15%" id="out-date"></td>
+            </tr>
+            <tr>
+                <th>评估项目类别</th>
+                <td colspan="5" id="out-categories">
+                    <!-- 动态勾选 -->
+                </td>
+            </tr>
+            <tr>
+                <th>风险等级</th>
+                <td colspan="5">
+                    <span id="chk-high">□</span>高风险 &nbsp;&nbsp;&nbsp;&nbsp; 
+                    <span id="chk-medium">□</span>中等风险 &nbsp;&nbsp;&nbsp;&nbsp; 
+                    <span id="chk-low">□</span>低风险
+                </td>
+            </tr>
+        </table>
+
+        <!-- 风险详情表格 (核心结构) -->
+        <table class="doc-table details-table">
+            <thead>
+                <tr>
+                    <th width="6%">风险等级</th>
+                    <th width="24%">风险内容</th>
+                    <th width="16%">图片</th>
+                    <th width="24%">整改建议</th>
+                    <th width="20%">整改方案</th>
+                    <th width="10%">整改图片</th>
+                </tr>
+            </thead>
+            <tbody id="out-tbody">
+                <!-- JS 动态渲染，高/中/低分类及rowspan合并 -->
+            </tbody>
+        </table>
+
+        <!-- 落款 -->
+        <div class="report-footer">
+            <p>广州中味餐饮服务有限公司安全部</p>
+            <p id="out-footer-date"></p>
+        </div>
+    </div>
+
+    <!-- 预览区操作底栏 (非打印) -->
+    <div class="actions-bar" id="actions-bar" style="display: none;">
+        <button class="btn btn-outline" onclick="backToEdit()">← 返回修改</button>
+        <div class="export-actions">
+            <button class="btn btn-word" onclick="exportWord()">导出 Word（DOCX）</button>
+            <button class="btn btn-html" onclick="exportHtml()">导出 HTML</button>
+            <button class="btn btn-primary" onclick="window.print()">🖨️ 打印 / 导出 PDF</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- 逻辑脚本 -->
+<script>
+    let riskCount = 0;
+    let currentReportData = null;
+
+    window.onload = function() {
+        document.getElementById('input-date').valueAsDate = new Date();
+        preventPageImageDrop();
+        addRiskItem();
+    };
+
+    function preventPageImageDrop() {
+        ['dragover', 'drop'].forEach(eventName => {
+            document.addEventListener(eventName, function(event) {
+                if(!event.target.closest('.image-upload-wrapper')) {
+                    event.preventDefault();
+                }
+            });
+        });
+    }
+
+    function addRiskItem() {
+        riskCount++;
+        const container = document.getElementById('risk-items-container');
+        const riskId = `risk-${Date.now()}`;
+        
+        const cardHTML = `
+            <div class="risk-card" id="${riskId}">
+                <div class="risk-card-header">
+                    <span class="risk-card-title">▶ 风险项 #${riskCount}</span>
+                    <button class="btn btn-danger" onclick="removeRiskItem('${riskId}')">删除</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label>风险等级</label>
+                        <select class="r-level">
+                            <option value="高风险">高风险</option>
+                            <option value="中等风险">中等风险</option>
+                            <option value="低风险">低风险</option>
+                        </select>
+                    </div>
+                    <div class="form-col">
+                        <label>风险类型 (类别)</label>
+                        <select class="r-type">
+                            <option value="食品风险">食品风险</option>
+                            <option value="消防风险">消防风险</option>
+                            <option value="人身安全风险">人身安全风险</option>
+                            <option value="虫害风险">虫害风险</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="image-upload-wrapper"
+                     onclick="triggerImageSelect('${riskId}')"
+                     ondragenter="handleDragEnter(event)"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleImageDrop(event, '${riskId}')">
+                    <label>📷 上传现场图片</label>
+                    <div class="upload-drop-text">点击选择图片，或将图片拖拽到此区域上传。支持一次上传多张图片。</div>
+                    <input type="file" accept="image/*" multiple onchange="handleImageUpload(event, '${riskId}')">
+                    <div class="image-preview-container" id="preview-${riskId}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>风险内容</label>
+                    <textarea class="r-content"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label>整改建议</label>
+                        <textarea class="r-suggestion"></textarea>
+                    </div>
+                    <div class="form-col">
+                        <label>整改方案</label>
+                        <textarea class="r-solution"></textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', cardHTML);
+    }
+
+    function triggerImageSelect(riskId) {
+        const card = document.getElementById(riskId);
+        const input = card ? card.querySelector('input[type="file"]') : null;
+        if(input) input.click();
+    }
+
+    function handleDragEnter(event) {
+        event.preventDefault();
+        event.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(event) {
+        event.preventDefault();
+        if(event.currentTarget.contains(event.relatedTarget)) return;
+        event.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleImageDrop(event, riskId) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.classList.remove('drag-over');
+        processImageFiles(event.dataTransfer.files, riskId, false);
+    }
+
+    function handleImageUpload(event, riskId) {
+        event.stopPropagation();
+        processImageFiles(event.target.files, riskId, false);
+        event.target.value = '';
+    }
+
+    function processImageFiles(files, riskId, replaceExisting) {
+        const container = document.getElementById(`preview-${riskId}`);
+        if(!container || !files || files.length === 0) return;
+        if(replaceExisting) container.innerHTML = '';
+        
+        for(let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if(file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'r-img-data'; 
+                    img.alt = '现场图片';
+                    container.appendChild(img);
+                }
+                reader.readAsDataURL(file); 
+            }
+        }
+    }
+
+    function removeRiskItem(id) {
+        const item = document.getElementById(id);
+        if(item) item.remove();
+        const titles = document.querySelectorAll('.risk-card-title');
+        riskCount = 0;
+        titles.forEach(title => {
+            riskCount++;
+            title.innerText = `▶ 风险项 #${riskCount}`;
+        });
+    }
+
+    function generateReport() {
+        const branch = document.getElementById('input-branch').value.trim();
+        const assessor = document.getElementById('input-assessor').value.trim();
+        const dateStr = document.getElementById('input-date').value;
+        
+        if(!branch || !assessor) {
+            alert("请填写受评项目名称和评估人！");
+            return;
+        }
+
+        let formattedDate = "";
+        let fullYearText = "";
+        if(dateStr) {
+            const d = new Date(dateStr);
+            fullYearText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+            formattedDate = fullYearText;
+        }
+
+        const riskCards = document.querySelectorAll('.risk-card');
+        if(riskCards.length === 0) {
+            alert("请至少添加一项风险内容！");
+            return;
+        }
+
+        // 分类存储风险项，以便合并单元格
+        let highRisks = [];
+        let mediumRisks = [];
+        let lowRisks = [];
+        let typesSet = new Set();
+
+        riskCards.forEach(card => {
+            const level = card.querySelector('.r-level').value;
+            const type = card.querySelector('.r-type').value;
+            const content = card.querySelector('.r-content').value;
+            const suggestion = card.querySelector('.r-suggestion').value;
+            const solution = card.querySelector('.r-solution').value;
+            
+            // 提取图片 Base64
+            let images = [];
+            card.querySelectorAll('.r-img-data').forEach(img => {
+                images.push(img.src);
+            });
+
+            typesSet.add(type);
+            
+            const riskData = { content, images, suggestion, solution };
+
+            if(level === "高风险") highRisks.push(riskData);
+            else if(level === "中等风险") mediumRisks.push(riskData);
+            else lowRisks.push(riskData);
+        });
+
+        currentReportData = {
+            branch,
+            assessor,
+            date: formattedDate,
+            total: riskCards.length,
+            highRisks,
+            mediumRisks,
+            lowRisks,
+            types: Array.from(typesSet)
+        };
+
+        // 填充文本段落及基础信息
+        document.getElementById('out-branch-title').innerText = branch;
+        document.getElementById('out-branch-text').innerText = branch;
+        document.getElementById('out-proj').innerText = branch;
+        document.getElementById('out-assessor').innerText = assessor;
+        
+        document.getElementById('out-date-text').innerText = formattedDate;
+        document.getElementById('out-date').innerText = formattedDate;
+        document.getElementById('out-footer-date').innerText = formattedDate;
+
+        document.getElementById('out-total').innerText = riskCards.length;
+        document.getElementById('out-high').innerText = highRisks.length;
+        document.getElementById('out-medium').innerText = mediumRisks.length;
+        document.getElementById('out-low').innerText = lowRisks.length;
+
+        // 填充类型复选框
+        const allTypes = ["食品风险", "消防风险", "人身安全风险", "虫害风险", "其他"];
+        let categoriesHTML = "";
+        allTypes.forEach(t => {
+            categoriesHTML += typesSet.has(t) ? `☑${t} &nbsp;&nbsp; ` : `□${t} &nbsp;&nbsp; `;
+        });
+        document.getElementById('out-categories').innerHTML = categoriesHTML;
+
+        // 填充等级复选框
+        document.getElementById('chk-high').innerText = highRisks.length > 0 ? "☑" : "□";
+        document.getElementById('chk-medium').innerText = mediumRisks.length > 0 ? "☑" : "□";
+        document.getElementById('chk-low').innerText = lowRisks.length > 0 ? "☑" : "□";
+
+        // ==========================================
+        // 核心：动态生成排版表格（处理 Rowspan 合并）
+        // ==========================================
+        let tbodyHTML = "";
+
+        const generateGroupRows = (risks, levelLabel) => {
+            if(risks.length === 0) return;
+            // 竖向排列文字，如 "高<br>风<br>险"
+            const labelStr = levelLabel.split('').join('<br>');
+            
+            risks.forEach((risk, index) => {
+                tbodyHTML += `<tr>`;
+                // 第一行才包含 rowspan 的单元格
+                if(index === 0) {
+                    tbodyHTML += `<td rowspan="${risks.length}" style="text-align:center; font-weight:bold; font-size:16px;">${labelStr}</td>`;
+                }
+                
+                // 处理图片列
+                let imgHTML = `<div class="report-img-container">`;
+                risk.images.forEach(src => {
+                    imgHTML += `<img src="${src}" class="report-img">`;
+                });
+                imgHTML += `</div>`;
+
+                tbodyHTML += `
+                    <td>${risk.content.replace(/\n/g, '<br>')}</td>
+                    <td style="text-align:center;">${imgHTML}</td>
+                    <td>${risk.suggestion.replace(/\n/g, '<br>')}</td>
+                    <td>${risk.solution.replace(/\n/g, '<br>')}</td>
+                    <td></td> <!-- 整改图片留空 -->
+                </tr>`;
+            });
+        };
+
+        generateGroupRows(highRisks, "高风险");
+        generateGroupRows(mediumRisks, "中等风险");
+        generateGroupRows(lowRisks, "低风险");
+
+        document.getElementById('out-tbody').innerHTML = tbodyHTML;
+
+        // 界面切换
+        document.getElementById('editor-section').style.display = 'none';
+        document.getElementById('header-bar').style.display = 'none';
+        document.getElementById('report-section').style.display = 'block';
+        document.getElementById('actions-bar').style.display = 'flex';
+        window.scrollTo(0, 0);
+    }
+
+    function backToEdit() {
+        document.getElementById('editor-section').style.display = 'block';
+        document.getElementById('header-bar').style.display = 'flex';
+        document.getElementById('report-section').style.display = 'none';
+        document.getElementById('actions-bar').style.display = 'none';
+    }
+
+    function getExportFileName(extension) {
+        const branch = document.getElementById('input-branch').value.trim() || '风险评估报告';
+        const dateStr = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
+        const safeBranch = branch.replace(/[\\/:*?"<>|]/g, '_');
+        return `${safeBranch}_风险评估报告_${dateStr}.${extension}`;
+    }
+
+    function getExportHtmlDocument(exportType = 'html') {
+        const report = document.getElementById('report-section').cloneNode(true);
+        report.style.display = 'block';
+        const isWord = exportType === 'word';
+        const htmlClass = isWord ? ' class="word-export"' : '';
+        const officeXml = isWord ? `
+    <!--[if gte mso 9]>
+    <xml>
+        <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+            <w:DoNotOptimizeForBrowser/>
+        </w:WordDocument>
+    </xml>
+    <![endif]-->` : '';
+
+        return `<!DOCTYPE html>
+<html lang="zh-CN" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"${htmlClass}>
+<head>
+    <meta charset="UTF-8">
+    <title>风险评估检查报告</title>
+    ${officeXml}
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        @page WordSection1 {
+            size: 595.3pt 841.9pt;
+            margin: 0;
+        }
+        body {
+            margin: 0;
+            background: #f3f5f7;
+            color: #000;
+            font-family: "SimSun", "宋体", "Times New Roman", serif;
+            line-height: 1.8;
+        }
+        .word-export body {
+            background: #fff;
+        }
+        .export-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 24px auto;
+            padding: 24mm 18mm;
+            background: #fff;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+            page: WordSection1;
+        }
+        .word-export .export-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 24mm 18mm;
+            box-shadow: none;
+        }
+        #report-section {
+            display: block;
+            padding: 0;
+            background-color: #fff;
+            font-family: "SimSun", "宋体", "Times New Roman", serif;
+            color: #000;
+        }
+        .report-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .report-subtitle {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .report-paragraph {
+            font-size: 16px;
+            line-height: 2;
+            text-indent: 2em;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        .report-paragraph span {
+            text-decoration: underline;
+            padding: 0 5px;
+            font-weight: bold;
+        }
+        .doc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            table-layout: fixed;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        .doc-table th,
+        .doc-table td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: left;
+            vertical-align: middle;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        .doc-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+        .details-table th {
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+        .details-table td {
+            vertical-align: top;
+        }
+        .report-img-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+        .report-img {
+            width: 100%;
+            max-width: 120px;
+            height: auto;
+            max-height: 180px;
+            object-fit: contain;
+            border: 1px solid #000;
+            display: block;
+        }
+        .report-footer {
+            margin-top: 60px;
+            text-align: right;
+            font-size: 16px;
+            padding-right: 20px;
+        }
+        .report-footer p {
+            margin: 5px 0;
+        }
+        @media print {
+            body {
+                background: #fff;
+            }
+            .export-page {
+                width: 210mm;
+                min-height: 297mm;
+                margin: 0;
+                padding: 24mm 18mm;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="export-page">
+        ${report.outerHTML}
+    </div>
+</body>
+</html>`;
+    }
+
+    function downloadBlob(content, fileName, mimeType) {
+        const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function xmlEscape(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    }
+
+    function getPlainText(id) {
+        const el = document.getElementById(id);
+        return el ? el.innerText.trim() : '';
+    }
+
+    function getDocxReportData() {
+        if(currentReportData) return currentReportData;
+        return {
+            branch: getPlainText('out-proj') || document.getElementById('input-branch').value.trim(),
+            assessor: getPlainText('out-assessor') || document.getElementById('input-assessor').value.trim(),
+            date: getPlainText('out-date'),
+            total: Number(getPlainText('out-total')) || 0,
+            highRisks: [],
+            mediumRisks: [],
+            lowRisks: [],
+            types: []
+        };
+    }
+
+    function docxRun(text, options = {}) {
+        const lines = String(text || '').split(/\n/);
+        const runProps = [
+            '<w:rFonts w:ascii="SimSun" w:eastAsia="宋体" w:hAnsi="SimSun"/>',
+            options.bold ? '<w:b/>' : '',
+            options.size ? `<w:sz w:val="${options.size}"/>` : '<w:sz w:val="24"/>'
+        ].join('');
+
+        const body = lines.map((line, index) => {
+            const prefix = index === 0 ? '' : '<w:br/>';
+            return `${prefix}<w:t xml:space="preserve">${xmlEscape(line)}</w:t>`;
+        }).join('');
+
+        return `<w:r><w:rPr>${runProps}</w:rPr>${body}</w:r>`;
+    }
+
+    function docxParagraph(text, options = {}) {
+        const align = options.align ? `<w:jc w:val="${options.align}"/>` : '';
+        const indent = options.firstLine ? '<w:ind w:firstLine="480"/>' : '';
+        const spacing = `<w:spacing w:after="${options.after || 120}" w:line="${options.line || 360}" w:lineRule="auto"/>`;
+        return `<w:p><w:pPr>${align}${indent}${spacing}</w:pPr>${docxRun(text, options)}</w:p>`;
+    }
+
+    function docxCell(content, options = {}) {
+        const width = options.width ? `<w:tcW w:w="${options.width}" w:type="dxa"/>` : '';
+        const gridSpan = options.colspan ? `<w:gridSpan w:val="${options.colspan}"/>` : '';
+        const vMerge = options.vMerge ? `<w:vMerge w:val="${options.vMerge}"/>` : '';
+        const shade = options.shade ? '<w:shd w:fill="F2F2F2"/>' : '';
+        const vAlign = `<w:vAlign w:val="${options.vAlign || 'center'}"/>`;
+        const borders = '<w:tcBorders><w:top w:val="single" w:sz="8" w:color="000000"/><w:left w:val="single" w:sz="8" w:color="000000"/><w:bottom w:val="single" w:sz="8" w:color="000000"/><w:right w:val="single" w:sz="8" w:color="000000"/></w:tcBorders>';
+        const paragraphs = Array.isArray(content) ? content.join('') : docxParagraph(content, {
+            align: options.align || 'left',
+            bold: options.bold,
+            size: options.size || 22,
+            after: 0,
+            line: 300
+        });
+        return `<w:tc><w:tcPr>${width}${gridSpan}${vMerge}${shade}${vAlign}${borders}</w:tcPr>${paragraphs}</w:tc>`;
+    }
+
+    function docxRow(cells) {
+        return `<w:tr>${cells.join('')}</w:tr>`;
+    }
+
+    function docxTable(rows, widths) {
+        const grid = widths.map(width => `<w:gridCol w:w="${width}"/>`).join('');
+        return `<w:tbl>
+            <w:tblPr>
+                <w:tblW w:w="9024" w:type="dxa"/>
+                <w:tblLayout w:type="fixed"/>
+                <w:tblBorders>
+                    <w:top w:val="single" w:sz="8" w:color="000000"/>
+                    <w:left w:val="single" w:sz="8" w:color="000000"/>
+                    <w:bottom w:val="single" w:sz="8" w:color="000000"/>
+                    <w:right w:val="single" w:sz="8" w:color="000000"/>
+                    <w:insideH w:val="single" w:sz="8" w:color="000000"/>
+                    <w:insideV w:val="single" w:sz="8" w:color="000000"/>
+                </w:tblBorders>
+            </w:tblPr>
+            <w:tblGrid>${grid}</w:tblGrid>
+            ${rows.join('')}
+        </w:tbl>`;
+    }
+
+    function dataUrlToImage(dataUrl, index) {
+        const match = String(dataUrl || '').match(/^data:(image\/(png|jpeg|jpg));base64,(.+)$/);
+        if(!match) return null;
+
+        const mime = match[1];
+        const extension = match[2] === 'jpeg' ? 'jpg' : match[2];
+        const binary = atob(match[3]);
+        const bytes = new Uint8Array(binary.length);
+        for(let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+        return {
+            id: `rIdImage${index}`,
+            docPrId: index,
+            name: `image${index}.${extension}`,
+            path: `word/media/image${index}.${extension}`,
+            mime,
+            extension,
+            bytes
+        };
+    }
+
+    function docxImage(image) {
+        const widthEmu = 914400;
+        const heightEmu = 685800;
+        return `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="80"/></w:pPr><w:r><w:drawing>
+            <wp:inline distT="0" distB="0" distL="0" distR="0">
+                <wp:extent cx="${widthEmu}" cy="${heightEmu}"/>
+                <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                <wp:docPr id="${image.docPrId}" name="${image.name}"/>
+                <wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>
+                <a:graphic>
+                    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                        <pic:pic>
+                            <pic:nvPicPr><pic:cNvPr id="${image.docPrId}" name="${image.name}"/><pic:cNvPicPr/></pic:nvPicPr>
+                            <pic:blipFill><a:blip r:embed="${image.id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>
+                            <pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${widthEmu}" cy="${heightEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>
+                        </pic:pic>
+                    </a:graphicData>
+                </a:graphic>
+            </wp:inline>
+        </w:drawing></w:r></w:p>`;
+    }
+
+    function collectDocxImages(data) {
+        let index = 1;
+        const map = new Map();
+        ['highRisks', 'mediumRisks', 'lowRisks'].forEach(group => {
+            data[group].forEach(risk => {
+                risk.docxImages = [];
+                (risk.images || []).forEach(src => {
+                    const image = dataUrlToImage(src, index);
+                    if(image) {
+                        index++;
+                        map.set(image.id, image);
+                        risk.docxImages.push(image);
+                    }
+                });
+            });
+        });
+        return Array.from(map.values());
+    }
+
+    function buildDocxDocumentXml(data, images) {
+        const allTypes = ["食品风险", "消防风险", "人身安全风险", "虫害风险", "其他"];
+        const typeText = allTypes.map(type => `${data.types.includes(type) ? '☑' : '□'}${type}`).join('    ');
+        const levelText = `${data.highRisks.length ? '☑' : '□'}高风险    ${data.mediumRisks.length ? '☑' : '□'}中等风险    ${data.lowRisks.length ? '☑' : '□'}低风险`;
+
+        const infoRows = [
+            docxRow([
+                docxCell('受评项目', { width: 1354, shade: true, bold: true, align: 'center' }),
+                docxCell(data.branch, { width: 1805 }),
+                docxCell('评估人：', { width: 1354, shade: true, bold: true, align: 'center' }),
+                docxCell(data.assessor, { width: 1805 }),
+                docxCell('评估日期：', { width: 1354, shade: true, bold: true, align: 'center' }),
+                docxCell(data.date, { width: 1352, align: 'center' })
+            ]),
+            docxRow([
+                docxCell('评估项目类别', { width: 1354, shade: true, bold: true, align: 'center' }),
+                docxCell(typeText, { width: 7670, colspan: 5 })
+            ]),
+            docxRow([
+                docxCell('风险等级', { width: 1354, shade: true, bold: true, align: 'center' }),
+                docxCell(levelText, { width: 7670, colspan: 5 })
+            ])
+        ];
+
+        const detailWidths = [620, 2160, 1300, 2160, 1884, 900];
+        const detailRows = [
+            docxRow(['风险等级', '风险内容', '图片', '整改建议', '整改方案', '整改图片'].map((title, i) => {
+                return docxCell(title, { width: detailWidths[i], shade: true, bold: true, align: 'center' });
+            }))
+        ];
+
+        const addRiskGroup = (risks, label) => {
+            risks.forEach((risk, index) => {
+                const imageContent = risk.docxImages && risk.docxImages.length
+                    ? risk.docxImages.map(image => docxImage(image))
+                    : [docxParagraph('', { after: 0 })];
+
+                detailRows.push(docxRow([
+                    index === 0
+                        ? docxCell(label.split('').join('\n'), { width: detailWidths[0], bold: true, align: 'center', vMerge: 'restart', vAlign: 'center' })
+                        : docxCell('', { width: detailWidths[0], vMerge: 'continue' }),
+                    docxCell(risk.content, { width: detailWidths[1] }),
+                    docxCell(imageContent, { width: detailWidths[2], align: 'center' }),
+                    docxCell(risk.suggestion, { width: detailWidths[3] }),
+                    docxCell(risk.solution, { width: detailWidths[4] }),
+                    docxCell('', { width: detailWidths[5] })
+                ]));
+            });
+        };
+
+        addRiskGroup(data.highRisks, '高风险');
+        addRiskGroup(data.mediumRisks, '中等风险');
+        addRiskGroup(data.lowRisks, '低风险');
+
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+    <w:body>
+        ${docxParagraph('风险评估检查报告', { align: 'center', bold: true, size: 32, after: 240, line: 360 })}
+        ${docxParagraph(`${data.branch} 分店：`, { bold: true, size: 28, firstLine: true, after: 180 })}
+        ${docxParagraph(`食品安全部同事于${data.date}，对${data.branch}现场进行全面风险评估。共发现 ${data.total} 项风险项，其中高风险 ${data.highRisks.length} 项，中等风险 ${data.mediumRisks.length} 项，低风险 ${data.lowRisks.length} 项；`, { firstLine: true, size: 24 })}
+        ${docxParagraph('对照《中华人民共和国食品安全法》《餐饮服务食品安全操作规范》《中华人民共和国消防安全法》中味餐饮食品安全管理制度、中味餐饮十大安全政策，对应安全部整改建议，请分店根据每个风险点隐患级别和特点制定具体的防控措施，来保障安全工作；\n具体报告如下：', { firstLine: true, size: 24 })}
+        ${docxTable(infoRows, [1354, 1805, 1354, 1805, 1354, 1352])}
+        ${docxParagraph('', { after: 80 })}
+        ${docxTable(detailRows, detailWidths)}
+        ${docxParagraph('', { after: 560 })}
+        ${docxParagraph('广州中味餐饮服务有限公司安全部', { align: 'right', size: 24, after: 300 })}
+        ${docxParagraph(data.date, { align: 'right', size: 24 })}
+        <w:sectPr>
+            <w:pgSz w:w="11906" w:h="16838"/>
+            <w:pgMar w:top="1361" w:right="1021" w:bottom="1361" w:left="1021" w:header="720" w:footer="720" w:gutter="0"/>
+        </w:sectPr>
+    </w:body>
+</w:document>`;
+    }
+
+    function buildContentTypes(images) {
+        const imageTypes = Array.from(new Set(images.map(image => image.extension))).map(extension => {
+            const contentType = extension === 'jpg' ? 'image/jpeg' : `image/${extension}`;
+            return `<Default Extension="${extension}" ContentType="${contentType}"/>`;
+        }).join('');
+
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+    <Default Extension="xml" ContentType="application/xml"/>
+    ${imageTypes}
+    <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+    <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>`;
+    }
+
+    function buildDocxStylesXml() {
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+    <w:docDefaults>
+        <w:rPrDefault>
+            <w:rPr>
+                <w:rFonts w:ascii="SimSun" w:eastAsia="宋体" w:hAnsi="SimSun"/>
+                <w:sz w:val="24"/>
+            </w:rPr>
+        </w:rPrDefault>
+    </w:docDefaults>
+</w:styles>`;
+    }
+
+    function buildDocxRelationships(images) {
+        const imageRels = images.map(image => {
+            return `<Relationship Id="${image.id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${image.name}"/>`;
+        }).join('');
+
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+    <Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+    ${imageRels}
+</Relationships>`;
+    }
+
+    function buildRootRelationships() {
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+    <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+    }
+
+    function crc32(bytes) {
+        if(!crc32.table) {
+            crc32.table = [];
+            for(let n = 0; n < 256; n++) {
+                let c = n;
+                for(let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+                crc32.table[n] = c >>> 0;
+            }
+        }
+        let crc = 0 ^ -1;
+        for(let i = 0; i < bytes.length; i++) {
+            crc = (crc >>> 8) ^ crc32.table[(crc ^ bytes[i]) & 0xff];
+        }
+        return (crc ^ -1) >>> 0;
+    }
+
+    function stringToBytes(value) {
+        return new TextEncoder().encode(value);
+    }
+
+    function createZip(files) {
+        const chunks = [];
+        const central = [];
+        let offset = 0;
+
+        const writeUint16 = (view, pos, value) => view.setUint16(pos, value, true);
+        const writeUint32 = (view, pos, value) => view.setUint32(pos, value, true);
+
+        files.forEach(file => {
+            const nameBytes = stringToBytes(file.name);
+            const dataBytes = file.data instanceof Uint8Array ? file.data : stringToBytes(file.data);
+            const crc = crc32(dataBytes);
+
+            const local = new Uint8Array(30 + nameBytes.length);
+            const localView = new DataView(local.buffer);
+            writeUint32(localView, 0, 0x04034b50);
+            writeUint16(localView, 4, 20);
+            writeUint16(localView, 6, 0);
+            writeUint16(localView, 8, 0);
+            writeUint16(localView, 10, 0);
+            writeUint16(localView, 12, 0);
+            writeUint32(localView, 14, crc);
+            writeUint32(localView, 18, dataBytes.length);
+            writeUint32(localView, 22, dataBytes.length);
+            writeUint16(localView, 26, nameBytes.length);
+            writeUint16(localView, 28, 0);
+            local.set(nameBytes, 30);
+            chunks.push(local, dataBytes);
+
+            const centralHeader = new Uint8Array(46 + nameBytes.length);
+            const centralView = new DataView(centralHeader.buffer);
+            writeUint32(centralView, 0, 0x02014b50);
+            writeUint16(centralView, 4, 20);
+            writeUint16(centralView, 6, 20);
+            writeUint16(centralView, 8, 0);
+            writeUint16(centralView, 10, 0);
+            writeUint16(centralView, 12, 0);
+            writeUint16(centralView, 14, 0);
+            writeUint32(centralView, 16, crc);
+            writeUint32(centralView, 20, dataBytes.length);
+            writeUint32(centralView, 24, dataBytes.length);
+            writeUint16(centralView, 28, nameBytes.length);
+            writeUint16(centralView, 30, 0);
+            writeUint16(centralView, 32, 0);
+            writeUint16(centralView, 34, 0);
+            writeUint16(centralView, 36, 0);
+            writeUint32(centralView, 38, 0);
+            writeUint32(centralView, 42, offset);
+            centralHeader.set(nameBytes, 46);
+            central.push(centralHeader);
+
+            offset += local.length + dataBytes.length;
+        });
+
+        const centralOffset = offset;
+        const centralSize = central.reduce((sum, item) => sum + item.length, 0);
+        const end = new Uint8Array(22);
+        const endView = new DataView(end.buffer);
+        writeUint32(endView, 0, 0x06054b50);
+        writeUint16(endView, 4, 0);
+        writeUint16(endView, 6, 0);
+        writeUint16(endView, 8, files.length);
+        writeUint16(endView, 10, files.length);
+        writeUint32(endView, 12, centralSize);
+        writeUint32(endView, 16, centralOffset);
+        writeUint16(endView, 20, 0);
+
+        return new Blob([...chunks, ...central, end], {
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+    }
+
+    function buildDocxBlob() {
+        const data = getDocxReportData();
+        const images = collectDocxImages(data);
+        const files = [
+            { name: '[Content_Types].xml', data: buildContentTypes(images) },
+            { name: '_rels/.rels', data: buildRootRelationships() },
+            { name: 'word/document.xml', data: buildDocxDocumentXml(data, images) },
+            { name: 'word/styles.xml', data: buildDocxStylesXml() },
+            { name: 'word/_rels/document.xml.rels', data: buildDocxRelationships(images) },
+            ...images.map(image => ({ name: image.path, data: image.bytes }))
+        ];
+
+        return createZip(files);
+    }
+
+    function exportWord() {
+        const docxBlob = buildDocxBlob();
+        downloadBlob(
+            docxBlob,
+            getExportFileName('docx'),
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
+    }
+
+    function exportHtml() {
+        const html = getExportHtmlDocument();
+        downloadBlob(
+            html,
+            getExportFileName('html'),
+            'text/html;charset=utf-8'
+        );
+    }
+</script>
+
+</body>
+</html>
