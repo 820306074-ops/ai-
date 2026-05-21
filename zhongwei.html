@@ -604,20 +604,20 @@
 
         .kpi-cards {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-            height: 180px;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: 1fr;
+            gap: 10px;
+            height: 88px;
         }
 
         .kpi-item {
             position: relative;
             display: flex;
-            align-items: stretch;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 14px;
-            border-radius: 18px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 8px 10px;
+            border-radius: 14px;
             overflow: hidden;
             background:
                 linear-gradient(135deg, rgba(76, 123, 255, 0.16), rgba(7, 25, 62, 0.72) 54%, rgba(84, 211, 255, 0.08)),
@@ -643,34 +643,53 @@
 
         .kpi-info {
             position: relative;
-            z-index: 1;
+            z-index: 2;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: center;
             min-width: 0;
-            flex: 1;
+            width: 100%;
         }
 
-        .kpi-info h4 { font-size: 13px; font-weight: 600; color: #c8d8f6; margin-bottom: 6px; }
-        .kpi-info .val { font-size: 24px; font-weight: 800; line-height: 1; color: #f5fbff; }
-        .kpi-note { margin-top: 6px; font-size: 11px; color: var(--text-muted); }
+        .kpi-info h4 { 
+            font-size: 11px; 
+            font-weight: 600; 
+            color: #a9bddf; 
+            margin-bottom: 4px; 
+            white-space: nowrap; 
+            letter-spacing: -0.5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .kpi-info .val { 
+            font-size: 18px; 
+            font-weight: 800; 
+            line-height: 1; 
+            color: #f5fbff; 
+        }
+        
+        .kpi-note { display: none; }
 
         .kpi-icon {
-            position: relative;
+            position: absolute;
             z-index: 1;
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
+            bottom: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 12px;
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
                 rgba(14, 40, 92, 0.7);
             border: 1px solid rgba(141, 186, 255, 0.18);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
             flex-shrink: 0;
+            opacity: 0.85;
         }
 
         .video-module {
@@ -685,9 +704,9 @@
 
         .video-header {
             position: absolute;
-            top: 14px; left: 16px; right: 16px;
+            top: 10px; left: 14px; right: 14px;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 14px; border-radius: 16px;
+            padding: 8px 14px; border-radius: 14px;
             background: linear-gradient(180deg, rgba(7, 20, 45, 0.84), rgba(7, 20, 45, 0.42));
             border: 1px solid rgba(124, 175, 255, 0.16);
             backdrop-filter: blur(14px); z-index: 5;
@@ -705,19 +724,61 @@
         .video-title-main { font-size: 16px; font-weight: 700; color: var(--text-strong); text-align: right;}
         .video-title-sub { font-size: 11px; color: var(--text-sub); text-align: right;}
 
-        video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+        /* 四分屏网格布局设计 */
+        .video-grid {
+            position: absolute;
+            top: 54px; /* Header下方预留空间 */
+            bottom: 48px; /* 底部操作按钮上方预留空间 */
+            left: 14px;
+            right: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            z-index: 1;
+        }
+        .video-cell {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(124, 175, 255, 0.15);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+        .cell-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(10, 24, 56, 0.7);
+            backdrop-filter: blur(4px);
+            color: #dff7ff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2;
+            border: 1px solid rgba(137, 188, 255, 0.2);
+            pointer-events: none;
+        }
+        .video-cell video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: transparent;
+        }
 
         .ai-alert {
-            position: absolute; left: 16px; bottom: 16px;
+            position: absolute; left: 14px; bottom: 10px;
             display: flex; align-items: center; gap: 10px;
-            padding: 10px 14px; border-radius: 14px;
+            padding: 8px 14px; border-radius: 12px;
             background: linear-gradient(135deg, rgba(255, 122, 122, 0.16), rgba(14, 23, 49, 0.8));
             border: 1px solid rgba(255, 123, 123, 0.26);
-            color: #fff4f4; font-size: 13px; z-index: 5;
+            color: #fff4f4; font-size: 12px; z-index: 5;
+            backdrop-filter: blur(10px);
         }
 
         .video-controls {
-            position: absolute; right: 16px; bottom: 16px; z-index: 5; display: flex; gap: 8px;
+            position: absolute; right: 14px; bottom: 10px; z-index: 5; display: flex; gap: 8px;
         }
 
         .v-btn {
@@ -731,14 +792,14 @@
         }
 
         /* 各种列表样式 */
-        .table-module { height: 210px; display: flex; flex-direction: column; }
+        .table-module { height: 170px; display: flex; flex-direction: column; }
         .table-header, .mini-table-header {
             display: grid; align-items: center; text-align: center;
             background: linear-gradient(180deg, rgba(95, 140, 255, 0.18), rgba(255, 255, 255, 0.04));
             border: 1px solid rgba(132, 181, 255, 0.14); border-radius: 12px;
             font-size: 13px; font-weight: 700; color: #dce8ff;
         }
-        .table-header { grid-template-columns: 1fr 2fr 1fr 1.5fr 1fr; min-height: 40px; margin-bottom: 10px; }
+        .table-header { grid-template-columns: 1fr 2fr 1fr 1.5fr 1fr; min-height: 36px; margin-bottom: 8px; }
         
         .table-body, .mini-table-body, .meal-scroll-wrapper, .supplier-wrapper {
             position: relative; flex: 1; overflow: hidden; z-index: 1;
@@ -748,7 +809,7 @@
         }
 
         .table-row {
-            display: grid; grid-template-columns: 1fr 2fr 1fr 1.5fr 1fr; min-height: 38px;
+            display: grid; grid-template-columns: 1fr 2fr 1fr 1.5fr 1fr; min-height: 32px;
             font-size: 12px; align-items: center; text-align: center; border-bottom: 1px solid rgba(128, 168, 255, 0.1);
         }
 
@@ -773,7 +834,14 @@
         .m-stat-box { padding: 10px 8px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); text-align: center; border: 1px solid rgba(131, 178, 255, 0.14);}
         .m-stat-label { font-size: 11px; color: var(--text-sub); }
         .m-stat-val { font-size: 20px; font-weight: 800; }
-        .morning-grid { grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr !important; }
+        .morning-grid { grid-template-columns: 2.1fr 1fr 1fr 1fr 1.4fr !important; }
+        .cert-cell { display:flex; align-items:center; justify-content:center; gap:6px; min-width:0; }
+        .cert-thumb {
+            width: 24px; height: 24px; border-radius: 6px; object-fit: cover;
+            border: 1px solid rgba(131, 178, 255, 0.24);
+            background: rgba(18, 37, 84, 0.5);
+            flex-shrink: 0;
+        }
 
         /* 供应商及索证索票模块定制样式 */
         .tab-switcher {
@@ -876,12 +944,8 @@
             <aside class="panel-column left-panel">
                 <div class="card" style="flex: 1;">
                     <div class="card-title">
-                        <span>冷链温度监控 (℃)</span>
-                        <select id="fridgeSelector" class="custom-select" onchange="updateFridgeChart()">
-                            <option value="01">01 冷藏冰箱</option>
-                            <option value="02">02 冷冻冰箱</option>
-                            <option value="03">03 留样冰箱</option>
-                        </select>
+                        <span>全区冰箱监控 (℃)</span>
+                        <span class="tag tag-location" style="font-size:11px;" id="fridgeTagLabel">冷藏冰箱</span>
                     </div>
                     <div id="chart-fridge" class="chart-box"></div>
                 </div>
@@ -929,14 +993,34 @@
                     <div class="video-header">
                         <div class="video-tags">
                             <span class="tag"><span class="status-dot" style="width: 7px; height: 7px;"></span>在线</span>
-                            <span class="tag tag-location">烹饪操作区 01</span>
+                            <span class="tag tag-location">监控矩阵 01-04</span>
                         </div>
                         <div class="video-title-bar">
                             <div class="video-title-main">名厨亮灶实时监控</div>
                             <div class="video-title-sub">摄像机矩阵 / AI行为分析运作中</div>
                         </div>
                     </div>
-                    <video id="mainVideo" autoplay muted loop controls></video>
+                    
+                    <!-- 四分屏监控网格容器 -->
+                    <div class="video-grid">
+                        <div class="video-cell">
+                            <div class="cell-label">1# 烹饪操作区</div>
+                            <video id="video1" autoplay muted loop></video>
+                        </div>
+                        <div class="video-cell">
+                            <div class="cell-label">2# 粗加工区</div>
+                            <video id="video2" autoplay muted loop></video>
+                        </div>
+                        <div class="video-cell">
+                            <div class="cell-label">3# 切配洗消间</div>
+                            <video id="video3" autoplay muted loop></video>
+                        </div>
+                        <div class="video-cell">
+                            <div class="cell-label">4# 仓库及留样</div>
+                            <video id="video4" autoplay muted loop></video>
+                        </div>
+                    </div>
+
                     <div class="ai-alert">
                         <span>🤖 AI分析：人员穿戴规范，未发现未戴口罩/厨师帽行为，区域温度正常。</span>
                     </div>
@@ -992,10 +1076,10 @@
                 <div class="card" style="flex: 1.6;">
                     <div class="card-title"><span>智能晨检</span></div>
                     <div class="morning-stat-bar">
-                        <div class="m-stat-box"><div class="m-stat-label">总人数</div><div class="m-stat-val" style="color: var(--brand-cyan);">82</div></div>
-                        <div class="m-stat-box"><div class="m-stat-label">已检数</div><div class="m-stat-val" style="color: var(--brand-cyan);">60</div></div>
-                        <div class="m-stat-box"><div class="m-stat-label">合格</div><div class="m-stat-val" style="color: var(--brand-green);">57</div></div>
-                        <div class="m-stat-box"><div class="m-stat-label">不合格</div><div class="m-stat-val" style="color: var(--brand-danger);">3</div></div>
+                        <div class="m-stat-box"><div class="m-stat-label">总人数</div><div class="m-stat-val" id="morningTotal" style="color: var(--brand-cyan);">82</div></div>
+                        <div class="m-stat-box"><div class="m-stat-label">已检数</div><div class="m-stat-val" id="morningChecked" style="color: var(--brand-cyan);">60</div></div>
+                        <div class="m-stat-box"><div class="m-stat-label">合格</div><div class="m-stat-val" id="morningPass" style="color: var(--brand-green);">57</div></div>
+                        <div class="m-stat-box"><div class="m-stat-label">不合格</div><div class="m-stat-val" id="morningFail" style="color: var(--brand-danger);">3</div></div>
                     </div>
                     <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
                         <div class="mini-table-header morning-grid">
@@ -1217,77 +1301,195 @@
         document.getElementById(containerId).innerHTML = html + html; // 双倍数据实现无缝滚动
     };
 
-    renderScrollList([
-        { level: "高风险", type: "冷冻库A区温度偏高 (-10℃)", person: "张三", time: "立即整改", status: "处理中", color: "red" },
-        { level: "中风险", type: "生熟切板混放隐患", person: "李四", time: "今日内", status: "已完成", color: "yellow" },
-        { level: "低风险", type: "员工健康证即将到期(3天)", person: "王五", time: "本周内", status: "待处理", color: "green" },
-        { level: "中风险", type: "紫外线消毒灯超时未开", person: "赵六", time: "今日内", status: "已完成", color: "yellow" }
-    ], "scrollTable", (r) => `
-        <div class="table-row">
-            <div><span class="badge bg-${r.color}">${r.level}</span></div>
-            <div style="text-align:left; padding-left: 10px; color: #eef4ff;">${r.type}</div>
-            <div>${r.person}</div>
-            <div style="color:${r.color === "red" ? "#ff9b9b" : "#c5d7ff"}">${r.time}</div>
-            <div>${r.status}</div>
-        </div>
-    `);
+    const MODULE_SOURCE_URLS = {
+        ingredient: "https://820306074-ops.github.io/ai-/daily.html",
+        personnel: "https://820306074-ops.github.io/ai-/index.html",
+        processing: "https://820306074-ops.github.io/ai-/inden.html",
+        security: "https://820306074-ops.github.io/ai-/monthly.html"
+    };
 
-    renderScrollList([
+    const fallbackRiskRows = [
+        { level: "高风险", type: "冷冻库A区温度偏高 (-10℃)", person: "加工制作", time: "立即整改", status: "处理中", color: "red" },
+        { level: "中风险", type: "生熟切板混放隐患", person: "安全管理", time: "今日内", status: "待处理", color: "yellow" },
+        { level: "低风险", type: "员工健康证即将到期(3天)", person: "人员管理", time: "本周内", status: "待处理", color: "green" },
+        { level: "中风险", type: "紫外线消毒灯超时未开", person: "安全管理", time: "今日内", status: "已完成", color: "yellow" }
+    ];
+    const fallbackPesticideData = [
         { name: "大白菜", item: "有机磷类", value: "12.5%", status: "合格", color: "green" },
         { name: "长豆角", item: "有机磷类", value: "52.3%", status: "不合格", color: "red" },
         { name: "西红柿", item: "氨基甲酸酯", value: "5.4%", status: "合格", color: "green" },
         { name: "黄瓜", item: "有机磷类", value: "15.8%", status: "合格", color: "green" }
-    ], "scrollPesticide", (r) => `
-        <div class="mini-table-row">
-            <div style="color: #f2f7ff;">${r.name}</div>
-            <div style="color: #bfd2f5;">${r.item}</div>
-            <div style="color: ${r.color === 'red' ? '#ff9b9b' : '#b7cdf7'}; font-family: monospace;">${r.value}</div>
-            <div><span class="badge bg-${r.color}">${r.status}</span></div>
-        </div>
-    `);
-
-    // --- 智能晨检 数据同步与渲染 ---
-    let morningCheckData = [
+    ];
+    const fallbackCertData = [
+        { name: "金龙鱼调和油 (5L/桶)", expire: "128天", daysLeft: 128, status: "合规", color: "green" },
+        { name: "海天生抽酱油 (1.9L/瓶)", expire: "210天", daysLeft: 210, status: "合规", color: "green" },
+        { name: "双汇王中王火腿肠 (散装)", expire: "15天", daysLeft: 15, status: "临期", color: "yellow" },
+        { name: "珠江面粉 (25kg/袋)", expire: "80天", daysLeft: 80, status: "合规", color: "green" }
+    ];
+    const fallbackQualData = [
+        { name: "广州市生鲜农产品供应基地", status: "已验证", docs: ["营业执照", "流通许可"] },
+        { name: "广东省宏农食品批发有限公司", status: "已验证", docs: ["营业执照", "经营许可"] },
+        { name: "白云区绿色蔬菜直销农场", status: "已验证", docs: ["营业执照", "产地证明"] }
+    ];
+    const fallbackMorningData = [
         { name: "李松仁", temp: "36.1℃", status: "合格", color: "green", cert: "已验证", certColor: "#8ff2cc" },
         { name: "肖文喜", temp: "36.4℃", status: "合格", color: "green", cert: "已验证", certColor: "#8ff2cc" },
         { name: "苏善强", temp: "37.5℃", status: "异常", color: "red", cert: "已验证", certColor: "#8ff2cc" },
         { name: "张三丰", temp: "36.5℃", status: "合格", color: "green", cert: "临期(3天)", certColor: "#ffd494" },
         { name: "王大拿", temp: "36.2℃", status: "合格", color: "green", cert: "已过期", certColor: "#ff9b9b" }
     ];
+    const fallbackHotData = {
+        bf: [{name:"白粥",temp:76.1},{name:"鲜肉包",temp:74.5},{name:"茶叶蛋",temp:78.0}],
+        lu: [{name:"香米饭",temp:77.6},{name:"红烧肉",temp:76.1},{name:"清炒菜心",temp:72.5}],
+        dn: [{name:"糙米饭",temp:76.2},{name:"清蒸海鱼",temp:74.8},{name:"排骨汤",temp:80.4}]
+    };
 
-    function renderMorningData() {
-        renderScrollList(morningCheckData, "scrollMorning", (r) => `
-            <div class="mini-table-row morning-grid">
-                <div style="color: #f2f7ff; text-align:left; overflow:hidden; white-space:nowrap;" title="中味餐饮">中味餐饮</div>
-                <div style="color: #f2f7ff;">${r.name}</div>
-                <div style="color: #d6e5ff; font-family: monospace;">${r.temp}</div>
-                <div><span class="badge bg-${r.color}">${r.status}</span></div>
-                <div style="color: ${r.certColor}; font-size: 11px;">${r.cert}</div>
+    const dashboardSyncState = {
+        ingredient: { ledgers: [], suppliers: [], pesticide: [] },
+        processing: { fridgeData: null, hot: null, alerts: [] },
+        security: { issues: [] },
+        health: { records: [] }
+    };
+
+    const escapeText = (value) => String(value ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[m]));
+    const formatDateOnly = (value) => {
+        if (!value) return "";
+        if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "";
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+    const daysLeftFrom = (dateValue) => {
+        const date = formatDateOnly(dateValue);
+        if (!date) return null;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const exp = new Date(date); exp.setHours(0,0,0,0);
+        return Math.round((exp - today) / 86400000);
+    };
+    const riskColorByDays = (days) => days === null ? "green" : (days < 0 ? "red" : (days <= 30 ? "yellow" : "green"));
+    const statusByDays = (days) => days === null ? "合规" : (days < 0 ? "过期" : (days <= 30 ? "临期" : "合规"));
+    const certTextByDays = (days) => days === null ? "已验证" : (days < 0 ? `已过期${Math.abs(days)}天` : (days <= 30 ? `临期(${days}天)` : `${days}天到期`));
+
+    function renderRiskRows(data) {
+        const rows = data.length ? data.slice(0, 8) : fallbackRiskRows;
+        renderScrollList(rows, "scrollTable", (r) => `
+            <div class="table-row">
+                <div><span class="badge bg-${r.color}">${escapeText(r.level)}</span></div>
+                <div style="text-align:left; padding-left: 10px; color: #eef4ff;" title="${escapeText(r.type)}">${escapeText(r.type)}</div>
+                <div>${escapeText(r.person || "系统")}</div>
+                <div style="color:${r.color === "red" ? "#ff9b9b" : "#c5d7ff"}">${escapeText(r.time || "今日内")}</div>
+                <div>${escapeText(r.status || "待处理")}</div>
             </div>
         `);
     }
-    // 初始渲染
-    renderMorningData();
 
-    // 监听来自嵌套 iframe (例如：人员管理页面) 的健康证同步消息
-    // 前提：双方网页发布在同一域名下 (如 github.io)
-    window.addEventListener("message", (event) => {
-        if (event.data && event.data.type === 'SYNC_HEALTH_CERT') {
-            console.log("【驾驶舱】接收到子页面同步的健康证数据:", event.data.data);
-            const syncData = event.data.data;
-            
-            // 匹配人名并更新对应的健康证状态和颜色
-            morningCheckData = morningCheckData.map(person => {
-                const match = syncData.find(s => s.name === person.name);
-                if (match) {
-                    return { ...person, cert: match.cert, certColor: match.certColor };
-                }
-                return person;
-            });
-            // 数据更新后重新渲染
-            renderMorningData();
-        }
-    });
+    function renderPesticideData() {
+        const rows = dashboardSyncState.ingredient.pesticide.length ? dashboardSyncState.ingredient.pesticide : fallbackPesticideData;
+        renderScrollList(rows, "scrollPesticide", (r) => `
+            <div class="mini-table-row">
+                <div style="color: #f2f7ff;">${escapeText(r.name)}</div>
+                <div style="color: #bfd2f5;">${escapeText(r.item || r.project || "快检")}</div>
+                <div style="color: ${r.color === 'red' ? '#ff9b9b' : '#b7cdf7'}; font-family: monospace;">${escapeText(r.value || r.rate || "-")}</div>
+                <div><span class="badge bg-${r.color || "green"}">${escapeText(r.status || "合格")}</span></div>
+            </div>
+        `);
+    }
+
+    function buildCertRows() {
+        const prepackaged = dashboardSyncState.ingredient.ledgers
+            .filter(item => (item.status || "在库") === "在库")
+            .filter(item => String(item.category || "").includes("预包装"))
+            .map(item => {
+                const days = item.daysLeft ?? daysLeftFrom(item.expDate || item.expiryDate);
+                return {
+                    name: item.name || item.productName || "未命名预包装食品",
+                    expire: days === null ? (item.expDate || "长期") : `${days}天`,
+                    daysLeft: days,
+                    status: item.certificate === "无" ? "缺证" : statusByDays(days),
+                    color: item.certificate === "无" ? "red" : riskColorByDays(days),
+                    image: item.image || item.certImage || item.attachmentDataUrl
+                };
+            })
+            .sort((a, b) => (a.daysLeft ?? 99999) - (b.daysLeft ?? 99999));
+        return prepackaged.length ? prepackaged : fallbackCertData;
+    }
+
+    function renderCertData() {
+        renderScrollList(buildCertRows(), "scrollCert", (r) => `
+            <div class="supplier-item">
+                <img src="${escapeText(r.image || "https://dummyimage.com/32x42/152e61/8fcfff.png&text=报告")}" class="doc-thumb" alt="报告">
+                <div class="supplier-info">
+                    <div class="supplier-name" title="${escapeText(r.name)}">${escapeText(r.name)}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#7f98bf;">
+                        <span>保质期余：<span style="color: ${r.color === 'red' ? '#ff9b9b' : (r.color === 'yellow' ? '#ffd494' : '#8ff2cc')}; font-weight:700; font-family:monospace;">${escapeText(r.expire)}</span></span>
+                        <span class="supplier-status" style="${r.color === 'red' ? 'color:#ff9b9b; border-color:#ff9b9b; background:rgba(255,111,111,0.12)' : (r.color === 'yellow' ? 'color:#ffd494; border-color:#ffd494; background:rgba(255,184,77,0.12)' : '')}">${escapeText(r.status)}</span>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
+    function renderQualData() {
+        const rows = dashboardSyncState.ingredient.suppliers.length ? dashboardSyncState.ingredient.suppliers : fallbackQualData;
+        renderScrollList(rows, "scrollQual", (r) => `
+            <div class="supplier-item" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="supplier-name">${escapeText(r.name)}</div>
+                    <span class="supplier-status">${escapeText(r.status || r.complianceStatus || "已验证")}</span>
+                </div>
+                <div class="qual-row">
+                    ${(r.docs || r.qualifications || ["营业执照", "经营许可"]).slice(0, 3).map(doc => `<div class="qual-doc"><img src="https://dummyimage.com/16x16/24468f/8fcfff.png&text=证" alt="证"><span>${escapeText(doc.name || doc.type || doc)}</span></div>`).join('')}
+                </div>
+            </div>
+        `);
+    }
+
+    let morningCheckData = [...fallbackMorningData];
+    function normalizeHealthRecords(records) {
+        return (Array.isArray(records) ? records : []).map((r, index) => {
+            const days = r.remainingDays ?? daysLeftFrom(r.expiryDate || r.expireDate || r.certExpireDate);
+            const tempNum = r.temp || r.temperature || (36 + (index % 6) * 0.1).toFixed(1);
+            return {
+                name: r.name || r.employeeName || "未命名",
+                position: r.position || r.canteen || "中味餐饮",
+                temp: String(tempNum).includes("℃") ? String(tempNum) : `${tempNum}℃`,
+                status: r.status || (Number.parseFloat(tempNum) >= 37.3 ? "异常" : "合格"),
+                color: r.color || (Number.parseFloat(tempNum) >= 37.3 ? "red" : "green"),
+                cert: r.cert || r.certStatus || certTextByDays(days),
+                certColor: r.certColor || (riskColorByDays(days) === "red" ? "#ff9b9b" : (riskColorByDays(days) === "yellow" ? "#ffd494" : "#8ff2cc")),
+                image: r.attachmentDataUrl || r.image || r.photo || r.certImage,
+                remainingDays: days
+            };
+        });
+    }
+
+    function renderMorningStats() {
+        const total = morningCheckData.length;
+        const checked = morningCheckData.filter(r => r.status !== "未检").length;
+        const fail = morningCheckData.filter(r => r.color === "red" || r.status === "异常" || String(r.cert).includes("过期")).length;
+        const pass = Math.max(0, checked - fail);
+        const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+        setText("morningTotal", total);
+        setText("morningChecked", checked);
+        setText("morningPass", pass);
+        setText("morningFail", fail);
+    }
+
+    function renderMorningData() {
+        renderMorningStats();
+        renderScrollList(morningCheckData, "scrollMorning", (r) => `
+            <div class="mini-table-row morning-grid">
+                <div style="color: #f2f7ff; text-align:left; overflow:hidden; white-space:nowrap;" title="${escapeText(r.position || "中味餐饮")}">${escapeText(r.position || "中味餐饮")}</div>
+                <div style="color: #f2f7ff;">${escapeText(r.name)}</div>
+                <div style="color: #d6e5ff; font-family: monospace;">${escapeText(r.temp)}</div>
+                <div><span class="badge bg-${r.color}">${escapeText(r.status)}</span></div>
+                <div class="cert-cell" style="color: ${r.certColor}; font-size: 11px;">
+                    ${r.image ? `<img class="cert-thumb" src="${escapeText(r.image)}" alt="健康证">` : ""}
+                    <span>${escapeText(r.cert)}</span>
+                </div>
+            </div>
+        `);
+    }
 
     // --- 供应商双标签切换与渲染逻辑 ---
     function switchSupplierTab(tabId, btn, event) {
@@ -1298,60 +1500,310 @@
         document.getElementById('wrapperQual').style.display = tabId === 'qual' ? 'block' : 'none';
     }
 
-    // 1. 索证索票 (预包装) 数据渲染
-    renderScrollList([
-        { name: "金龙鱼调和油 (5L/桶)", expire: "128天", status: "合规", color: "green" },
-        { name: "海天生抽酱油 (1.9L/瓶)", expire: "210天", status: "合规", color: "green" },
-        { name: "双汇王中王火腿肠 (散装)", expire: "15天", status: "临期", color: "yellow" },
-        { name: "珠江面粉 (25kg/袋)", expire: "80天", status: "合规", color: "green" }
-    ], "scrollCert", (r) => `
-        <div class="supplier-item">
-            <img src="https://dummyimage.com/32x42/152e61/8fcfff.png&text=报告" class="doc-thumb" alt="报告">
-            <div class="supplier-info">
-                <div class="supplier-name" title="${r.name}">${r.name}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#7f98bf;">
-                    <span>保质期余：<span style="color: ${r.color === 'yellow' ? '#ffd494' : '#8ff2cc'}; font-weight:700; font-family:monospace;">${r.expire}</span></span>
-                    <span class="supplier-status" style="${r.color === 'yellow' ? 'color:#ffd494; border-color:#ffd494; background:rgba(255,184,77,0.12)' : ''}">${r.status}</span>
-                </div>
-            </div>
-        </div>
-    `);
-
-    // 2. 供应商资质 数据渲染
-    renderScrollList([
-        { name: "广州市生鲜农产品供应基地", status: "已验证", docs: ["营业执照", "流通许可"] },
-        { name: "广东省宏农食品批发有限公司", status: "已验证", docs: ["营业执照", "经营许可"] },
-        { name: "白云区绿色蔬菜直销农场", status: "已验证", docs: ["营业执照", "产地证明"] }
-    ], "scrollQual", (r) => `
-        <div class="supplier-item" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div class="supplier-name">${r.name}</div>
-                <span class="supplier-status">${r.status}</span>
-            </div>
-            <div class="qual-row">
-                ${r.docs.map(doc => `<div class="qual-doc"><img src="https://dummyimage.com/16x16/24468f/8fcfff.png&text=证" alt="证"><span>${doc}</span></div>`).join('')}
-            </div>
-        </div>
-    `);
-
     // 热食渲染
     const renderHot = (data, id) => {
         let html = data.map(i => `
             <div class="hot-food-row">
-                <div style="color:#f2f7ff; text-align:left; padding-left:10px;">${i.name}</div>
-                <div style="color:${i.temp>=75?'#8ff2cc':'#ff9b9b'}; font-weight:700;">${i.temp}℃</div>
+                <div style="color:#f2f7ff; text-align:left; padding-left:10px;">${escapeText(i.name)}</div>
+                <div style="color:${Number(i.temp)>=75?'#8ff2cc':'#ff9b9b'}; font-weight:700;">${escapeText(i.temp)}℃</div>
                 <div><span class="badge bg-${i.temp>=75?'green':'red'}">${i.temp>=75?'正常':'偏低'}</span></div>
             </div>
         `).join("");
         document.getElementById(id).innerHTML = html + html;
     };
-    renderHot([{name:"白粥",temp:76.1},{name:"鲜肉包",temp:74.5},{name:"茶叶蛋",temp:78.0}], "scroll-bf");
-    renderHot([{name:"香米饭",temp:77.6},{name:"红烧肉",temp:76.1},{name:"清炒菜心",temp:72.5}], "scroll-lu");
-    renderHot([{name:"糙米饭",temp:76.2},{name:"清蒸海鱼",temp:74.8},{name:"排骨汤",temp:80.4}], "scroll-dn");
+    function renderHotGroups() {
+        const hot = dashboardSyncState.processing.hot || fallbackHotData;
+        renderHot(hot.bf || fallbackHotData.bf, "scroll-bf");
+        renderHot(hot.lu || fallbackHotData.lu, "scroll-lu");
+        renderHot(hot.dn || fallbackHotData.dn, "scroll-dn");
+    }
 
-    // -------------- 视频逻辑 --------------
-    const videoElement = document.getElementById("mainVideo");
-    let hlsPlayer = null, flvPlayer = null;
+    function buildRiskRows() {
+        const rows = [];
+        buildCertRows().forEach(item => {
+            if (item.color === "red" || item.color === "yellow") {
+                rows.push({
+                    level: item.color === "red" ? "高风险" : "中风险",
+                    type: `预包装食品${item.status}：${item.name}（剩余${item.expire}）`,
+                    person: "食材管理",
+                    time: item.color === "red" ? "立即整改" : "本周内",
+                    status: item.color === "red" ? "待隔离" : "待处理",
+                    color: item.color
+                });
+            }
+        });
+        (dashboardSyncState.processing.alerts || []).forEach(alert => {
+            rows.push({
+                level: alert.level === "high" || alert.color === "red" ? "高风险" : "中风险",
+                type: `${alert.type || "加工预警"}：${alert.desc || alert.description || ""}`,
+                person: "加工制作",
+                time: alert.time || "立即整改",
+                status: alert.status || "待处理",
+                color: alert.level === "high" || alert.color === "red" ? "red" : "yellow"
+            });
+        });
+        (dashboardSyncState.security.issues || []).forEach(issue => {
+            rows.push({
+                level: issue.level || (issue.isOverdue ? "高风险" : "中风险"),
+                type: issue.problem || issue.type || issue.name || "安全检查问题",
+                person: issue.person || issue.owner || "安全管理",
+                time: issue.deadline || issue.time || "今日内",
+                status: issue.status || "待整改",
+                color: issue.color || (issue.isOverdue ? "red" : "yellow")
+            });
+        });
+        morningCheckData.forEach(person => {
+            if (String(person.cert).includes("临期") || String(person.cert).includes("过期")) {
+                const expired = String(person.cert).includes("过期");
+                rows.push({
+                    level: expired ? "高风险" : "低风险",
+                    type: `员工健康证${expired ? "已过期" : "即将到期"}：${person.name}（${person.cert}）`,
+                    person: "人员管理",
+                    time: expired ? "立即整改" : "本周内",
+                    status: expired ? "暂停上岗" : "待换证",
+                    color: expired ? "red" : "green"
+                });
+            }
+        });
+        return rows;
+    }
+
+    function refreshDashboardFromState() {
+        renderPesticideData();
+        renderCertData();
+        renderQualData();
+        renderMorningData();
+        renderHotGroups();
+        renderRiskRows(buildRiskRows());
+        if (dashboardSyncState.processing.fridgeData) {
+            syncFridgeOptions(dashboardSyncState.processing.fridgeData);
+        }
+    }
+
+    function extractArrayLiteral(source, marker) {
+        const markerIndex = source.indexOf(marker);
+        if (markerIndex < 0) return null;
+        const start = source.indexOf("[", markerIndex);
+        if (start < 0) return null;
+        let depth = 0, quote = "", escape = false;
+        for (let i = start; i < source.length; i++) {
+            const ch = source[i];
+            if (quote) {
+                if (escape) escape = false;
+                else if (ch === "\\") escape = true;
+                else if (ch === quote) quote = "";
+                continue;
+            }
+            if (ch === "'" || ch === '"' || ch === "`") { quote = ch; continue; }
+            if (ch === "[") depth++;
+            if (ch === "]") {
+                depth--;
+                if (depth === 0) return source.slice(start, i + 1);
+            }
+        }
+        return null;
+    }
+
+    function evalArrayLiteral(source, marker) {
+        const literal = extractArrayLiteral(source, marker);
+        if (!literal) return [];
+        try { return Function(`"use strict"; return (${literal});`)(); }
+        catch (err) { console.warn("驾驶舱同步解析失败:", marker, err); return []; }
+    }
+
+    function rgbToHex(rgb) {
+        if (!Array.isArray(rgb)) return "#54d3ff";
+        return "#" + rgb.slice(0, 3).map(v => Number(v).toString(16).padStart(2, "0")).join("");
+    }
+
+    // 全局存储从加工制作页面同步来的时间轴标签（与加工制作页面完全一致）
+    let fridgeTimeLabels = ["08:00","10:00","12:00","14:00","16:00","实时"];
+
+    function convertFridgeGroups(groups) {
+        const map = {};
+        // 尝试从第一个group中提取时间轴标签
+        if (groups && groups.length > 0) {
+            const firstGroup = groups[0];
+            // 支持多种可能的标签字段名
+            const labels = firstGroup.labels || firstGroup.times || firstGroup.xLabels || firstGroup.timeLabels;
+            if (Array.isArray(labels) && labels.length > 0) {
+                fridgeTimeLabels = labels.map(String);
+            } else {
+                // 如果没有标签字段，根据数据点数量自动生成等间隔时间轴
+                const firstDs = firstGroup.datasets && firstGroup.datasets[0];
+                const dataLen = firstDs ? (firstDs.baseData || firstDs.data || []).length : 0;
+                if (dataLen > 0 && dataLen !== fridgeTimeLabels.length) {
+                    // 从08:00到18:00等间隔生成
+                    const startHour = 8, endHour = 18;
+                    const step = (endHour - startHour) / (dataLen - 1);
+                    fridgeTimeLabels = Array.from({ length: dataLen }, (_, i) => {
+                        const totalMin = (startHour + step * i) * 60;
+                        const h = Math.floor(totalMin / 60);
+                        const m = Math.round(totalMin % 60);
+                        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                    });
+                }
+            }
+        }
+        (groups || []).forEach((group, groupIndex) => {
+            (group.datasets || []).forEach((ds, index) => {
+                const id = (String(ds.label || "").match(/\d+/) || [`${groupIndex + 1}${index + 1}`])[0].padStart(2, "0");
+                const color = rgbToHex(ds.color);
+                map[id] = {
+                    name: ds.label || group.zone || `冷链设备${id}`,
+                    data: (ds.baseData || ds.data || []).map(Number),
+                    color,
+                    areaColor: color + "42"
+                };
+            });
+        });
+        return map;
+    }
+
+    function normalizeHotFromCookData(cookData) {
+        const hot = { bf: [], lu: [], dn: [] };
+        (cookData || []).forEach(item => {
+            const row = { name: item.name, temp: Number(item.temp || item.temperature || 0) };
+            const type = String(item.type || item.meal || "");
+            if (type.includes("早")) hot.bf.push(row);
+            else if (type.includes("晚")) hot.dn.push(row);
+            else hot.lu.push(row);
+        });
+        return {
+            bf: hot.bf.length ? hot.bf : fallbackHotData.bf,
+            lu: hot.lu.length ? hot.lu : fallbackHotData.lu,
+            dn: hot.dn.length ? hot.dn : fallbackHotData.dn
+        };
+    }
+
+    async function syncGitHubDefaults() {
+        try {
+            const [ingredientHtml, processingHtml, securityHtml] = await Promise.all([
+                fetch(MODULE_SOURCE_URLS.ingredient).then(r => r.text()),
+                fetch(MODULE_SOURCE_URLS.processing).then(r => r.text()),
+                fetch(MODULE_SOURCE_URLS.security).then(r => r.text())
+            ]);
+            const ledgers = evalArrayLiteral(ingredientHtml, "const defaultLedgers");
+            const suppliers = evalArrayLiteral(ingredientHtml, "const defaultSuppliers");
+            if (ledgers.length && dashboardSyncState.ingredient.ledgers.length === 0) dashboardSyncState.ingredient.ledgers = ledgers;
+            if (suppliers.length && dashboardSyncState.ingredient.suppliers.length === 0) dashboardSyncState.ingredient.suppliers = suppliers;
+
+            // 尝试从加工制作页面提取时间轴标签（多种可能的变量名）
+            const timeLabelCandidates = ["const timeLabels", "const labels", "const xLabels", "const fridgeLabels", "const timeAxis"];
+            for (const candidate of timeLabelCandidates) {
+                const extracted = evalArrayLiteral(processingHtml, candidate);
+                if (Array.isArray(extracted) && extracted.length > 0 && typeof extracted[0] === "string" && /\d{1,2}:\d{2}/.test(extracted[0])) {
+                    fridgeTimeLabels = extracted.map(String);
+                    break;
+                }
+            }
+
+            const fridgeGroups = evalArrayLiteral(processingHtml, "const fridgeGroups");
+            const cookData = evalArrayLiteral(processingHtml, "const cookData");
+            const alerts = evalArrayLiteral(processingHtml, "const alerts");
+            const fridgeMap = convertFridgeGroups(fridgeGroups);
+            if (Object.keys(fridgeMap).length) dashboardSyncState.processing.fridgeData = fridgeMap;
+            if (cookData.length) dashboardSyncState.processing.hot = normalizeHotFromCookData(cookData);
+            if (alerts.length) dashboardSyncState.processing.alerts = alerts;
+
+            const auditItems = evalArrayLiteral(securityHtml, "const AUDIT_ITEMS");
+            if (auditItems.length && dashboardSyncState.security.issues.length === 0) {
+                dashboardSyncState.security.auditItems = auditItems;
+            }
+        } catch (err) {
+            console.warn("驾驶舱读取 GitHub 初始数据失败，继续使用内置展示数据。", err);
+        } finally {
+            refreshDashboardFromState();
+        }
+    }
+
+    function applyDashboardSyncPayload(payload) {
+        if (!payload || typeof payload !== "object") return;
+        const source = payload.source || payload.module || payload.type;
+        const data = payload.data || payload.records || payload.items || payload;
+        if (source === "SYNC_HEALTH_CERT" || source === "health" || source === "personnel") {
+            const records = normalizeHealthRecords(Array.isArray(data) ? data : (data.records || []));
+            if (records.length) {
+                dashboardSyncState.health.records = records;
+                morningCheckData = records;
+            }
+        } else if (source === "ingredient" || source === "SYNC_INGREDIENT_LEDGER") {
+            if (Array.isArray(data.ledgers || data)) dashboardSyncState.ingredient.ledgers = data.ledgers || data;
+            if (Array.isArray(data.suppliers)) dashboardSyncState.ingredient.suppliers = data.suppliers;
+            if (Array.isArray(data.pesticide)) dashboardSyncState.ingredient.pesticide = data.pesticide;
+        } else if (source === "processing" || source === "SYNC_PROCESSING_DASHBOARD") {
+            if (data.fridgeData) dashboardSyncState.processing.fridgeData = data.fridgeData;
+            if (data.fridgeGroups) {
+                // 如果带了timeLabels字段，优先更新时间轴
+                if (Array.isArray(data.timeLabels) && data.timeLabels.length > 0) fridgeTimeLabels = data.timeLabels.map(String);
+                dashboardSyncState.processing.fridgeData = convertFridgeGroups(data.fridgeGroups);
+            }
+            if (Array.isArray(data.timeLabels) && data.timeLabels.length > 0) fridgeTimeLabels = data.timeLabels.map(String);
+            if (data.hot) dashboardSyncState.processing.hot = data.hot;
+            if (data.cookData) dashboardSyncState.processing.hot = normalizeHotFromCookData(data.cookData);
+            if (Array.isArray(data.alerts)) dashboardSyncState.processing.alerts = data.alerts;
+        } else if (source === "security" || source === "SYNC_SECURITY_ISSUES") {
+            dashboardSyncState.security.issues = Array.isArray(data.issues || data) ? (data.issues || data) : [];
+        }
+        refreshDashboardFromState();
+    }
+
+    window.addEventListener("message", (event) => {
+        const payload = event.data;
+        if (!payload || typeof payload !== "object") return;
+        if (payload.type === "SYNC_HEALTH_CERT") {
+            applyDashboardSyncPayload({ source: "health", data: payload.data });
+        } else if (payload.type === "DASHBOARD_SYNC") {
+            applyDashboardSyncPayload(payload);
+        } else if (["SYNC_INGREDIENT_LEDGER", "SYNC_PROCESSING_DASHBOARD", "SYNC_SECURITY_ISSUES"].includes(payload.type)) {
+            applyDashboardSyncPayload({ source: payload.type, data: payload.data });
+        }
+    });
+
+    function requestIframeDashboardData() {
+        // 尝试直接读取本地 inden.html 文件
+        try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'inden.html', false); // 同步请求
+            xhr.send();
+            if (xhr.status === 200) {
+                const html = xhr.responseText;
+                // 尝试解析冰箱数据
+                const fridgeGroupsMatch = html.match(/const fridgeGroups\s*=\s*(\[[\s\S]*?\]);/);
+                if (fridgeGroupsMatch) {
+                    const fridgeGroups = eval(fridgeGroupsMatch[1]);
+                    if (fridgeGroups && fridgeGroups.length > 0) {
+                        // 更新时间轴标签
+                        const timeLabels = ['08:00', '10:00', '12:00', '14:00', '16:00', '实时'];
+                        applyDashboardSyncPayload({
+                            source: 'processing',
+                            data: { fridgeGroups, timeLabels }
+                        });
+                        console.log('驾驶舱从本地 inden.html 同步冰箱数据成功');
+                        return;
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('驾驶舱读取本地 inden.html 失败:', err);
+        }
+        // 如果本地读取失败，尝试向 iframe 发送消息
+        document.querySelectorAll(".iframe-view iframe").forEach(iframe => {
+            try { iframe.contentWindow.postMessage({ type: "REQUEST_DASHBOARD_DATA" }, "*"); }
+            catch (err) { console.warn("驾驶舱请求子页面数据失败:", err); }
+        });
+    }
+
+    refreshDashboardFromState();
+
+    // -------------- 视频逻辑 (改造为四分屏) --------------
+    const videoElements = [
+        document.getElementById("video1"),
+        document.getElementById("video2"),
+        document.getElementById("video3"),
+        document.getElementById("video4")
+    ];
+    let hlsPlayers = [], flvPlayers = [];
     const sources = {
         mp4: "https://www.w3schools.com/html/mov_bbb.mp4",
         hls: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
@@ -1362,23 +1814,34 @@
         document.querySelectorAll(".v-btn").forEach((btn) => btn.classList.remove("active"));
         if(btnElement) btnElement.classList.add("active");
 
-        if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
-        if (flvPlayer) { flvPlayer.destroy(); flvPlayer = null; }
-        videoElement.pause(); videoElement.removeAttribute("src"); videoElement.load();
+        // 销毁旧播放器实例
+        hlsPlayers.forEach(p => { if(p) p.destroy(); });
+        hlsPlayers = [];
+        flvPlayers.forEach(p => { if(p) p.destroy(); });
+        flvPlayers = [];
 
-        if (type === "mp4") {
-            videoElement.src = sources.mp4;
-            videoElement.play().catch(e=>{});
-        } else if (type === "hls" && Hls.isSupported()) {
-            hlsPlayer = new Hls(); hlsPlayer.loadSource(sources.hls);
-            hlsPlayer.attachMedia(videoElement);
-            hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => videoElement.play().catch(e=>{}));
-        } else if (type === "flv" && flvjs.isSupported()) {
-            flvPlayer = flvjs.createPlayer({ type: "flv", url: sources.flv });
-            flvPlayer.attachMediaElement(videoElement);
-            flvPlayer.load(); flvPlayer.play().catch(e=>{});
-        }
+        videoElements.forEach((vid) => {
+            vid.pause(); vid.removeAttribute("src"); vid.load();
+
+            if (type === "mp4") {
+                vid.src = sources.mp4;
+                vid.play().catch(e=>{});
+            } else if (type === "hls" && Hls.isSupported()) {
+                let player = new Hls();
+                player.loadSource(sources.hls);
+                player.attachMedia(vid);
+                player.on(Hls.Events.MANIFEST_PARSED, () => vid.play().catch(e=>{}));
+                hlsPlayers.push(player);
+            } else if (type === "flv" && flvjs.isSupported()) {
+                let player = flvjs.createPlayer({ type: "flv", url: sources.flv });
+                player.attachMediaElement(vid);
+                player.load();
+                player.play().catch(e=>{});
+                flvPlayers.push(player);
+            }
+        });
     }
+    // 默认加载mp4源
     switchVideo("mp4", document.getElementById("btn-mp4"));
 
     // -------------- ECharts 逻辑 --------------
@@ -1390,28 +1853,203 @@
     };
 
     const chartFridge = echarts.init(document.getElementById("chart-fridge"));
-    const fridgeData = {
-        "01": { name: "冷藏冰箱", data: [4.2, 5.5, 3.1, 6.8, 4.3, 7.0], color: "#54d3ff", areaColor: "rgba(84,211,255,0.28)" },
-        "02": { name: "冷冻冰箱", data: [-13.5, -14.2, -12.1, -15.5, -13.8, -14.5], color: "#4b7dff", areaColor: "rgba(75,125,255,0.26)" },
-        "03": { name: "留样冰箱", data: [2.1, 4.5, 3.0, 5.8, 2.2, 4.9], color: "#24d7a1", areaColor: "rgba(36,215,161,0.22)" }
+    // 冰箱数据：与加工制作页面（inden.html）完全一致，并增加留样设备
+    let fridgeData = {
+        "01": { name: "01 初加工冷藏", data: [8.0, 7.5, 6.2, 6.0, 5.3, 5.1], color: "rgb(0, 229, 255)", areaColor: "rgba(0,229,255,0.18)", group: "冷藏设备" },
+        "03": { name: "03 烹饪冷藏一", data: [6.5, 5.2, 5.8, 5.1, 4.8, 4.2], color: "rgb(249, 115, 22)", areaColor: "rgba(249,115,22,0.15)", group: "冷藏设备" },
+        "04": { name: "04 烹饪冷藏二", data: [4.1, 5.5, 3.2, 6.8, 4.3, 6.5], color: "rgb(250, 204, 21)", areaColor: "rgba(250,204,21,0.15)", group: "冷藏设备" },
+        "07": { name: "07 面点冷藏柜", data: [2.1, 2.8, 2.5, 3.5, 2.2, 2.5], color: "rgb(139, 92, 246)", areaColor: "rgba(139,92,246,0.14)", group: "冷藏设备" },
+        "02": { name: "02 初加工冷冻", data: [-15.5, -16.2, -14.8, -17.1, -15.4, -16.0], color: "rgb(59, 130, 246)", areaColor: "rgba(59,130,246,0.14)", group: "冷冻设备" },
+        "05": { name: "05 烹饪冷冻柜", data: [-18.5, -18.0, -19.2, -17.8, -18.5, -18.2], color: "rgb(239, 68, 68)", areaColor: "rgba(239,68,68,0.14)", group: "冷冻设备" },
+        "08": { name: "08 面点冷冻柜", data: [-12.5, -13.0, -12.2, -14.0, -13.5, -12.6], color: "rgb(236, 72, 153)", areaColor: "rgba(236,72,153,0.14)", group: "冷冻设备" },
+        "09": { name: "09 留样冰箱A", data: [2.1, 2.8, 3.0, 3.5, 2.5, 2.8], color: "rgb(36, 215, 161)", areaColor: "rgba(36,215,161,0.14)", group: "留样设备" },
+        "10": { name: "10 留样冰箱B", data: [3.0, 3.2, 2.8, 3.8, 2.9, 3.1], color: "rgb(59, 232, 182)", areaColor: "rgba(59,232,182,0.12)", group: "留样设备" }
     };
+    let fridgeRotatingIndex = 0; // 当前轮播到哪个分组
+    let fridgeRotateTimer = null;
+    const FRIDGE_ROTATE_INTERVAL = 5000; // 每组停留5秒
+
+    // 冷藏/冷冻/留样三组，每组包含该类型所有冰箱
+    const FRIDGE_GROUP_NAMES = ["冷藏设备", "冷冻设备", "留样设备"];
+
+    function syncFridgeOptions(nextData) {
+        if (!nextData || !Object.keys(nextData).length) return;
+        fridgeData = nextData;
+        fridgeRotatingIndex = 0;
+        updateFridgeChart();
+    }
+
+    function buildFridgeTimeLabels(dataLen) {
+        let timeLabels = [...fridgeTimeLabels];
+        if (dataLen === timeLabels.length + 1) {
+            timeLabels.push("实时");
+        } else if (dataLen !== timeLabels.length) {
+            const regularLen = dataLen > 6 ? dataLen - 1 : dataLen;
+            const startHour = 8, endHour = 18;
+            const step = (endHour - startHour) / Math.max(1, regularLen - 1);
+            timeLabels = Array.from({ length: regularLen }, (_, i) => {
+                const totalMin = (startHour + step * i) * 60;
+                const h = Math.floor(totalMin / 60);
+                const m = Math.round(totalMin % 60);
+                return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+            });
+            if (dataLen > 6) timeLabels.push("实时");
+        }
+        return timeLabels;
+    }
+
     function updateFridgeChart() {
-        const val = document.getElementById("fridgeSelector").value;
-        const conf = fridgeData[val];
+        const allKeys = Object.keys(fridgeData);
+        if (!allKeys.length) return;
+
+        // 按设备名称自动分组（匹配 group 字段或名称中的关键字）
+        const availableGroups = [];
+        allKeys.forEach(key => {
+            const item = fridgeData[key];
+            // 优先用 group 字段，否则从名称推断
+            let groupName = item.group || "";
+            if (!groupName) {
+                const n = (item.name || key).toLowerCase();
+                if (n.includes("冷藏")) groupName = "冷藏设备";
+                else if (n.includes("冷冻")) groupName = "冷冻设备";
+                else if (n.includes("留样")) groupName = "留样设备";
+                else groupName = "其他设备";
+            }
+            item._groupName = groupName;
+            if (!availableGroups.includes(groupName)) availableGroups.push(groupName);
+        });
+
+        // 确保 index 在合法范围
+        if (fridgeRotatingIndex >= availableGroups.length) fridgeRotatingIndex = 0;
+        const currentGroup = availableGroups[fridgeRotatingIndex];
+
+        // 筛选当前分组下的所有冰箱
+        const groupKeys = allKeys.filter(key => fridgeData[key]._groupName === currentGroup);
+        if (!groupKeys.length) return;
+
+        // 用第一台设备的数据长度构建时间轴
+        const timeLabels = buildFridgeTimeLabels(fridgeData[groupKeys[0]].data.length);
+
+        // 更新标签显示当前分组名称
+        const tagLabel = document.getElementById("fridgeTagLabel");
+        if (tagLabel) tagLabel.textContent = currentGroup + "监控";
+
+        // 构建多条折线（当前分组所有设备）
+        const series = groupKeys.map((key, idx) => {
+            const conf = fridgeData[key];
+            return {
+                name: conf.name,
+                type: "line",
+                smooth: true,
+                symbol: "circle",
+                symbolSize: 5,
+                showSymbol: true,
+                lineStyle: {
+                    width: 2.5,
+                    color: conf.color,
+                    shadowBlur: 8,
+                    shadowColor: conf.color + "66"
+                },
+                itemStyle: {
+                    color: conf.color,
+                    borderColor: "#fff",
+                    borderWidth: 1.5
+                },
+                endLabel: {
+                    show: true,
+                    formatter: `{c}℃`,
+                    color: conf.color,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    fontFamily: "DIN Alternate, monospace",
+                    offset: [6, 0]
+                },
+                label: { show: false },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: conf.areaColor || (conf.color + "28") },
+                        { offset: 1, color: "transparent" }
+                    ]),
+                    opacity: 0.35
+                },
+                emphasis: {
+                    focus: "series",
+                    lineStyle: { width: 3.5 }
+                },
+                data: conf.data
+            };
+        });
+
         chartFridge.setOption({
             ...commonOptions,
-            xAxis: { type: "category", data: ["08:00","10:00","12:00","14:00","16:00","18:00"], axisLine:{show:false}, axisTick:{show:false} },
-            yAxis: { type: "value", scale: true, splitLine: { lineStyle: { color: "rgba(163,193,244,0.08)", type:"dashed" } } },
-            series: [{
-                name: conf.name, type: "line", smooth: true, symbolSize: 6,
-                lineStyle: { width: 3, shadowBlur: 10, shadowColor: conf.color },
-                itemStyle: { color: conf.color, borderColor: "#fff" },
-                areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:conf.areaColor}, {offset:1, color:"transparent"}]) },
-                data: conf.data
-            }]
-        });
+            tooltip: {
+                trigger: "axis",
+                backgroundColor: "rgba(9, 20, 46, 0.94)",
+                borderColor: "rgba(110, 190, 255, 0.28)",
+                borderWidth: 1,
+                textStyle: { color: "#ffffff", fontSize: 12 },
+                formatter: function(params) {
+                    let tip = `<div style="font-weight:700;margin-bottom:6px;color:#54d3ff;">${params[0].axisValue}</div>`;
+                    params.forEach(p => {
+                        tip += `<div style="display:flex;align-items:center;gap:8px;margin:3px 0;">
+                            <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:${p.color};"></span>
+                            <span style="color:#c5d7ff;">${p.seriesName}</span>
+                            <span style="margin-left:auto;font-weight:700;font-family:monospace;color:${p.color};">${p.value}℃</span>
+                        </div>`;
+                    });
+                    return tip;
+                }
+            },
+            legend: { show: false },
+            grid: { top: 15, bottom: 25, left: 45, right: 65 },
+            xAxis: {
+                type: "category",
+                data: timeLabels,
+                axisLine: { show: true, lineStyle: { color: "rgba(132,181,255,0.2)" } },
+                axisTick: { show: true, alignWithLabel: true },
+                axisLabel: { color: "#7f98bf", fontSize: 10, interval: 0 }
+            },
+            yAxis: {
+                type: "value",
+                scale: true,
+                splitLine: { lineStyle: { color: "rgba(163,193,244,0.08)", type: "dashed" } },
+                axisLabel: { formatter: "{value}℃", fontSize: 10, color: "#7f98bf" }
+            },
+            series: series
+        }, true);
     }
+
+    // 启动冰箱图表自动轮播（按冷藏→冷冻→留样分组轮播）
+    function startFridgeRotation() {
+        stopFridgeRotation();
+        fridgeRotateTimer = setInterval(() => {
+            // 统计实际存在的分组数量
+            const allKeys = Object.keys(fridgeData);
+            const groups = [];
+            allKeys.forEach(key => {
+                const item = fridgeData[key];
+                let groupName = item.group || item._groupName || "";
+                if (!groupName) {
+                    const n = (item.name || key).toLowerCase();
+                    if (n.includes("冷藏")) groupName = "冷藏设备";
+                    else if (n.includes("冷冻")) groupName = "冷冻设备";
+                    else if (n.includes("留样")) groupName = "留样设备";
+                    else groupName = "其他设备";
+                }
+                if (!groups.includes(groupName)) groups.push(groupName);
+            });
+            if (groups.length <= 1) return;
+            fridgeRotatingIndex = (fridgeRotatingIndex + 1) % groups.length;
+            updateFridgeChart();
+        }, FRIDGE_ROTATE_INTERVAL);
+    }
+
+    function stopFridgeRotation() {
+        if (fridgeRotateTimer) { clearInterval(fridgeRotateTimer); fridgeRotateTimer = null; }
+    }
+
     updateFridgeChart();
+    startFridgeRotation();
 
     const chartEnv = echarts.init(document.getElementById("chart-env"));
     chartEnv.setOption({
@@ -1429,6 +2067,15 @@
         chartFridge.resize();
         chartEnv.resize();
     });
+    syncGitHubDefaults();
+    // 确保冰箱数据被设置
+    if (!dashboardSyncState.processing.fridgeData) {
+        dashboardSyncState.processing.fridgeData = fridgeData;
+    }
+    window.addEventListener("load", requestIframeDashboardData);
+    setTimeout(requestIframeDashboardData, 800);
+    // 每10秒重新同步一次
+    setInterval(requestIframeDashboardData, 10000);
 </script>
 </body>
 </html>
