@@ -1,1 +1,936 @@
   
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中味餐饮 - 风险评估报告系统</title>
+    <style>
+        :root {
+            --primary: #163b5c;
+            --secondary: #245a82;
+            --accent: #4f86b5;
+            --bg-color: #f2f5f8;
+            --form-bg: #ffffff;
+            --border: #c7d0d8;
+            --text-main: #17202a;
+            --text-muted: #5e6b76;
+            
+            --ok: #e8f4ea;
+            --ok-text: #1f6d35;
+            --warn: #fff3d7;
+            --warn-text: #8a5a00;
+            --danger: #fde4df;
+            --danger-text: #a13525;
+            --table-head: #e7eef5;
+            --table-border: #8fa1b2;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-color);
+            line-height: 1.55;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header-bar {
+            background-color: var(--primary);
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .header-bar h2 { margin: 0; font-size: 18px; font-weight: 600; }
+        .header-actions { display: flex; gap: 8px; }
+
+        #editor-section {
+            max-width: 1000px;
+            margin: 20px auto;
+            width: 100%;
+            padding: 0 16px;
+            padding-bottom: 80px;
+        }
+
+        .card {
+            background: var(--form-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(22, 59, 92, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 16px;
+            color: var(--primary);
+            border-left: 4px solid var(--accent);
+            padding-left: 10px;
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-row { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+        .form-col { flex: 1; min-width: 200px; }
+        
+        label { display: block; font-weight: bold; margin-bottom: 6px; color: #333; font-size: 13px; }
+        input[type="text"], input[type="date"], select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79, 134, 181, 0.15);
+        }
+        textarea { resize: vertical; min-height: 60px; }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-success { background: #27ae60; color: #fff; font-size: 15px; padding: 12px 20px; width: 100%; }
+        .btn-danger { background: #fff7f5; border: 1px solid #a84637; color: #8c2f24; padding: 6px 12px; }
+        .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text-main); }
+
+        .dynamic-item {
+            background: #f8fbfd;
+            border: 1px solid #d4e3f0;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+        .dynamic-item-header { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
+        .item-idx { font-weight: bold; color: var(--secondary); font-size: 14px;}
+
+        .photo-upload-row {
+            display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap;
+            background: #fff; padding: 12px; border-radius: 6px; border: 1px dashed var(--border);
+        }
+        .photo-upload-box { flex: 1; min-width: 200px; }
+        .photo-upload-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+        }
+        .photo-upload-header span { font-size: 13px; font-weight: bold; color: var(--secondary); }
+        .file-btn {
+            background: #eef5fa; color: var(--primary); border: 1px solid var(--accent);
+            padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; display: inline-block;
+        }
+        .file-btn input[type="file"] { display: none; }
+        
+        .photo-preview-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+        .photo-preview-item {
+            position: relative; width: 64px; height: 64px; border: 1px solid #ddd;
+            border-radius: 4px; overflow: hidden; background: #f9f9f9;
+        }
+        .photo-preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .photo-preview-item .del-btn {
+            position: absolute; top: 0; right: 0; background: rgba(220, 53, 69, 0.85); color: #fff;
+            border: none; width: 20px; height: 20px; font-size: 12px; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; padding: 0; border-bottom-left-radius: 4px;
+        }
+
+        #preview-section {
+            display: none; width: 100%; background: #8fa1b2; padding: 30px 0; overflow-y: auto;
+        }
+        .page {
+            width: 210mm; min-height: 297mm; margin: 0 auto 20px; padding: 16mm 15mm;
+            background: #ffffff; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3); color: #17202a; position: relative;
+        }
+
+        .doc-title { padding: 16px 10px 12px; border: 2px solid var(--primary); text-align: center; background: linear-gradient(180deg, #f8fbfd, #edf5fa); margin-bottom: 16px; }
+        .doc-title h1 { margin: 0; color: var(--primary); font-size: 24px; line-height: 1.3; font-weight: 800; }
+        .doc-title .subtitle { margin-top: 6px; color: var(--text-muted); font-size: 14px; }
+
+        .page h2 { margin: 16px 0 10px; padding: 6px 10px; border-left: 5px solid var(--primary); background: #eef5fa; color: var(--primary); font-size: 16px; line-height: 1.35; }
+        .page p { margin: 6px 0; font-size: 14px; text-indent: 2em; line-height: 1.6; text-align: justify; }
+        .page p.small-note { font-size: 12px; color: var(--text-muted); text-indent: 0; margin-top: 4px; }
+
+        .table-scroll { width: 100%; }
+        .page table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 8px 0 12px; font-size: 13px; }
+        .page th, .page td { border: 1px solid var(--table-border); padding: 6px; vertical-align: middle; word-break: break-word; }
+        .page th { background: var(--table-head); color: #143653; font-weight: bold; text-align: center; }
+        
+        .matrix-table th, .matrix-table td { text-align: center; }
+        .td-low { background: var(--ok); }
+        .td-mid { background: var(--warn); }
+        .td-high { background: var(--danger); }
+
+        .rating-badge { display: inline-block; padding: 4px 4px; border-radius: 4px; font-weight: bold; text-align: center; font-size: 11px; white-space: nowrap; }
+        .badge-low { background: var(--ok); color: var(--ok-text); }
+        .badge-mid { background: var(--warn); color: var(--warn-text); }
+        .badge-high { background: var(--danger); color: var(--danger-text); }
+        .center-text { text-align: center !important; }
+        
+        .img-in-table { display: block; width: 100%; max-width: 90px; margin: 3px auto; border: 1px solid #ddd; padding: 1px; }
+
+        .sign-area { height: 40px; }
+        .seal-area { height: 60px; }
+
+        .actions-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 12px 16px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; gap: 10px; z-index: 100; }
+        .actions-bar .btn { flex: 1; padding: 10px; }
+
+        @media (max-width: 768px) {
+            .header-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
+            .header-actions { width: 100%; justify-content: space-between; }
+            .header-actions .btn { flex: 1; }
+            #editor-section { padding: 0 10px 80px; margin-top: 12px; }
+            .card { padding: 16px; border-radius: 8px; margin-bottom: 12px; }
+            .form-row { flex-direction: column; gap: 10px; margin-bottom: 10px; }
+            .form-col { min-width: 100%; }
+            .photo-upload-row { flex-direction: column; }
+            
+            .page { width: 100%; min-height: auto; margin: 0; padding: 12px; box-shadow: none; border-radius: 0; }
+            #preview-section { padding: 0; background: #fff; padding-bottom: 80px; }
+            .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 10px; border: 1px solid var(--table-border); border-radius: 4px; }
+            .table-scroll table { min-width: 900px; margin: 0; border: none; }
+            .table-scroll table.meta-table { min-width: 100%; } 
+            
+            .actions-bar { padding: 10px; flex-wrap: wrap; }
+            .actions-bar .btn { min-width: 45%; }
+        }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: #fff; width: 90%; max-width: 340px; border-radius: 12px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(20px); transition: transform 0.2s;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-title { margin: 0 0 10px; font-size: 16px; color: var(--primary); font-weight: bold; }
+        .modal-body { margin-bottom: 20px; font-size: 14px; color: #444; line-height: 1.5; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+        @media print {
+            body { background: #fff; }
+            .header-bar, #editor-section, .actions-bar { display: none !important; }
+            #preview-section { display: block !important; padding: 0; background: #fff; overflow: visible; }
+            .page { width: 210mm; min-height: 297mm; margin: 0; padding: 15mm; box-shadow: none; border: none; page-break-after: always;}
+            .table-scroll { overflow-x: visible; border: none; }
+            .table-scroll table { min-width: 100%; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app">
+        <div class="header-bar">
+            <h2>🛡️ 闭环风险评估系统</h2>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="saveDraft()">💾 保存</button>
+                <button class="btn btn-outline" onclick="confirmClear()">🗑️ 重置</button>
+            </div>
+        </div>
+
+        <div id="editor-section">
+            <div class="card">
+                <h3 class="card-title">一、基本信息</h3>
+                <div class="form-row">
+                    <div class="form-col"><label>项目/食堂名称</label><input type="text" id="fi-project" placeholder="示例：XX项目员工食堂"></div>
+                    <div class="form-col"><label>经营/服务单位</label><input type="text" id="fi-company" placeholder="示例：XX餐饮管理有限公司"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label>评估地址</label><input type="text" id="fi-address" placeholder="填写详细地址"></div>
+                    <div class="form-col"><label>供餐规模</label><input type="text" id="fi-scale" placeholder="例如：早餐200人，午餐500人"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label>计划开餐日期</label><input type="date" id="fi-plan-date"></div>
+                    <div class="form-col"><label>评估日期</label><input type="date" id="fi-assess-date"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label>评估人员</label><input type="text" id="fi-assessor" placeholder="姓名/岗位"></div>
+                    <div class="form-col"><label>供餐形式</label><input type="text" id="fi-format" placeholder="例如：堂食/打包/自助"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">
+                    <span>二、开场前重点风险评估</span>
+                    <button class="btn btn-primary" style="font-size: 12px; padding: 6px 10px;" onclick="addChecklistItem()">+ 新增风险项</button>
+                </h3>
+                <div id="checklist-container">
+                    <!-- Checklists injected here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">
+                    <span>三、其他整改计划 (选填)</span>
+                    <button class="btn btn-primary" style="font-size: 12px; padding: 6px 10px;" onclick="addRectifyItem()">+ 新增项</button>
+                </h3>
+                <div id="rectify-container">
+                    <!-- Rectification items injected here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">四、评估结论</h3>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label>综合风险等级</label>
+                        <select id="fi-conc-level">
+                            <option value="低风险">低风险</option>
+                            <option value="中风险">中风险</option>
+                            <option value="高风险">高风险</option>
+                        </select>
+                    </div>
+                    <div class="form-col">
+                        <label>开餐建议</label>
+                        <select id="fi-conc-advice">
+                            <option value="可按期开餐">可按期开餐</option>
+                            <option value="完成高/中风险项整改后开餐">完成高/中风险项整改后开餐</option>
+                            <option value="暂缓开餐，待复核通过后实施">暂缓开餐，待复核通过后实施</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label>结论说明</label>
+                        <textarea id="fi-conc-remarks">经现场评估，项目开场前食品安全、消防燃气、设备设施及应急管理等条件总体情况为：____。对评估发现的问题，应按照整改闭环计划落实责任、措施和时限，复核通过后纳入日常安全管理。</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="btn btn-success" onclick="generatePreview()">📄 生成评估报告</button>
+            </div>
+        </div>
+
+        <div id="preview-section">
+            <div class="page" id="report-page-1">
+                <div class="doc-title">
+                    <h1>团餐食堂开场安全风险评估报告</h1>
+                    <div class="subtitle">适用于新项目开餐前、复工复产前、重大调整后及专项安全检查评估</div>
+                </div>
+
+                <h2>一、基本信息</h2>
+                <table class="meta-table">
+                    <tbody>
+                        <tr><th>项目/食堂名称</th><td id="out-project"></td><th>经营/服务单位</th><td id="out-company"></td></tr>
+                        <tr><th>评估地址</th><td id="out-address"></td><th>计划开餐日期</th><td id="out-plan-date"></td></tr>
+                        <tr><th>评估日期</th><td id="out-assess-date"></td><th>评估人员</th><td id="out-assessor"></td></tr>
+                        <tr><th>供餐规模</th><td id="out-scale"></td><th>供餐形式</th><td id="out-format"></td></tr>
+                    </tbody>
+                </table>
+
+                <h2>二、风险等级判定标准</h2>
+                <div class="table-scroll">
+                    <table class="matrix-table">
+                        <thead>
+                            <tr><th style="width:30%">发生可能性 \ 后果</th><th>轻微</th><th>一般</th><th>严重</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><th>低</th><td class="td-low">低风险</td><td class="td-low">低风险</td><td class="td-mid">中风险</td></tr>
+                            <tr><th>中</th><td class="td-low">低风险</td><td class="td-mid">中风险</td><td class="td-high">高风险</td></tr>
+                            <tr><th>高</th><td class="td-mid">中风险</td><td class="td-high">高风险</td><td class="td-high">高风险</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small-note">注：高风险项原则上应在开餐前完成整改并复核；中风险项应明确管控措施及限期整改。</p>
+
+                <h2>三、开场前重点风险评估表 (闭环管理)</h2>
+                <div class="table-scroll">
+                    <table id="out-checklist-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 4%;">序号</th>
+                                <th style="width: 8%;">风险类别</th>
+                                <th style="width: 13%;">现场情况/存在问题</th>
+                                <th style="width: 11%;">风险等级</th>
+                                <th style="width: 14%;">整改建议</th>
+                                <th style="width: 15%;">发现图片</th>
+                                <th style="width: 20%;">整改措施<br><span style="font-size:11px;font-weight:normal">(含责任人/时限)</span></th>
+                                <th style="width: 15%;">整改后图片</th>
+                            </tr>
+                        </thead>
+                        <tbody id="out-checklist-body">
+                            <!-- 动态注入带有图片的表格行 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page 2 -->
+            <div class="page" id="report-page-2">
+                <h2>四、其他整改计划</h2>
+                <div class="table-scroll">
+                    <table id="out-rectify-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 6%;">序号</th><th style="width: 27%;">问题描述</th><th style="width: 25%;">整改措施</th>
+                                <th style="width: 12%;">责任人</th><th style="width: 10%;">计划完成</th><th style="width: 10%;">复核结果</th><th style="width: 10%;">复核人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="out-rectify-body"></tbody>
+                    </table>
+                </div>
+
+                <h2>五、评估结论</h2>
+                <table style="table-layout: auto;">
+                    <tbody>
+                        <tr><th style="width: 120px;">综合风险等级</th><td id="out-conc-level"></td></tr>
+                        <tr><th>开餐建议</th><td id="out-conc-advice"></td></tr>
+                        <tr><th>结论说明</th><td id="out-conc-remarks"></td></tr>
+                    </tbody>
+                </table>
+
+                <h2>六、签字确认</h2>
+                <div class="table-scroll">
+                    <table>
+                        <tbody>
+                            <tr><th style="width: 20%;">评估人员</th><td class="sign-area" style="width: 30%;"></td><th style="width: 20%;">项目负责人</th><td class="sign-area" style="width: 30%;"></td></tr>
+                            <tr><th>安全负责人</th><td class="sign-area"></td><th>客户/甲方代表</th><td class="sign-area"></td></tr>
+                            <tr><th>确认日期</th><td id="out-sign-date"></td><th>盖章处</th><td class="seal-area"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="actions-bar" id="actions-bar" style="display: none;">
+                <button class="btn btn-outline" onclick="backToEdit()">← 修改</button>
+                <button class="btn btn-primary" onclick="exportWord()">📥 导出Word</button>
+                <button class="btn btn-primary" onclick="exportHtml()">🌐 导出HTML</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ 打印/PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h4 class="modal-title" id="modal-title">提示</h4>
+            <div class="modal-body" id="modal-body">内容</div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="modal-cancel" style="display:none;">取消</button>
+                <button class="btn btn-primary" id="modal-confirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "zhongwei_risk_closed_loop_v4";
+        
+        const RISK_CATEGORIES = [
+            "证照资质", "场所布局", "设施设备", "原料采购", 
+            "加工控制", "清洁消毒", "消防燃气", "应急管理", 
+            "虫害风险", "人身安全", "其他"
+        ];
+
+        // 全新的数据结构，支持前后图片组
+        const defaultChecklist = [
+            { 
+                cat: "场所布局", level: "高风险", status: "生熟流线偶有交叉风险", 
+                suggestion: "优化动线，增设明显标识和物理隔断", before_photos: [], 
+                measure: "已在地板张贴动线标识，设置了物理挡板。", after_photos: [],
+                owner: "张主管", deadline: "开餐前" 
+            }
+        ];
+
+        let state = {
+            checklist: [],
+            rectify: []
+        };
+
+        function showModal(title, msg, isConfirm = false, onConfirm = null) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = msg;
+            const btnCancel = document.getElementById('modal-cancel');
+            const btnConfirm = document.getElementById('modal-confirm');
+            const overlay = document.getElementById('custom-modal');
+            
+            if(isConfirm) {
+                btnCancel.style.display = 'block';
+                btnConfirm.onclick = () => { overlay.classList.remove('active'); if(onConfirm) onConfirm(); };
+                btnCancel.onclick = () => { overlay.classList.remove('active'); };
+            } else {
+                btnCancel.style.display = 'none';
+                btnConfirm.onclick = () => { overlay.classList.remove('active'); };
+            }
+            overlay.classList.add('active');
+        }
+
+        window.onload = () => {
+            document.getElementById('fi-assess-date').value = new Date().toISOString().split('T')[0];
+            if (!restoreDraft()) {
+                state.checklist = JSON.parse(JSON.stringify(defaultChecklist));
+                renderChecklist();
+                renderRectify();
+            }
+        };
+
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return dateString;
+            return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+        }
+
+        function getCategoryOptions(selectedCat) {
+            return RISK_CATEGORIES.map(cat => 
+                `<option value="${cat}" ${cat === selectedCat ? 'selected' : ''}>${cat}</option>`
+            ).join('');
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = '';
+            state.checklist.forEach((item, index) => {
+                
+                // 渲染预览图
+                const renderThumbs = (photos, type) => photos.map((p, pIdx) => `
+                    <div class="photo-preview-item">
+                        <img src="${p.src}">
+                        <button class="del-btn" onclick="removeRowPhoto(${index}, ${pIdx}, '${type}')">×</button>
+                    </div>
+                `).join('');
+
+                const html = `
+                    <div class="dynamic-item" id="chk-${index}">
+                        <div class="dynamic-item-header">
+                            <div class="item-idx">风险项 ${index + 1}</div>
+                            <button class="btn btn-danger" onclick="removeChecklistItem(${index})">删除</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><label>风险类别</label><select class="c-cat">${getCategoryOptions(item.cat)}</select></div>
+                            <div class="form-col">
+                                <label>风险等级</label>
+                                <select class="c-level">
+                                    <option value="低风险" ${item.level==='低风险'?'selected':''}>低风险</option>
+                                    <option value="中风险" ${item.level==='中风险'?'selected':''}>中风险</option>
+                                    <option value="高风险" ${item.level==='高风险'?'selected':''}>高风险</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col" style="flex:100%;"><label>现场情况/存在问题</label><textarea class="c-status">${item.status}</textarea></div>
+                            <div class="form-col" style="flex:100%;"><label>整改建议</label><textarea class="c-suggestion">${item.suggestion}</textarea></div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col"><label>整改责任人</label><input type="text" class="c-owner" value="${item.owner}" placeholder="姓名"></div>
+                            <div class="form-col"><label>完成时限</label><input type="text" class="c-deadline" value="${item.deadline}" placeholder="例如: 开餐前"></div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-col" style="flex:100%;"><label>整改落实措施</label><textarea class="c-measure">${item.measure}</textarea></div>
+                        </div>
+
+                        <div class="photo-upload-row">
+                            <div class="photo-upload-box">
+                                <div class="photo-upload-header">
+                                    <span>📸 发现图片</span>
+                                    <label class="file-btn">上传<input type="file" accept="image/*" multiple onchange="handleRowPhotos(this, ${index}, 'before')"></label>
+                                </div>
+                                <div class="photo-preview-grid">${renderThumbs(item.before_photos, 'before')}</div>
+                            </div>
+                            <div class="photo-upload-box" style="border-color: #27ae60;">
+                                <div class="photo-upload-header">
+                                    <span style="color:#27ae60">✅ 整改后图片</span>
+                                    <label class="file-btn" style="color:#27ae60;border-color:#27ae60">上传<input type="file" accept="image/*" multiple onchange="handleRowPhotos(this, ${index}, 'after')"></label>
+                                </div>
+                                <div class="photo-preview-grid">${renderThumbs(item.after_photos, 'after')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function addChecklistItem() {
+            syncChecklistState();
+            state.checklist.push({ cat: "证照资质", status: "", level: "中风险", suggestion: "", before_photos: [], measure: "", after_photos: [], owner: "", deadline: "开餐前" });
+            renderChecklist();
+        }
+
+        function removeChecklistItem(index) {
+            syncChecklistState();
+            state.checklist.splice(index, 1);
+            renderChecklist();
+        }
+
+        function syncChecklistState() {
+            const items = document.querySelectorAll('#checklist-container .dynamic-item');
+            items.forEach((item, idx) => {
+                if(state.checklist[idx]) {
+                    state.checklist[idx].cat = item.querySelector('.c-cat').value;
+                    state.checklist[idx].level = item.querySelector('.c-level').value;
+                    state.checklist[idx].status = item.querySelector('.c-status').value;
+                    state.checklist[idx].suggestion = item.querySelector('.c-suggestion').value;
+                    state.checklist[idx].measure = item.querySelector('.c-measure').value;
+                    state.checklist[idx].owner = item.querySelector('.c-owner').value;
+                    state.checklist[idx].deadline = item.querySelector('.c-deadline').value;
+                }
+            });
+        }
+
+        // 压缩图片以防止 localStorage 爆满
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    const max = 800; // 最大边长
+                    if (w > max || h > max) {
+                        if (w > h) { h = Math.round(h * max / w); w = max; }
+                        else { w = Math.round(w * max / h); h = max; }
+                    }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.6)); // 压缩率
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleRowPhotos(input, index, type) {
+            syncChecklistState();
+            const files = Array.from(input.files);
+            if (!files.length) return;
+
+            let loadedCount = 0;
+            files.forEach(file => {
+                if(file.type.startsWith('image/')) {
+                    compressImage(file, (dataUrl) => {
+                        if(type === 'before') state.checklist[index].before_photos.push({src: dataUrl});
+                        if(type === 'after') state.checklist[index].after_photos.push({src: dataUrl});
+                        
+                        loadedCount++;
+                        if(loadedCount === files.length) renderChecklist();
+                    });
+                } else {
+                    loadedCount++;
+                    if(loadedCount === files.length) renderChecklist();
+                }
+            });
+            input.value = ''; // Reset input
+        }
+
+        function removeRowPhoto(idx, photoIdx, type) {
+            syncChecklistState();
+            if(type === 'before') state.checklist[idx].before_photos.splice(photoIdx, 1);
+            if(type === 'after') state.checklist[idx].after_photos.splice(photoIdx, 1);
+            renderChecklist();
+        }
+
+        function renderRectify() {
+            const container = document.getElementById('rectify-container');
+            container.innerHTML = '';
+            if(state.rectify.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted); font-size:13px; text-align:center;">暂无额外整改项</p>';
+                return;
+            }
+            state.rectify.forEach((item, index) => {
+                const html = `
+                    <div class="dynamic-item" id="rec-${index}">
+                        <div class="dynamic-item-header">
+                            <div class="item-idx">整改项 ${index + 1}</div>
+                            <button class="btn btn-danger" onclick="removeRectifyItem(${index})">删除</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><label>问题描述</label><textarea class="r-prob" rows="2">${item.prob || ''}</textarea></div>
+                            <div class="form-col"><label>整改措施</label><textarea class="r-meas" rows="2">${item.meas || ''}</textarea></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><label>责任人</label><input type="text" class="r-owner" value="${item.owner || ''}"></div>
+                            <div class="form-col"><label>计划完成时间</label><input type="text" class="r-date" value="${item.date || ''}"></div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+        function addRectifyItem() { syncRectifyState(); state.rectify.push({ prob: "", meas: "", owner: "", date: "" }); renderRectify(); }
+        function removeRectifyItem(index) { syncRectifyState(); state.rectify.splice(index, 1); renderRectify(); }
+        function syncRectifyState() {
+            state.rectify = [];
+            document.querySelectorAll('#rectify-container .dynamic-item').forEach(item => {
+                state.rectify.push({
+                    prob: item.querySelector('.r-prob').value, meas: item.querySelector('.r-meas').value,
+                    owner: item.querySelector('.r-owner').value, date: item.querySelector('.r-date').value
+                });
+            });
+        }
+
+        function generatePreview() {
+            syncChecklistState();
+            syncRectifyState();
+
+            // 基本信息绑定
+            ['project', 'company', 'address', 'assessor', 'scale', 'format'].forEach(k => {
+                document.getElementById(`out-${k}`).innerText = document.getElementById(`fi-${k}`).value || '/';
+            });
+            document.getElementById('out-plan-date').innerText = formatDate(document.getElementById('fi-plan-date').value) || '/';
+            const assessDateStr = document.getElementById('fi-assess-date').value;
+            document.getElementById('out-assess-date').innerText = formatDate(assessDateStr) || '/';
+            document.getElementById('out-sign-date').innerText = formatDate(assessDateStr) || '/';
+
+            // 核心风险闭环表格拼接
+            let chkHtml = '';
+            state.checklist.forEach((item, index) => {
+                let badge = 'badge-mid';
+                if(item.level === '高风险') badge = 'badge-high';
+                if(item.level === '低风险') badge = 'badge-low';
+
+                const beforeImgs = item.before_photos.map(p => `<img src="${p.src}" class="img-in-table">`).join('');
+                const afterImgs = item.after_photos.map(p => `<img src="${p.src}" class="img-in-table">`).join('');
+                
+                let measureStr = item.measure.replace(/\n/g, '<br>');
+                if(item.owner || item.deadline) {
+                    measureStr += `<div style="margin-top:6px; font-size:11px; color:#555; padding-top:4px; border-top:1px dashed #ccc;">
+                                    <b>责任人:</b> ${item.owner || '/'} <br> <b>限期:</b> ${item.deadline || '/'}
+                                   </div>`;
+                }
+
+                chkHtml += `
+                    <tr>
+                        <td class="center-text">${index + 1}</td>
+                        <td class="center-text">${item.cat}</td>
+                        <td>${item.status.replace(/\n/g, '<br>')}</td>
+                        <td class="center-text"><span class="rating-badge ${badge}">${item.level}</span></td>
+                        <td>${item.suggestion.replace(/\n/g, '<br>')}</td>
+                        <td class="center-text" style="padding:4px">${beforeImgs || '<span style="color:#aaa;font-size:11px">无</span>'}</td>
+                        <td>${measureStr}</td>
+                        <td class="center-text" style="padding:4px">${afterImgs || '<span style="color:#aaa;font-size:11px">未上传</span>'}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('out-checklist-body').innerHTML = chkHtml || '<tr><td colspan="8" class="center-text">暂无风险项</td></tr>';
+
+            // 其他整改计划拼接
+            let recHtml = '';
+            if (state.rectify.length === 0) {
+                recHtml = `<tr><td colspan="7" class="center-text" style="color: #888; padding: 15px;">无附加整改项</td></tr>`;
+            } else {
+                state.rectify.forEach((item, index) => {
+                    recHtml += `<tr>
+                        <td class="center-text">${index + 1}</td>
+                        <td>${item.prob.replace(/\n/g, '<br>')}</td><td>${item.meas.replace(/\n/g, '<br>')}</td>
+                        <td class="center-text">${item.owner}</td><td class="center-text">${item.date}</td>
+                        <td class="center-text">待复核</td><td class="center-text"></td>
+                    </tr>`;
+                });
+            }
+            document.getElementById('out-rectify-body').innerHTML = recHtml;
+
+            // 结论勾选拼接
+            const levelVal = document.getElementById('fi-conc-level').value;
+            document.getElementById('out-conc-level').innerHTML = ['低风险', '中风险', '高风险'].map(v => 
+                v === levelVal ? `☑ <b>${v}</b>` : `□ ${v}`
+            ).join('　');
+
+            const adviceVal = document.getElementById('fi-conc-advice').value;
+            document.getElementById('out-conc-advice').innerHTML = ["可按期开餐", "完成高/中风险项整改后开餐", "暂缓开餐，待复核通过后实施"].map(v => 
+                v === adviceVal ? `<div>☑ <b>${v}</b></div>` : `<div>□ ${v}</div>`
+            ).join('');
+            
+            document.getElementById('out-conc-remarks').innerText = document.getElementById('fi-conc-remarks').value;
+
+            // UI 切换
+            document.getElementById('editor-section').style.display = 'none';
+            document.querySelector('.header-bar').style.display = 'none';
+            document.getElementById('preview-section').style.display = 'block';
+            document.getElementById('actions-bar').style.display = 'flex';
+            window.scrollTo(0, 0);
+        }
+
+        function backToEdit() {
+            document.getElementById('editor-section').style.display = 'block';
+            document.querySelector('.header-bar').style.display = 'flex';
+            document.getElementById('preview-section').style.display = 'none';
+            document.getElementById('actions-bar').style.display = 'none';
+            window.scrollTo(0, 0);
+        }
+
+        function saveDraft() {
+            syncChecklistState(); syncRectifyState();
+            const draft = {
+                basic: {
+                    project: document.getElementById('fi-project').value, company: document.getElementById('fi-company').value,
+                    address: document.getElementById('fi-address').value, scale: document.getElementById('fi-scale').value,
+                    planDate: document.getElementById('fi-plan-date').value, assessDate: document.getElementById('fi-assess-date').value,
+                    assessor: document.getElementById('fi-assessor').value, format: document.getElementById('fi-format').value
+                },
+                conc: {
+                    level: document.getElementById('fi-conc-level').value, advice: document.getElementById('fi-conc-advice').value, remarks: document.getElementById('fi-conc-remarks').value
+                },
+                state: state
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+                showModal('成功', '草稿已安全保存到本地浏览器。');
+            } catch (e) {
+                showModal('保存失败', '可能是由于照片过多导致存储超限，请尝试删除不必要的图片。');
+            }
+        }
+
+        function restoreDraft() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const draft = JSON.parse(saved);
+                ['project','company','address','scale','planDate','assessDate','assessor','format'].forEach(k => {
+                    const el = document.getElementById(`fi-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}`);
+                    if(el) el.value = draft.basic[k] || '';
+                });
+                document.getElementById('fi-conc-level').value = draft.conc.level || '低风险';
+                document.getElementById('fi-conc-advice').value = draft.conc.advice || '可按期开餐';
+                document.getElementById('fi-conc-remarks').value = draft.conc.remarks || '';
+
+                if (draft.state) {
+                    state = draft.state;
+                    renderChecklist();
+                    renderRectify();
+                }
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function confirmClear() {
+            showModal('重置确认', '确定要清空所有数据吗？未保存的内容将丢失。', true, () => {
+                localStorage.removeItem(STORAGE_KEY); location.reload();
+            });
+        }
+
+        function getExportContent() {
+            const reportPages = [
+                document.getElementById('report-page-1').cloneNode(true),
+                document.getElementById('report-page-2').cloneNode(true)
+            ];
+            
+            let contentHtml = '';
+            reportPages.forEach((page, idx) => {
+                const imgs = page.querySelectorAll('img');
+                imgs.forEach(img => {
+                    // 内联样式适配 Word 和 HTML 识别
+                    img.style.width = '100px';
+                    img.style.height = 'auto';
+                    img.style.display = 'block';
+                    img.style.margin = '5px auto';
+                });
+                
+                const scrolls = page.querySelectorAll('.table-scroll');
+                scrolls.forEach(el => { el.style.overflowX = 'visible'; el.style.border = 'none'; });
+
+                contentHtml += page.outerHTML;
+                if (idx < reportPages.length - 1) contentHtml += '<br clear="all" style="page-break-before:always" />';
+            });
+
+            // 统一合并使用同一套强一致的 CSS
+            const css = `
+                body { font-family: "SimSun", "宋体", sans-serif; line-height: 1.5; color: #000; background: #fff; }
+                .page { width: 100%; margin: 0; padding: 0; }
+                .doc-title { text-align: center; margin-bottom: 20px; border: 2px solid #163b5c; padding: 15px; background: #f8fbfd; }
+                .doc-title h1 { color: #163b5c; font-size: 20pt; margin: 0; }
+                .doc-title .subtitle { color: #666; font-size: 11pt; margin-top: 5px; }
+                h2 { background: #eef5fa; color: #163b5c; font-size: 13pt; padding: 5px; border-left: 5px solid #163b5c; margin: 15px 0 10px; }
+                p { font-size: 10.5pt; text-indent: 2em; text-align: justify; margin: 5px 0; }
+                table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; table-layout: fixed; word-wrap: break-word; }
+                th, td { border: 1px solid #000; padding: 5px; text-align: left; vertical-align: middle; word-break: break-all; }
+                th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
+                .center-text, .matrix-table th, .matrix-table td { text-align: center; }
+                .rating-badge { font-weight: bold; padding: 3px 4px; font-size: 11px; white-space: nowrap; border-radius: 4px; display: inline-block; }
+                .badge-low { background-color: #e8f4ea; color: #1f6d35; }
+                .badge-mid { background-color: #fff3d7; color: #8a5a00; }
+                .badge-high { background-color: #fde4df; color: #a13525; }
+                .sign-area { height: 40px; } .seal-area { height: 60px; }
+                .small-note { font-size: 9pt; color: #666; text-indent: 0; }
+            `;
+            return { html: contentHtml, css: css };
+        }
+
+        function downloadFile(content, ext, mimeType) {
+            const blob = new Blob(['\ufeff', content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            let projName = document.getElementById('fi-project').value.trim() || '未命名项目';
+            let dateStr = document.getElementById('fi-assess-date').value || new Date().toISOString().slice(0, 10);
+            
+            a.href = url;
+            a.download = `${projName}_闭环评估_${dateStr}.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportWord() {
+            const data = getExportContent();
+            const wordDoc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+            <head><meta charset="utf-8"><title>评估报告</title><style>${data.css}</style></head>
+            <body><div class="WordSection1">${data.html}</div></body></html>`;
+
+            downloadFile(wordDoc, 'doc', 'application/msword;charset=utf-8');
+        }
+
+        function exportHtml() {
+            const data = getExportContent();
+            const htmlDoc = `<!DOCTYPE html>
+            <html lang="zh-CN">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>评估报告</title>
+                <style>
+                    ${data.css}
+                    body { background: #f0f2f5; padding: 20px 0; }
+                    .page { max-width: 210mm; margin: 0 auto 20px; padding: 15mm; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 4px; background: #fff; }
+                    @media (max-width: 768px) {
+                        body { padding: 0; }
+                        .page { padding: 10px; box-shadow: none; border-radius: 0; }
+                    }
+                </style>
+            </head>
+            <body>${data.html}</body>
+            </html>`;
+
+            downloadFile(htmlDoc, 'html', 'text/html;charset=utf-8');
+        }
+    </script>
+</body>
+</html>
