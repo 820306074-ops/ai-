@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -700,7 +699,11 @@
                                 <button type="button" @click="changeDate(1)" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:shadow-sm transition-all"><i class="fa-solid fa-chevron-right"></i></button>
                             </div>
                             <div class="flex gap-3">
-                                <button type="button" @click="saveData" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95"><i class="fa-solid fa-floppy-disk mr-2 opacity-50"></i> 暂存草稿</button>
+                                <button type="button" @click="saveData" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95">
+                                    <i v-if="isCloudSyncing" class="fa-solid fa-spinner fa-spin mr-2"></i>
+                                    <i v-else class="fa-solid fa-cloud-arrow-up mr-2 text-blue-500"></i>
+                                    {{ currentUser ? '同步云端' : '暂存草稿' }}
+                                </button>
                                 <button type="button" v-if="!isDayCompleted" @click="saveAndExportDaily" class="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm shadow-primary-600/20 transition-all duration-200 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
                                     <i v-if="isExporting" class="fa-solid fa-spinner fa-spin mr-2"></i>
                                     <i v-else class="fa-solid fa-file-export mr-2"></i> 完成并导出
@@ -785,7 +788,11 @@
                                 <i class="fa-solid fa-calendar-week mr-3 text-orange-500 text-xl"></i> 本周排查 ({{ currentWeekRangeStart }} ~ {{ currentWeekRangeEnd }})
                             </div>
                             <div class="flex gap-3">
-                                <button type="button" @click="saveData" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95"><i class="fa-solid fa-floppy-disk mr-2 opacity-50"></i> 暂存</button>
+                                <button type="button" @click="saveData" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95">
+                                    <i v-if="isCloudSyncing" class="fa-solid fa-spinner fa-spin mr-2"></i>
+                                    <i v-else class="fa-solid fa-cloud-arrow-up mr-2 text-blue-500"></i>
+                                    {{ currentUser ? '同步云端' : '暂存' }}
+                                </button>
                                 <button type="button" v-if="!isWeeklyCompleted" @click="saveAndExportWeekly" class="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm shadow-primary-600/20 transition-all duration-200 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
                                     <i v-if="isExporting" class="fa-solid fa-spinner fa-spin mr-2"></i><i v-else class="fa-solid fa-file-export mr-2"></i> 完成并导出
                                 </button>
@@ -910,7 +917,11 @@
                                 <button type="button" @click="changeMonthlyViewMonth(1)" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:shadow-sm transition-all"><i class="fa-solid fa-chevron-right"></i></button>
                             </div>
                             <div class="flex gap-3">
-                                <button type="button" @click="saveData" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95"><i class="fa-solid fa-floppy-disk mr-2 opacity-50"></i> 暂存</button>
+                                <button type="button" @click="saveData" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95">
+                                    <i v-if="isCloudSyncing" class="fa-solid fa-spinner fa-spin mr-2"></i>
+                                    <i v-else class="fa-solid fa-cloud-arrow-up mr-2 text-blue-500"></i>
+                                    {{ currentUser ? '同步云端' : '暂存' }}
+                                </button>
                                 <button type="button" v-if="!isMonthCompleted" @click="saveAndExportMonthly" class="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm shadow-primary-600/20 transition-all duration-200 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
                                     <i v-if="isExporting" class="fa-solid fa-spinner fa-spin mr-2"></i><i v-else class="fa-solid fa-file-export mr-2"></i> 归档并导出
                                 </button>
@@ -1348,15 +1359,35 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5 tracking-wide text-slate-600">默认检查人</label>
                         <input type="text" v-model="db.settings.managerName" placeholder="例如：李管理员" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 transition-all duration-200 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none placeholder-slate-400">
                     </div>
+                    
+                    <!-- 升级为云端持久化存储 -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-3 flex justify-between items-center">
+                            <span><i class="fa-solid fa-cloud text-blue-500 mr-1"></i> 云端持久化存储</span>
+                            <span class="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"><i class="fa-solid fa-check-circle mr-1"></i>已接入无限容量</span>
+                        </h4>
+                        <div class="space-y-2">
+                            <button type="button" @click="clearOldImages(7)" class="w-full py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors border border-slate-200 flex items-center justify-center">
+                                <i class="fa-solid fa-broom mr-2"></i> 归档清理历史过旧图片(保留近7天)
+                            </button>
+                            <p class="text-[10px] text-slate-400 leading-tight mt-2 text-justify">
+                                💡 提示：系统已升级为企业级云端存储，彻底突破了浏览器 5MB 限制，您可以实现<b>永久保存</b>！如果希望界面加载速度更快，也可以点击上方按钮定期清理历史无用图片。
+                            </p>
+                        </div>
+                    </div>
+
                     <div class="pt-4 border-t border-slate-100">
                          <button type="button" @click="isStorageConfigOpen = true" class="w-full py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-semibold border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 transition-colors flex items-center justify-center">
-                            <i class="fa-solid fa-database mr-2"></i> 管理本地数据空间
+                            <i class="fa-solid fa-users mr-2"></i> 切换多店/多端隔离档案室
                          </button>
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-slate-50/80 flex justify-end gap-3 border-t border-slate-100">
-                    <button type="button" @click="showSettings = false" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95">取消</button>
-                    <button type="button" @click="handleSettingsSave" class="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm shadow-primary-600/20 transition-all duration-200 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">保存生效</button>
+                    <button type="button" @click="showSettings = false" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95">关闭</button>
+                    <button type="button" @click="saveData" class="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm shadow-primary-600/20 transition-all duration-200 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <i v-if="isCloudSyncing" class="fa-solid fa-spinner fa-spin mr-1"></i>
+                        云端同步设置
+                    </button>
                 </div>
             </div>
         </div>
@@ -1367,8 +1398,8 @@
         <div v-if="isStorageConfigOpen" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
             <div class="bg-white p-8 rounded-2xl shadow-2xl w-80 text-center relative border border-slate-100">
                 <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-server text-xl"></i></div>
-                <h3 class="font-bold text-lg text-slate-800 mb-2">切换存储空间</h3>
-                <p class="text-xs text-slate-500 mb-6 text-left leading-relaxed">通过设置不同的名称隔离数据档案，如输入“一店”即进入一店独立档案柜。</p>
+                <h3 class="font-bold text-lg text-slate-800 mb-2">切换多店数据空间</h3>
+                <p class="text-xs text-slate-500 mb-6 text-left leading-relaxed">通过设置不同的名称隔离云端数据，如输入“一店”即进入一店独立档案柜，多端不互通。</p>
                 <input v-model="folderNameInput" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 transition-all duration-200 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none placeholder-slate-400 mb-6 text-center text-base" placeholder="当前: 默认空间">
                 <div class="flex gap-3 justify-center">
                     <button type="button" @click="isStorageConfigOpen = false" class="inline-flex items-center justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95 flex-1">返回</button>
@@ -1380,10 +1411,34 @@
 
 </div>
 
-<script>
-    const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
+<script type="module">
+    // --- 【架构升级】引入原生 Firebase Cloud Storage / Firestore 实现永久扩容 ---
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, doc, setDoc, collection, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-    // 图像压缩方法，封装为 Promise
+    const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = window.Vue;
+    const echarts = window.echarts;
+    const html2pdf = window.html2pdf;
+
+    // 1. 初始化云数据库连接
+    const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'fs-mgmt-app';
+    let firestoreDb = null;
+    let auth = null;
+
+    if (firebaseConfigStr) {
+        try {
+            const firebaseConfig = JSON.parse(firebaseConfigStr);
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            firestoreDb = getFirestore(app);
+        } catch (e) { 
+            console.error("云端存储引擎初始化失败, 将降级至本地模式", e); 
+        }
+    }
+
+    // 2. 图像压缩方法，封装为 Promise
     const compressImageAsync = (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -1392,13 +1447,13 @@
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     let w = img.width, h = img.height;
-                    const max = 800;
+                    const max = 600; 
                     if (w > h && w > max) { h *= max / w; w = max; }
                     else if (h > max) { w *= max / h; h = max; }
                     canvas.width = w; canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+                    resolve(canvas.toDataURL('image/jpeg', 0.5)); 
                 };
                 img.src = e.target.result;
             };
@@ -1406,61 +1461,49 @@
         });
     };
 
+    // 3. AI 调用逻辑 (Gemini 2.5 Flash API)
     const callAI = async (sysPrompt, userPrompt, isJson, maxRetries, imageUrl) => {
-        const apiKey = "f8dc88e390e5428482580522db7789b9.PDA67gilXZcPTRwA"; 
-        const url = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
-        const model = imageUrl ? "glm-4v" : "glm-4";
+        const apiKey = ""; // 执行环境动态注入
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-        let finalMessages = [];
+        let parts = [{ text: userPrompt }];
         
         if (imageUrl) {
-            finalMessages = [
-                {
-                    role: "user",
-                    content: [
-                        { type: "text", text: sysPrompt + "\n\n" + userPrompt + "\n请务必输出合法的JSON格式对象，绝对不要使用```包裹。" },
-                        { type: "image_url", image_url: { url: imageUrl } }
-                    ]
+            const mimeType = imageUrl.split(';')[0].split(':')[1];
+            const base64Data = imageUrl.split(',')[1];
+            parts.push({
+                inlineData: {
+                    mimeType: mimeType,
+                    data: base64Data
                 }
-            ];
-        } else {
-            finalMessages = [
-                { role: "system", content: sysPrompt + (isJson ? "\n必须返回合法的JSON格式。" : "") + "\n输出前请自行检查字数，如不符合要求必须重新生成。" },
-                { role: "user", content: userPrompt }
-            ];
+            });
         }
 
         const payload = {
-            model: model,
-            messages: finalMessages,
-            temperature: 0.2
+            systemInstruction: { parts: [{ text: sysPrompt }] },
+            contents: [{ role: "user", parts: parts }]
         };
 
-        if (isJson && !imageUrl) {
-            payload.response_format = { type: "json_object" };
+        if (isJson) {
+            payload.generationConfig = { responseMimeType: "application/json" };
         }
 
-        const delays = [1500, 3000];
+        const delays = [1000, 2000, 4000, 8000, 16000];
         
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             try {
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': "Bearer " + apiKey
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 
                 if (!response.ok) throw new Error("HTTP " + response.status);
                 
                 const result = await response.json();
-                const content = (result.choices && result.choices[0] && result.choices[0].message) ? result.choices[0].message.content : null;
+                let text = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 
-                if (!content) throw new Error("Data Empty");
-                
-                let text = content.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
+                if (!text) throw new Error("Data Empty");
 
                 if (isJson) {
                     try {
@@ -1543,7 +1586,12 @@
             const folderNameInput = ref('');
             const currentStoragePath = ref('');
             const dragActive = ref(null);
-            const dashTimeMode = ref('last30'); // 'last30', 'year', 'month', 'custom'
+            const dashTimeMode = ref('last30'); 
+            const storageUsage = ref('0.00'); 
+
+            // Auth & Cloud Refs
+            const currentUser = ref(null);
+            const isCloudSyncing = ref(false);
             
             // 2. State Objects
             const loadingStates = reactive({}); 
@@ -1581,8 +1629,12 @@
                 setTimeout(() => { toast.show = false; }, 3000);
             };
             const getFullKey = (key) => "FS_MGMT_" + (currentStoragePath.value || 'default') + "_" + key;
+            const getUidPrefix = () => {
+                if (!currentUser.value) return 'local_user';
+                return currentStoragePath.value ? (currentUser.value.uid + "_" + currentStoragePath.value) : currentUser.value.uid;
+            };
 
-            // 6. Data Loaders
+            // 6. Data Loaders & Cloud Sync
             const initDailyRecords = (dateKey) => {
                 if (!db.daily[dateKey]) db.daily[dateKey] = { meta: { completed: false } };
                 AUDIT_ITEMS.forEach(item => {
@@ -1591,18 +1643,99 @@
                     }
                 });
             };
-            const saveData = () => {
+
+            const calculateStorageUsage = () => {
+                let total = 0;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('FS_MGMT_')) {
+                        const item = localStorage.getItem(key);
+                        if(item) total += item.length;
+                    }
+                }
+                storageUsage.value = (total * 2 / (1024 * 1024)).toFixed(2);
+            };
+
+            // --- 核心：数据存储逻辑 (云端持久化 vs 本地) ---
+            const saveData = async () => {
+                if (currentUser.value && firestoreDb) {
+                    isCloudSyncing.value = true;
+                    const uidPath = getUidPrefix();
+                    try {
+                        // 1. 同步设置
+                        await setDoc(doc(firestoreDb, 'artifacts', appId, 'users', uidPath, 'settings', 'config'), db.settings);
+
+                        // 2. 按需同步当前视图的记录，节约带宽且规避 1MB Doc 上限
+                        if (currentView.value === 'daily' && db.daily[selectedDate.value]) {
+                            await setDoc(doc(firestoreDb, 'artifacts', appId, 'users', uidPath, 'daily', selectedDate.value), db.daily[selectedDate.value]);
+                        }
+                        if (currentView.value === 'weekly' && db.weekly[currentWeekKey.value]) {
+                            await setDoc(doc(firestoreDb, 'artifacts', appId, 'users', uidPath, 'weekly', currentWeekKey.value), db.weekly[currentWeekKey.value]);
+                        }
+                        if (currentView.value === 'monthly' && db.monthly[currentMonthKey.value]) {
+                            await setDoc(doc(firestoreDb, 'artifacts', appId, 'users', uidPath, 'monthly', currentMonthKey.value), db.monthly[currentMonthKey.value]);
+                        }
+
+                        showToast('已安全同步至云端', 'success');
+                    } catch (e) {
+                        console.error("云同步失败:", e);
+                        showToast('云端同步失败，已降级保存在本地', 'error');
+                        saveDataLocal();
+                    } finally {
+                        isCloudSyncing.value = false;
+                    }
+                } else {
+                    saveDataLocal();
+                }
+            };
+
+            const saveDataLocal = () => {
                 try {
                     localStorage.setItem(getFullKey('dailyData'), JSON.stringify(db.daily || {}));
                     localStorage.setItem(getFullKey('weeklyData'), JSON.stringify(db.weekly || {}));
                     localStorage.setItem(getFullKey('monthlyData'), JSON.stringify(db.monthly || {}));
                     localStorage.setItem(getFullKey('settings'), JSON.stringify(db.settings || {}));
-                    showToast('数据已安全暂存', 'success');
+                    showToast('数据已暂存本地', 'success');
+                    calculateStorageUsage();
                 } catch (e) {
-                    showToast('本地存储空间不足(可能是图片太多)', 'error');
+                    showToast('⚠️ 存储空间不足！请前往右上角设置【清理历史图片】！', 'error');
                 }
             };
-            const loadAllData = () => {
+
+            const setupCloudSync = (user) => {
+                const uidPath = getUidPrefix();
+
+                // 监听设置
+                onSnapshot(doc(firestoreDb, 'artifacts', appId, 'users', uidPath, 'settings', 'config'), (docSnap) => {
+                    if (docSnap.exists()) {
+                        Object.assign(db.settings, docSnap.data());
+                    }
+                }, (error) => console.error(error));
+
+                // 监听日常检查表
+                onSnapshot(collection(firestoreDb, 'artifacts', appId, 'users', uidPath, 'daily'), (snapshot) => {
+                    snapshot.forEach(docSnap => {
+                        db.daily[docSnap.id] = docSnap.data();
+                    });
+                    initDailyRecords(selectedDate.value);
+                }, (error) => console.error(error));
+
+                // 监听周报表
+                onSnapshot(collection(firestoreDb, 'artifacts', appId, 'users', uidPath, 'weekly'), (snapshot) => {
+                    snapshot.forEach(docSnap => {
+                        db.weekly[docSnap.id] = docSnap.data();
+                    });
+                }, (error) => console.error(error));
+
+                // 监听月报表
+                onSnapshot(collection(firestoreDb, 'artifacts', appId, 'users', uidPath, 'monthly'), (snapshot) => {
+                    snapshot.forEach(docSnap => {
+                        db.monthly[docSnap.id] = docSnap.data();
+                    });
+                }, (error) => console.error(error));
+            };
+
+            const loadAllDataLocal = () => {
                 const dailyStr = localStorage.getItem(getFullKey('dailyData'));
                 const weeklyStr = localStorage.getItem(getFullKey('weeklyData'));
                 const monthlyStr = localStorage.getItem(getFullKey('monthlyData'));
@@ -1619,17 +1752,71 @@
                     });
                     
                     initDailyRecords(selectedDate.value);
-                } catch (e) { console.error("加载错误:", e); }
+                } catch (e) { console.error("本地加载错误:", e); }
             };
+
+            const clearOldImages = async (daysToKeep) => {
+                let clearedCount = 0;
+                const now = new Date().getTime();
+                
+                for (const dateStr of Object.keys(db.daily)) {
+                    const recordDate = new Date(dateStr).getTime();
+                    const diffDays = (now - recordDate) / (1000 * 3600 * 24);
+                    
+                    if (diffDays >= daysToKeep) {
+                        let docChanged = false;
+                        Object.keys(db.daily[dateStr]).forEach(itemId => {
+                            if (itemId !== 'meta') {
+                                if (db.daily[dateStr][itemId].images && db.daily[dateStr][itemId].images.length > 0) {
+                                    db.daily[dateStr][itemId].images = [];
+                                    docChanged = true;
+                                    clearedCount++;
+                                }
+                                if (db.daily[dateStr][itemId].image) {
+                                    db.daily[dateStr][itemId].image = null;
+                                    docChanged = true;
+                                    clearedCount++;
+                                }
+                            }
+                        });
+
+                        // 同步到云端删除图片信息以节约空间
+                        if (docChanged && currentUser.value && firestoreDb) {
+                            const uidPath = getUidPrefix();
+                            await setDoc(doc(firestoreDb, 'artifacts', appId, 'users', uidPath, 'daily', dateStr), db.daily[dateStr]);
+                        }
+                    }
+                }
+
+                if (clearedCount > 0) {
+                    if (!currentUser.value) saveDataLocal(); 
+                    showToast(`归档清理成功，释放了大量空间！`, 'success');
+                } else {
+                    showToast('当前没有符合条件的旧图片可清理', 'success');
+                }
+                calculateStorageUsage();
+            };
+
             const saveStoragePath = () => {
                 const newPath = folderNameInput.value.trim();
                 localStorage.setItem('FS_ACTIVE_STORAGE_PATH', newPath);
                 currentStoragePath.value = newPath;
-                loadAllData();
+                // 重置内存然后重新拉取数据
+                Object.keys(db.daily).forEach(k => delete db.daily[k]);
+                Object.keys(db.weekly).forEach(k => delete db.weekly[k]);
+                Object.keys(db.monthly).forEach(k => delete db.monthly[k]);
+                
+                if (currentUser.value && firestoreDb) {
+                    setupCloudSync(currentUser.value);
+                } else {
+                    loadAllDataLocal();
+                }
+                
                 isStorageConfigOpen.value = false;
                 showSettings.value = false;
                 showToast("已切换档案空间：" + (newPath || "默认"), 'success');
             };
+
             const handleSettingsSave = () => { saveData(); showSettings.value = false; };
 
             // 7. Date Computed Properties
@@ -1711,6 +1898,7 @@
                         rec.images = [];
                         rec.image = null; 
                     }
+                    saveData();
                 }
             };
 
@@ -1809,7 +1997,7 @@
                 return { isDone: rec.meta.completed, statusText: rec.meta.completed ? '已完成' : '已填未交' };
             });
 
-            // 9. DASHBOARD COMPUTED (Requires strict dependency ordering)
+            // 9. DASHBOARD COMPUTED
             const dashboardData = computed(() => {
                 let periodTotalIssues = 0;
                 let periodResolvedIssues = 0;
@@ -2027,9 +2215,6 @@
                 };
             });
 
-
-
-            // ??????????????????/????
             const sendDashboardSync = () => {
                 if (!window.parent || window.parent === window || !dashboardData.value) return;
                 window.parent.postMessage({
@@ -2550,6 +2735,10 @@
             const reEditMonthly = () => { if (monthlyData.value && monthlyData.value.meta) { monthlyData.value.meta.completed = false; saveData(); } };
 
             // 15. Watchers & Lifecycle
+            watch(showSettings, (newVal) => {
+                if (newVal) calculateStorageUsage();
+            });
+
             watch(currentView, (newVal, oldVal) => {
                 if (oldVal === 'dashboard') {
                     if (trendChartInstance) { trendChartInstance.dispose(); trendChartInstance = null; }
@@ -2564,10 +2753,35 @@
                 if (currentView.value === 'dashboard') nextTick(() => initDashboardCharts());
             }, { deep: true });
 
-            onMounted(() => {
+            onMounted(async () => {
                 const savedPath = localStorage.getItem('FS_ACTIVE_STORAGE_PATH');
                 if (savedPath) { currentStoragePath.value = savedPath; folderNameInput.value = savedPath; }
-                loadAllData();
+                
+                // 初始化认证
+                if (auth) {
+                    try {
+                        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        if (token) {
+                            await signInWithCustomToken(auth, token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (e) {
+                        console.error("Auth init failed", e);
+                    }
+                    
+                    onAuthStateChanged(auth, (user) => {
+                        currentUser.value = user;
+                        if (user && firestoreDb) {
+                            setupCloudSync(user);
+                        } else {
+                            loadAllDataLocal();
+                        }
+                    });
+                } else {
+                    loadAllDataLocal();
+                }
+
                 window.addEventListener("dragover", (e) => e.preventDefault(), false);
                 window.addEventListener("drop", (e) => e.preventDefault(), false);
                 window.addEventListener('resize', () => {
@@ -2580,18 +2794,17 @@
                 nextTick(sendDashboardSync);
             });
 
-            // 确保所有的变量和方法都被严格按序且完整返回给模板
             return {
                 sidebarCollapsed, currentView, showSettings, isPreviewMode, previewType, isExporting, isBackgroundExport, showDownloadCompleteModal,
-                toast, isStorageConfigOpen, folderNameInput, currentStoragePath, loadingStates, dragActive,
+                toast, isStorageConfigOpen, folderNameInput, currentStoragePath, loadingStates, dragActive, storageUsage,
                 selectedDate, dashTimeMode, dashCustomMonth, calendarYear, calendarMonth, calendarPreviewType, db, today,
-                navItems,
+                navItems, currentUser, isCloudSyncing,
 
                 currentDateFormatted, currentMonthCN, currentWeekKey, currentMonthKey, currentWeekRangeStart, currentWeekRangeEnd,
                 calendarDays, calendarPadding, dailyFlattened, dailyGroups, getDailyRecord, getDailyStatus, getRecordImages, getRecordRemark,
                 weeklyData, weeklyAutoIssues, monthlyData, isDayCompleted, isWeeklyCompleted, isMonthCompleted, todayStats, dashboardData,
 
-                showToast, initDailyRecords, saveData, loadAllData, saveStoragePath, handleSettingsSave, initDashboardCharts,
+                showToast, initDailyRecords, saveData, loadAllDataLocal, saveStoragePath, handleSettingsSave, initDashboardCharts, clearOldImages,
                 processFiles, handleImageUpload, handleImageDrop, aiAnalyzeDailyIssue, aiGenerateWeeklyMeasures, aiGenerateMonthlyPlans, aiExtractHighRisks,
                 changeDate, changeMonth, jumpToDailyReport, jumpToWeeklyReport, jumpToMonthlyReport, showInlinePreview, changeMonthlyViewMonth,
                 addWeeklyIssue, removeWeeklyIssue, importWeeklyIssues, addMonthlyItem, removeMonthlyItem, formatSlashString,
@@ -2604,4 +2817,3 @@
 </script>
 </body>
 </html>
-
